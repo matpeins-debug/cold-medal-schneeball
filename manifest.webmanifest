@@ -1,0 +1,10 @@
+{
+  "name": "Cold Medal · Schneeball",
+  "short_name": "Schneeball",
+  "start_url": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#162442",
+  "theme_color": "#162442",
+  "lang": "de"
+}
