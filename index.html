@@ -122,6 +122,21 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
 .patch::after { content: ""; position: absolute; left: 50%; bottom: -9px; width: 2px; height: 8px; background: var(--ink-deep); }
 .patch:active { transform: translate(calc(-50% + 2px), calc(-100% + 2px)); box-shadow: 0 0 0 var(--ink-deep); }
 
+/* Ballkorb: fertige Bälle vom Helfer */
+#rack { position: absolute; right: 12px; top: 50px; width: 430px; background: var(--paper); border: 3px solid var(--ink-deep); box-shadow: 4px 4px 0 rgba(0,0,0,0.35); padding: 8px 10px 9px; pointer-events: auto; }
+.rkHead { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.rkHead b { font-family: var(--font-display); font-size: 15px; letter-spacing: 0.03em; text-transform: uppercase; white-space: nowrap; }
+.rkHead .mid { padding: 6px 10px; font-size: 12px; }
+.rkGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 7px 0 6px; }
+.rkBall { display: flex; align-items: center; gap: 5px; padding: 3px 5px 3px 2px; border: 2px solid var(--ink-deep); background: #FBF6EA; text-align: left; min-width: 0; }
+.rkBall canvas { width: 46px; height: 46px; flex: none; }
+.rkBall span { display: flex; flex-direction: column; min-width: 0; font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.03em; font-size: 11px; font-weight: 700; line-height: 1.15; }
+.rkBall small { font-family: var(--font-body); text-transform: none; letter-spacing: 0; font-weight: 400; font-size: 10.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rkBall i { font-style: normal; font-size: 10px; padding: 0 4px; margin-top: 1px; align-self: flex-start; border: 1px solid var(--ink-deep); }
+.rkBall i.gut { background: var(--green); color: var(--paper); } .rkBall i.locker { background: #D9C7A4; } .rkBall i.eis { background: var(--ice); }
+.rkBall:active { transform: translate(1px, 1px); }
+.rkFoot { font-size: 11.5px; color: var(--muted); line-height: 1.3; }
+
 /* Formen */
 #form { position: absolute; right: 12px; top: 50px; width: 400px; background: var(--paper); border: 3px solid var(--ink-deep); box-shadow: 4px 4px 0 rgba(0,0,0,0.35); padding: 8px 10px 10px; pointer-events: auto; }
 .fSizes { display: flex; gap: 6px; }
@@ -297,6 +312,11 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
     <button class="ibtn" id="abort" aria-label="Zurück zum Menü">×</button>
     <div id="hint" hidden></div>
     <div id="patches"></div>
+    <div id="rack" hidden>
+      <div class="rkHead"><div><div class="kicker" id="rkKick"></div><b id="rkWho"></b></div><button class="mid" id="rkSelf">Selbst formen</button></div>
+      <div class="rkGrid" id="rkGrid"></div>
+      <div class="rkFoot" id="rkFoot"></div>
+    </div>
     <div id="form" hidden>
       <div class="fSizes" id="fSizes"></div>
       <div class="fMain">
@@ -6375,8 +6395,7 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
     c.clearRect(0, 0, w, h);
     const cx = w / 2, cy = h / 2 + 6;
     // Papierkreis als Lupe
-    c.fillStyle = "#E9EEF2"; c.beginPath(); c.arc(cx, cy, w * 0.47, 0, TAU); c.fill();
-    c.strokeStyle = INK; c.lineWidth = 2; c.stroke();
+    if (st.hands !== false) { c.fillStyle = "#E9EEF2"; c.beginPath(); c.arc(cx, cy, w * 0.47, 0, TAU); c.fill(); c.strokeStyle = INK; c.lineWidth = 2; c.stroke(); }
     const b = st.ball;
     if (!b) return;
     const d = P.SIZE[b.size].d, R0 = 26 + (d - 0.052) * 1100;
@@ -6409,7 +6428,8 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
     if (loose > 0.05 || b.type === "harsch") { c.fillStyle = `rgba(120,140,170,${0.25 + loose * 0.3})`; for (let i = 0; i < 26; i++) { const a = r() * TAU, q = Math.sqrt(r()) * 0.85; c.fillRect(Math.cos(a) * rx * q, Math.sin(a) * ry * q, 1.6, 1.6); } }
     if (icy > 0.2) { c.strokeStyle = `rgba(255,255,255,${icy})`; c.lineWidth = 3; c.beginPath(); c.arc(-rx * 0.15, -ry * 0.15, rx * 0.6, Math.PI * 1.1, Math.PI * 1.45); c.stroke(); }
     if (b.type === "nass") { c.fillStyle = "rgba(90,130,170,0.6)"; c.beginPath(); c.ellipse(rx * 0.3, ry * 1.05 + (t * 30 % 14), 2, 3, 0, 0, TAU); c.fill(); }
-    // Hände links und rechts (Handschuhe)
+    // Hände links und rechts (Handschuhe); im Ballkorb ohne Hände
+    if (st.hands === false) { c.restore(); return; }
     const gl = st.glove, hc = gl === "ohne" ? (st.skin || "#E2B48F") : gl === "leder" ? "#5A3A24" : gl === "faust" ? "#2F5D8A" : (st.suit || "#C23B2A");
     for (const sgn of [-1, 1]) {
       c.save(); c.translate(sgn * (rx + 16 - sq * 6), 4); c.scale(sgn, 1);
@@ -6516,7 +6536,7 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Wettkampf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.1";
+  const VERSION = "0.1.1";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender;
@@ -6705,16 +6725,74 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
     return Ph.PATCHES.map((p) => ({ id: p.id, x: p.x, z: p.id === "huette" ? 3.6 : p.id === "baum" ? 1.3 : p.id === "weg" ? 0.4 : -1.6, type: Ph.snowAt(p.id, G.cond).type, sel: p.id === sel }));
   }
   const PATCH_SUB = { weg: "festgetreten", baum: "im Schatten", huette: "an der Wand", feld: "offen" };
+  // ------------------------------------------------------------------ Ballkorb: ein Helfer hat fertige Bälle bereit (Mat 12.11.2026: nicht jedes Mal laufen und formen)
+  // Bessere Helfer schaltet man mit Medaillen frei; sie lesen den Schnee besser und formen gleichmäßiger.
+  const HELPERS = [
+    { id: "hansi", name: "Hansi", say: "Bub vom Dorf", sk: 0.4, ok: () => true },
+    { id: "resi", name: "Resi", say: "Tochter vom Hüttenwirt", sk: 0.68, ok: () => S.medals.some((x) => x) || S.comps >= 3, lock: "nach der ersten Medaille oder drei Wettkämpfen" },
+    { id: "gian", name: "Gian", say: "Bergführer aus Pontresina", sk: 0.9, ok: () => S.medals[0] > 0, lock: "nach der ersten Goldmedaille" },
+  ];
+  const helper = () => HELPERS.filter((h) => h.ok()).pop();
+  function makeRack() {
+    const h = helper(), r = Ph.rng(Ph.hash(G.seed, "korb", G.n, h.id)), best = Ph.bestChoice(G.cond), out = [];
+    for (let i = 0; i < 6; i++) {
+      // ein guter Helfer holt öfter den besten Schnee und die passende Größe
+      const pid = i < 4 ? Ph.PATCHES[i].id : r() < h.sk ? best.patch : Ph.PATCHES[Math.floor(r() * 4)].id;
+      const sn = Ph.snowAt(pid, G.cond);
+      const size = r() < 0.25 + h.sk * 0.5 ? best.size : Ph.SIZES[Math.floor(r() * 3)].id;
+      const b = Ph.newBall(sn.type, size, sn.q, S.glove), ice = Ph.iceAt(b);
+      b.f = Math.round(clamp(Math.min(0.8, ice - 0.1) + Ph.gauss(r) * (0.05 + (1 - h.sk) * 0.3), 0.2, 1.3) * 1000) / 1000;
+      b.n = 6; b.accSum = 6 * clamp(0.45 + h.sk * 0.5 + Ph.gauss(r) * 0.08, 0, 1);
+      out.push({ ball: b, patch: pid });
+    }
+    return out;
+  }
+  const STATE_TXT = { gut: "fest", locker: "locker", eis: "Eisball" };
   function beginAttempt() {
-    G.phase = "pick"; G.ball = null; G.fl = null; G.tape = null; G.judge = { flag: null, at: 0 }; G.focus = null; G.crumbs = [];
-    G.th = { x: START_X, z: 0, dir: -1, pose: F.POSES.stand, vx: 0 };
-    G.patches = patchList(null);
-    setCam(-9.2, 36, true);
-    $("res").hidden = true; $("form").hidden = true;
-    hint("Wo holst du Schnee?", "top");
-    buildPatchButtons();
+    G.phase = "rack"; G.ball = null; G.fl = null; G.tape = null; G.judge = { flag: null, at: 0 }; G.focus = null; G.crumbs = [];
+    G.th = { x: START_X, z: 0, dir: 1, pose: F.POSES.stand, vx: 0 };
+    G.patches = null;
+    setCam(1.6, 46, true);
+    $("res").hidden = true; $("form").hidden = true; $("patches").innerHTML = "";
+    hint(null);
+    const h = helper(), nx = HELPERS[HELPERS.indexOf(h) + 1];
+    G.rack = makeRack();
+    $("rkKick").textContent = "WÄHL DEINEN BALL";
+    $("rkWho").textContent = `${h.name}s Korb · ${h.say}`;
+    $("rkFoot").textContent = nx ? `${nx.name} (${nx.say}) hilft dir ${nx.lock}: bessere Bälle.` : "Gian formt die besten Bälle im Tal.";
+    const grid = $("rkGrid"); grid.innerHTML = "";
+    const L = myLook();
+    G.rack.forEach((it, i) => {
+      const b = it.ball, st = Ph.state(b), el = document.createElement("button");
+      el.className = "rkBall"; el.dataset.i = i;
+      el.innerHTML = `<canvas width="92" height="92"></canvas><span>${esc(Ph.SIZE[b.size].name)}<small>${esc(Ph.SNOW[b.type].name)}</small><i class="${st}">${STATE_TXT[st]}</i></span>`;
+      const c = el.firstChild.getContext("2d"); c.scale(0.46, 0.46);
+      R.drawBallClose(c, 200, 200, { ball: b, hands: false }, 0);
+      el.onclick = (e) => { e.stopPropagation(); takeRack(i); };
+      grid.appendChild(el);
+    });
+    $("rack").hidden = false;
     updChips();
   }
+  function takeRack(i) {
+    if (!G || G.phase !== "rack") return;
+    const it = G.rack[i];
+    G.ball = it.ball; G.pick = { id: it.patch, type: it.ball.type, q: it.ball.q, helper: helper().name };
+    $("rack").hidden = true;
+    AU.scoop();
+    ready();
+  }
+  // selbst Schnee holen und formen (der beste Ball, wenn man es kann)
+  function beginPick() {
+    if (!G || G.phase !== "rack") return;
+    $("rack").hidden = true;
+    G.phase = "pick"; G.th.dir = -1;
+    G.patches = patchList(null);
+    setCam(-9.2, 36);
+    hint("Wo holst du Schnee?", "top");
+    buildPatchButtons();
+  }
+  $("rkSelf").onclick = (e) => { e.stopPropagation(); beginPick(); };
   function buildPatchButtons() {
     const box = $("patches"); box.innerHTML = "";
     for (const p of G.patches) {
@@ -6739,7 +6817,7 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
     const p = G.patches.find((q) => q.id === id), s = Ph.snowAt(id, G.cond);
     G.patches = patchList(id);
     G.pick = { id, type: s.type, q: s.q, x: p.x + 0.95, z: p.z };
-    G.phase = "walk"; G.walk = { to: G.pick.x, toZ: p.z, then: "scoop", sp: 3.2 };
+    G.phase = "walk"; G.walk = { to: G.pick.x, toZ: p.z, then: "scoop", sp: 6 };
     hint(null);
   }
 
@@ -6802,7 +6880,7 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
   function formDone() {
     if (!G || G.phase !== "form" || !G.ball) return;
     $("form").hidden = true; hint(null);
-    G.phase = "walk"; G.walk = { to: START_X, toZ: 0, then: "ready", sp: 3.4 };
+    G.phase = "walk"; G.walk = { to: START_X, toZ: 0, then: "ready", sp: 6 };
     G.patches = patchList(null).filter((p) => p.id !== G.pick.id).concat(patchList(G.pick.id).filter((p) => p.id === G.pick.id));
   }
   $("fDone").onclick = (e) => { e.stopPropagation(); formDone(); };
@@ -6893,7 +6971,7 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
     // Kamera weich nachführen
     const k = 1 - Math.exp(-dt * (G.phase === "fly" ? 5 : 3.2));
     cam.ppm += (camT.ppm - cam.ppm) * k; cam.cx += (camT.cx - cam.cx) * k;
-    if (G.phase === "pick") { th.pose = F.ease(th.pose, F.idle(R.POSE.hold, now, 0.7), dt); }
+    if (G.phase === "pick" || G.phase === "rack") { th.pose = F.ease(th.pose, F.idle(R.POSE.hold, now, 0.7), dt); }
     if (G.phase === "walk") {
       const w = G.walk, d = w.to - th.x, dz = w.toZ - th.z;
       th.dir = d >= 0 ? 1 : -1;
@@ -7023,7 +7101,7 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
     const facts = [];
     if (G.ball) {
       const st = Ph.state(G.ball);
-      facts.push([`${Ph.SIZE[G.ball.size].name} · ${Ph.SNOW[G.ball.type].name}`, ""]);
+      facts.push([`${Ph.SIZE[G.ball.size].name} · ${Ph.SNOW[G.ball.type].name}` + (G.pick && G.pick.helper ? ` · von ${G.pick.helper}` : ""), ""]);
       facts.push([st === "eis" ? "Eisball" : st === "locker" ? "zu locker" : "gut geformt", st === "gut" ? "g" : "w"]);
     }
     if (res.why !== "foul") {
@@ -7053,7 +7131,7 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
     showStand();
   };
   $("rAlt").onclick = (e) => { e.stopPropagation(); $("res").hidden = true; G.shown = false; openReport("train"); };
-  $("abort").onclick = (e) => { e.stopPropagation(); ptr = null; G = null; hint(null); $("patches").innerHTML = ""; fillMenu(); show("scrMenu"); };
+  $("abort").onclick = (e) => { e.stopPropagation(); ptr = null; G = null; hint(null); $("patches").innerHTML = ""; $("rack").hidden = true; $("form").hidden = true; fillMenu(); show("scrMenu"); };
 
   // ------------------------------------------------------------------ Zwischenstand und Endstand
   const MED = ["#DDA43B", "#B8BEC8", "#B5713E"];
@@ -7171,7 +7249,7 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
     step(sec) { const n = Math.ceil(sec / 0.02); for (let i = 0; i < n; i++) update(sec / n); render(); },
     open(mode, seed) { G = newGame(mode, seed); rpMode = mode; fillReport(); show("scrReport"); },
     go() { $("rpGo").click(); },
-    pick: pickPatch, size: chooseSize, done: formDone,
+    pick(id) { if (G.phase === "rack") beginPick(); pickPatch(id); }, size: chooseSize, done: formDone, take: takeRack, self: beginPick, HELPERS,
     // Drücken genau im Takt (off = Versatz in Sekunden)
     pressBeats(n, off) { for (let i = 0; i < n; i++) { const ph = ((now - G.form.t0) / BEAT) % 1; this.step((1 - ph) * BEAT + (off || 0) + 0.0001); formPress(); this.step(0.05); } },
     // Wurf per Wischen: hold = Sekunden Anlauf, dann Wischen mit Winkel und Tempo (Bühnen-px/s)
