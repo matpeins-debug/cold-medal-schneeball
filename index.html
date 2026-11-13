@@ -466,14 +466,13 @@ table.mini tr.me td { background: var(--gold); }
   ];
   const PATCH = Object.fromEntries(PATCHES.map((p) => [p.id, p]));
   const TODS = { morning: "Morgen", afternoon: "Mittag", evening: "Abend" };
-  const SKIES = { klar: "klar", neu: "Neuschnee", foehn: "Föhn", grau: "bedeckt" };
+  const SKIES = { klar: "sonnig", grau: "bedeckt", neu: "Schneefall", sturm: "Schneesturm" };   // vier Wetterlagen (Mat 13.11.2026)
 
-  // Gefühlte Temperatur des Schnees an einem Fleck: Sonne wärmt (an der Hauswand am meisten), Schatten kühlt, Föhn wärmt überall
+  // Gefühlte Temperatur des Schnees an einem Fleck: Sonne wärmt (an der Hauswand am meisten), Schatten kühlt
   function teff(p, c) {
-    const sunK = c.sky === "grau" || c.sky === "neu" ? 0.35 : 1;
+    const sunK = c.sky === "sturm" ? 0.1 : c.sky === "grau" || c.sky === "neu" ? 0.35 : 1;
     let t = c.temp + (p.sun[c.tod] || 0) * (p.wall ? 2.4 : 1.5) * sunK;
     if (p.shade) t -= 1.6;
-    if (c.sky === "foehn") t += 2.5;
     return t;
   }
   // Welcher Schnee liegt wo? Ergebnis { type, q } mit q = Güte (0,7 … 1,05), wie gut dieser Schnee gerade bindet
@@ -484,12 +483,12 @@ table.mini tr.me td { background: var(--gold); }
     else if (t >= -1.6) {
       // um 0 °C pappt er; Neuschnee im Schatten bleibt locker, morgens nach Tauwetter liegt Harsch, wo es gestern nass war
       if (c.thaw && c.tod === "morning" && !p.shade && t < -0.6) type = "harsch";
-      else if (c.sky === "neu" && p.shade) type = "pulver";
+      else if ((c.sky === "neu" || c.sky === "sturm") && p.shade) type = "pulver";
       else type = "papp";
       q = 1.05 - Math.abs(t) * 0.05;
     } else if (p.packed || (c.thaw && !p.shade)) { type = "harsch"; q = 1 - Math.min(0.2, (-1.6 - t) * 0.03); }
     else { type = "pulver"; q = 1 - Math.min(0.3, (-1.6 - t) * 0.03); }
-    if (c.sky === "neu" && type === "harsch") type = "pulver";   // frischer Schnee deckt den Harsch zu
+    if ((c.sky === "neu" || c.sky === "sturm") && type === "harsch") type = "pulver";   // frischer Schnee deckt den Harsch zu
     return { type, q: clamp(q, 0.7, 1.05), t: Math.round(t * 10) / 10 };
   }
 
@@ -502,12 +501,13 @@ table.mini tr.me td { background: var(--gold); }
       seed: seed >>> 0, alt: o.alt != null ? o.alt : 1856,
       temp: Math.round((-9 + r() * 12) * 2) / 2,
       tod: tods[Math.floor(r() * 3)],
-      sky: ["klar", "klar", "neu", "foehn", "grau"][Math.floor(r() * 5)],
+      sky: ["klar", "klar", "grau", "neu", "sturm"][Math.floor(r() * 5)],
       thaw: r() < 0.35,
     };
-    const ws = c.sky === "foehn" ? 4.5 : 2.6;
-    c.wind = { x: Math.round((r() * 2 - 1) * ws * 10) / 10, z: Math.round((r() * 2 - 1) * ws * 0.6 * 10) / 10, gust: Math.round((c.sky === "foehn" ? 1.4 : 0.5 + r() * 0.7) * 10) / 10 };
-    if (c.sky === "foehn") c.temp = Math.max(c.temp, 0.5 + Math.round(r() * 6) / 2);
+    const st = c.sky === "sturm", ws = st ? 5.5 : c.sky === "klar" ? 2.0 : 2.6;
+    c.wind = { x: Math.round((r() * 2 - 1) * ws * 10) / 10, z: Math.round((r() * 2 - 1) * ws * 0.6 * 10) / 10, gust: Math.round((st ? 1.8 + r() * 0.6 : 0.5 + r() * 0.7) * 10) / 10 };
+    if (st) { c.wind.x = (c.wind.x < 0 ? -1 : 1) * Math.max(3, Math.abs(c.wind.x)); c.temp = Math.min(c.temp, -5 - Math.round(r() * 8) / 2); c.thaw = false; }
+    if (c.sky === "klar" && c.tod !== "evening") c.temp = Math.min(6, c.temp + 1.5);
     return Object.assign(c, o.override || {});
   }
   // Wind zur Zeit t (Böen als glattes Rauschen aus dem Seed); für alle gleich
@@ -6692,11 +6692,11 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 
   // ------------------------------------------------------------------ Zeichnen
   function create(dpr0) {
-    let pano = null, panoKey = "", dpr = dpr0 || 1, world = buildWorld(1, "SUI"), tod = "afternoon", skyK = "klar";
+    let pano = null, panoKey = "", dpr = dpr0 || 1, world = buildWorld(1, "SUI"), tod = "afternoon", skyK = "klar", windK = 0;
     const R = {
       POSE, RUN, IMP, THROW, T_REL, kit, use3d: false, W, H, GY, BACK, HOR, ZB, KF, make,
       setDpr(v) { if (Math.abs(v - dpr) > 0.01) { dpr = v; panoKey = ""; } },
-      setScene(seed, theme, sky) { tod = theme; skyK = sky || "klar"; world = buildWorld(seed, "SUI"); panoKey = ""; },
+      setScene(seed, theme, sky, wx) { tod = theme; skyK = sky || "klar"; windK = wx || 0; world = buildWorld(seed, "SUI"); panoKey = ""; },
       get tod() { return tod; },
       draw,
       drawFig,
@@ -6749,6 +6749,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       PAN.drawSky(ctx, pano, HOR, 0, 1, W, H, t);
       PAN.drawPanorama(ctx, pano, pc, HOR, 0, 1, W, H, t, null);
       const night = KB.themeName() === "evening";
+      skyMood(ctx, BACK, night, t);
       // Bäume hinter dem Platz
       for (const tr of world.trees) fir(ctx, X(tr.x, tr.z), Y(0, tr.z), tr.h * S(tr.z), night);
       // Boden: Schneefeld zwischen Zaun und Bildrand
@@ -6824,10 +6825,10 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
         snowball(ctx, X(b.x, b.z), Y(b.y, b.z), rr, b);
       }
       if (V.arc) angleArc(ctx, M, V.arc, t);
-      if (V.arc && V.arc.lane) beatLane(ctx, V.arc.lane);
       if (V.thrower) breath(ctx, M, V.thrower, t);
       weather(ctx, t, cam.cx);
       grade(ctx, night);
+      if (V.arc && V.arc.lane) beatLane(ctx, V.arc.lane);
       if (V.after) V.after(ctx, M);
     }
 
@@ -7257,15 +7258,46 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
         c.beginPath(); c.arc(bx + dir * a * 9 * s, by - a * 4 * s, r, 0, TAU); c.arc(bx + dir * (a * 9 + 3) * s, by - (a * 4 + 1.5) * s, r * 0.7, 0, TAU); c.fill();
       }
     }
-    // leiser Schneefall bei Neuschnee und grauem Himmel (ohne Zustand, aus der Zeit gerechnet)
+    // Wetter über Himmel und Bergen: Sonne mit Glanz, Hochnebel, Schneewolken, im Sturm fast weiß
+    function skyMood(c, bottom, night, t) {
+      if (skyK === "klar") {
+        if (night) return;
+        const sx = tod === "morning" ? W * 0.18 : W * 0.72, sy = tod === "morning" ? 70 : 40;
+        const g = c.createRadialGradient(sx, sy, 4, sx, sy, 260); g.addColorStop(0, "rgba(255,250,225,0.95)"); g.addColorStop(0.08, "rgba(255,244,210,0.55)"); g.addColorStop(0.4, "rgba(255,236,200,0.12)"); g.addColorStop(1, "rgba(255,236,200,0)");
+        c.fillStyle = g; c.fillRect(0, 0, W, bottom);
+        c.fillStyle = "rgba(255,255,248,1)"; c.beginPath(); c.arc(sx, sy, 13, 0, TAU); c.fill();
+        return;
+      }
+      const a = skyK === "grau" ? [0.55, 0.3] : skyK === "neu" ? [0.62, 0.42] : [0.9, 0.82];
+      const col = night ? "110,112,130" : skyK === "sturm" ? "226,230,236" : "190,196,205";
+      const g = c.createLinearGradient(0, 0, 0, bottom); g.addColorStop(0, `rgba(${col},${a[0]})`); g.addColorStop(1, `rgba(${col},${a[1]})`);
+      c.fillStyle = g; c.fillRect(0, 0, W, bottom);
+      if (skyK !== "grau") { // Wolkenbänke
+        c.fillStyle = `rgba(${night ? "90,92,110" : "160,168,180"},${skyK === "sturm" ? 0.35 : 0.3})`;
+        for (let i = 0; i < 7; i++) { const x = ((i * 157 + t * (skyK === "sturm" ? 30 : 4) * (windK < 0 ? -1 : 1)) % (W + 300) + W + 300) % (W + 300) - 150, y = 30 + (i % 3) * 38; c.beginPath(); c.ellipse(x, y, 150, 24, 0, 0, TAU); c.fill(); }
+      }
+    }
+    // Wetter über der ganzen Szene (ohne Zustand, aus der Zeit gerechnet): Glitzern in der Sonne, Schneefall, Sturm mit Schneefahnen und Nebel
     function weather(c, t, cx) {
-      const n = skyK === "neu" ? 90 : skyK === "grau" ? 55 : skyK === "foehn" ? 0 : 0;
-      if (!n) return;
-      c.fillStyle = "rgba(255,255,255,0.85)";
+      const hsh = (i, k) => { const v = Math.sin(i * 12.9898 + k * 78.233) * 43758.5453; return v - Math.floor(v); };
+      if (skyK === "klar") {
+        if (KB.themeName() === "evening") return;
+        for (let i = 0; i < 70; i++) { const x = ((hsh(i, 1) * W * 1.5 - cx * 12) % W + W) % W, y = BACK + 10 + hsh(i, 2) * (H - BACK - 12), tw = Math.sin(t * (2 + hsh(i, 3) * 4) + i * 3);
+          if (tw > 0.75) { const r = (tw - 0.75) * 10 * (0.5 + hsh(i, 4)); c.strokeStyle = "rgba(255,255,255,0.95)"; c.lineWidth = 1; c.beginPath(); c.moveTo(x - r, y); c.lineTo(x + r, y); c.moveTo(x, y - r); c.lineTo(x, y + r); c.stroke(); } }
+        return;
+      }
+      if (skyK === "grau") { c.fillStyle = "rgba(110,120,135,0.10)"; c.fillRect(0, 0, W, H); return; }
+      const st = skyK === "sturm", n = st ? 420 : 120, dir = windK < 0 ? -1 : 1, vx = st ? 260 * dir : 14, vy = st ? 120 : 26;
+      if (st) { // Nebel: oben dicht, unten lichter, schwillt mit den Böen
+        const gu = 0.5 + 0.5 * Math.sin(t * 0.9) * Math.sin(t * 0.37 + 1), g = c.createLinearGradient(0, 0, 0, H);
+        g.addColorStop(0, `rgba(232,236,242,${0.55 + 0.2 * gu})`); g.addColorStop(0.62, `rgba(232,236,242,${0.25 + 0.22 * gu})`); g.addColorStop(1, `rgba(232,236,242,${0.05 + 0.08 * gu})`);
+        c.fillStyle = g; c.fillRect(0, 0, W, H);
+      }
+      c.fillStyle = "rgba(255,255,255,0.88)"; c.strokeStyle = "rgba(255,255,255,0.8)"; c.lineCap = "round";
       for (let i = 0; i < n; i++) {
-        const h1 = Math.sin(i * 12.9898) * 43758.5453 % 1, h2 = Math.sin(i * 78.233) * 12345.678 % 1, d = 0.4 + Math.abs(h1) * 0.9;
-        const x = ((Math.abs(h2) * W - cx * 6 * d + Math.sin(t * 0.7 + i) * 12 + t * 14 * d) % W + W) % W, y = ((Math.abs(h1) * H + t * 26 * d) % H);
-        c.beginPath(); c.arc(x, y, 0.9 + d * 1.1, 0, TAU); c.fill();
+        const d = 0.4 + hsh(i, 5) * 0.9, x = ((hsh(i, 6) * W - cx * 6 * d + Math.sin(t * 0.7 + i) * 12 + t * vx * d) % W + W) % W, y = ((hsh(i, 7) * H + t * vy * d) % H);
+        if (st) { c.lineWidth = 0.8 + d; c.beginPath(); c.moveTo(x, y); c.lineTo(x - dir * 9 * d, y - 4 * d); c.stroke(); }
+        else { c.beginPath(); c.arc(x, y, 0.9 + d * 1.1, 0, TAU); c.fill(); }
       }
     }
     // Stimmung: Tönung je Tageszeit und weiche Vignette
@@ -7297,6 +7329,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       PAN.drawSky(ctx, pano, AH, 0, 1, W, H, t);
       PAN.drawPanorama(ctx, pano, { cx: 90, ppm: 30 }, AH, 0, 1, W, H, t, null);
       const night = KB.themeName() === "evening";
+      skyMood(ctx, AH + 8, night, t);
       const gr = ctx.createLinearGradient(0, AH, 0, H);
       gr.addColorStop(0, night ? "#C9C3CF" : SNOWB); gr.addColorStop(0.25, night ? "#E3D9D6" : "#EEF0EE"); gr.addColorStop(1, night ? "#EADFD6" : SNOW);
       ctx.fillStyle = gr; ctx.fillRect(0, AH + 6, W, H - AH);
@@ -7662,6 +7695,16 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       };
       sched(); mus = { g, iv: setInterval(sched, 200) };
     },
+    // Sturmheulen: tiefes und hohes Rauschen, langsam schwellend
+    storm(want) {
+      if (!want) { if (S._st) { try { S._st.forEach((n) => n.stop()); } catch (e) { /* aus */ } S._st = null; } return; }
+      const a = ctx(); if (!a || S._st) return;
+      const mk = (f, q, v, lf) => { const src = a.createBufferSource(), fl = a.createBiquadFilter(), g = a.createGain(), lfo = a.createOscillator(), lg = a.createGain();
+        src.buffer = noiseBuf; src.loop = true; fl.type = "bandpass"; fl.frequency.value = f; fl.Q.value = q; g.gain.value = v; lfo.frequency.value = lf; lg.gain.value = v * 0.8;
+        lfo.connect(lg); lg.connect(g.gain); const lf2 = a.createGain(); lf2.gain.value = f * 0.35; lfo.connect(lf2); lf2.connect(fl.frequency);
+        src.connect(fl); fl.connect(g); g.connect(out); src.start(); lfo.start(); return [src, lfo]; };
+      S._st = [...mk(380, 1.4, 0.09, 0.11), ...mk(1100, 3.5, 0.035, 0.17)];
+    },
     applause(k) { for (let i = 0; i < 18 * k; i++) setTimeout(() => noise(0.05, 2000 + Math.random() * 1500, 1500, 2, 0.08 + Math.random() * 0.08), Math.random() * 1400 * k); },
   };
   root.SWAudio = S;
@@ -7670,7 +7713,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.7.1";
+  const VERSION = "0.8";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender;
@@ -7744,7 +7787,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 
   // ------------------------------------------------------------------ Bildschirme
   const SCREENS = ["scrMenu", "scrReport", "scrStand", "scrPass", "scrInfo"];
-  function show(id) { for (const s of SCREENS) $(s).hidden = s !== id; $("hud").hidden = !!id; AU.ambient(!id || id === "scrStand"); AU.music(!!id && AU.on); }
+  function show(id) { for (const s of SCREENS) $(s).hidden = s !== id; $("hud").hidden = !!id; AU.ambient(!id || id === "scrStand"); AU.music(!!id && AU.on); AU.storm(!id && !!G && G.cond.sky === "sturm"); }
 
   // ------------------------------------------------------------------ Zustand eines Durchgangs
   // mode: "comp" = Weitwurf-Wettkampf, "train" = Training Weitwurf, "ziel" = Zielwurf-Wettkampf
@@ -7760,11 +7803,12 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     let cond;
     if (mode === "train") {
       const t = S.train, wk = { still: [0, 0, 0], mild: [1.2, 0.6, 0.5], boeig: [-2.2, 1.6, 1.6] }[t.wind];
-      cond = { seed: sd, alt: 1856, temp: t.temp, tod: t.tod, sky: t.sky, thaw: t.temp >= -3 && t.tod === "morning", wind: { x: wk[0], z: wk[1], gust: wk[2] } };
+      cond = { seed: sd, alt: 1856, temp: t.temp, tod: t.tod, sky: t.sky, thaw: t.temp >= -3 && t.tod === "morning" && t.sky !== "sturm", wind: { x: wk[0], z: wk[1], gust: wk[2] } };
+      if (t.sky === "sturm") cond.wind = { x: -4.5, z: 2.2, gust: 2.2 };   // im Sturm gibt es keinen stillen Tag
     } else cond = Ph.conditions(sd);
     const g = { mode, seed: sd, cond, n: 0, best: 0, pts: 0, marks: [], helper: { x: 44, z: 5 }, phase: "report", th: { x: START_X, z: 0, dir: 1, pose: F.POSES.stand }, judge: { flag: null, at: 0 }, crumbs: [], tries: [], last: null };
     if (mode !== "train") g.comp = C.create(sd, cond, { name: myName(), nat: myNat() }, 11, mode === "ziel" ? "ziel" : "weit");
-    R.setScene(sd, cond.tod, cond.sky);
+    R.setScene(sd, cond.tod, cond.sky, cond.wind.x);
     return g;
   }
 
@@ -7814,8 +7858,10 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     else if (c.temp > 1) parts.push("Tauwetter: der Schnee wird schwer und nass.");
     else parts.push("Um null Grad pappt der Schnee am besten.");
     if (c.thaw && c.tod === "morning") parts.push("Gestern war es warm, heute Morgen ist er gefroren: wo Sonne war, liegt Harsch.");
-    if (c.sky === "neu") parts.push("Über Nacht kam Neuschnee.");
-    if (c.sky === "foehn") parts.push("Föhn: warm und böig.");
+    if (c.sky === "klar") parts.push("Strahlender Sonnenschein: wo Sonne hinkommt, wird der Schnee weich.");
+    if (c.sky === "grau") parts.push("Hochnebel, graues Licht, kaum Schatten.");
+    if (c.sky === "neu") parts.push("Es schneit: frischer Pulver liegt obenauf.");
+    if (c.sky === "sturm") parts.push("Schneesturm! Kaum Sicht, harte Böen – der Wind trägt oder bremst gewaltig.");
     if (!has("papp").length && !has("nass").length) parts.push("Pappschnee gibt es heute kaum: lies den Schnee genau.");
     parts.push("Eisbälle sind verboten, der Kampfrichter kontrolliert.");
     return parts.join(" ");
@@ -7839,7 +7885,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       const rows = [
         ["Temperatur", "temp", [[-8, "−8 °C"], [-3, "−3 °C"], [-1, "−1 °C"], [2, "+2 °C"]]],
         ["Tageszeit", "tod", Object.entries(Ph.TODS)],
-        ["Wetter", "sky", [["klar", "Klar"], ["neu", "Neuschnee"], ["foehn", "Föhn"]]],
+        ["Wetter", "sky", [["klar", "Sonnig"], ["grau", "Bedeckt"], ["neu", "Schneefall"], ["sturm", "Schneesturm"]]],
         ["Wind", "wind", [["still", "Still"], ["mild", "Leicht"], ["boeig", "Böig"]]],
       ];
       for (const [lab, k, list] of rows) {
@@ -8062,7 +8108,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     }
     G.phase = "ready"; G.th.dir = 1; G.th.x = START_X; G.th.vx = 0;
     setCam(START_X + 6.5, 44);
-    hint(S.tips.throw < 3 ? "Tippen: Anlauf · im Schritt-Takt tippen (Ring) · vor dem Balken halten · loslassen" : null, "top");
+    hint(S.tips.throw < 3 && G.mode !== "train" ? "Tippen: Anlauf · im Schritt-Takt tippen (Ring) · vor dem Balken halten · loslassen" : null, "top");
     updChips();
   }
 
