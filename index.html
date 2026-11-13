@@ -6824,6 +6824,20 @@ table.mini tr.me td { background: var(--gold); }
         c.font = "700 16px Futura, 'Avenir Next Condensed', 'Roboto Condensed', sans-serif"; c.fillStyle = INK; c.textAlign = "left";
         c.fillText(`${Math.round(a.deg)}°`, cx + R0 * 0.32, cy - R0 - 8);
       }
+      // Takt des Anlaufs: Ring am Fuß schließt sich zum Aufsetzen, Punkte zeigen die letzten Schritte
+      if (a.beat != null) {
+        const fx = X(a.foot, 0), fy = Y(0, 0), rr = 8 + (1 - a.beat) * 30, hot = a.beat > 0.82 || a.beat < 0.08;
+        c.strokeStyle = hot ? "#C23B2A" : "rgba(35,70,107,0.75)"; c.lineWidth = 3;
+        c.beginPath(); c.ellipse(fx, fy, rr, rr * 0.45, 0, 0, TAU); c.stroke();
+        c.strokeStyle = "rgba(35,70,107,0.3)"; c.lineWidth = 1.5; c.beginPath(); c.ellipse(fx, fy, 8, 3.6, 0, 0, TAU); c.stroke();
+      }
+      if (a.last != null) {
+        const fx = X(a.foot, 0), fy = Y(0, 0) - 2.2 * S(0);
+        c.font = "700 14px Futura, 'Avenir Next Condensed', 'Roboto Condensed', sans-serif"; c.textAlign = "center";
+        c.fillStyle = a.last > 0.75 ? "#3F6B55" : a.last > 0.3 ? "#D9682B" : "#C23B2A";
+        c.fillText(a.last > 0.75 ? "TAKT!" : a.last > 0.3 ? "KNAPP" : "DANEBEN", fx, fy);
+      }
+      if (a.dots) a.dots.forEach((v, i) => { c.fillStyle = v > 0.75 ? "#3F6B55" : v > 0.3 ? "#D9682B" : "#C23B2A"; c.strokeStyle = INK; c.lineWidth = 1; c.beginPath(); c.arc(cx - R0 * 0.1 + 6 + i * 13, cy + 36, 4.5, 0, TAU); c.fill(); c.stroke(); });
       // Tempo des Anlaufs
       if (a.speed != null) {
         const bw = R0 * 1.2, bx = cx - bw * 0.1, by = cy + 16;
@@ -7262,7 +7276,7 @@ table.mini tr.me td { background: var(--gold); }
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.4";
+  const VERSION = "0.5";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender;
@@ -7339,7 +7353,7 @@ table.mini tr.me td { background: var(--gold); }
 
   // ------------------------------------------------------------------ Zustand eines Durchgangs
   // mode: "comp" = Weitwurf-Wettkampf, "train" = Training Weitwurf, "ziel" = Zielwurf-Wettkampf
-  const START_X = -7.5;   // langer Anlauf (Mat 13.11.2026)
+  const START_X = -10;    // langer Anlauf (Mat 13.11.2026), Platz für sechs, sieben Schritte im Takt
   const TRIES = C.ROUNDS; // höchstens fünf Würfe
   let G = null, now = 0;
   const cam = { cx: -2, ppm: 40 }, camT = { cx: -2, ppm: 40 };
@@ -7477,7 +7491,7 @@ table.mini tr.me td { background: var(--gold); }
     G.phase = "rack"; G.ball = null; G.fl = null; G.tape = null; G.judge = { flag: null, at: 0 }; G.focus = null; G.crumbs = []; G.hit = null; G.zball = null;
     G.th = { x: START_X, z: 0, dir: 1, pose: F.POSES.stand, vx: 0 };
     G.patches = null; G.shown = false; G.gest = null;
-    if (!isZiel()) setCam(0.3, 46, true);
+    if (!isZiel()) setCam(START_X + 6.8, 46, true);
     $("form").hidden = true; $("patches").innerHTML = "";
     hint(null);
     const h = helper(), nx = HELPERS[HELPERS.indexOf(h) + 1];
@@ -7649,8 +7663,8 @@ table.mini tr.me td { background: var(--gold); }
       updChips(); return;
     }
     G.phase = "ready"; G.th.dir = 1; G.th.x = START_X; G.th.vx = 0;
-    setCam(-1.2, 44);
-    hint(S.tips.throw < 3 ? "Tippen: Anlauf · vor dem Balken Finger halten: Winkel steigt · loslassen: Wurf" : null, "top");
+    setCam(START_X + 6.5, 44);
+    hint(S.tips.throw < 3 ? "Tippen: Anlauf · im Schritt-Takt tippen (Ring) · vor dem Balken halten · loslassen" : null, "top");
     updChips();
   }
 
@@ -7668,8 +7682,9 @@ table.mini tr.me td { background: var(--gold); }
     AU.unlock();
     if (G.phase === "form") { e.preventDefault(); formPress(); return; }
     const [x, y] = stagePoint(e.clientX, e.clientY);
-    if (G.phase === "ready") { e.preventDefault(); G.phase = "run"; G.run = { t0: now }; hint(null); return; }
-    if (G.phase === "run" || G.phase === "angle") { e.preventDefault(); G.phase = "angle"; G.ang = { t0: now }; ptr = { id: e.pointerId }; capture(e); return; }
+    if (G.phase === "ready") { e.preventDefault(); G.phase = "run"; G.run = { t0: now, tapped: {}, accs: [] }; hint(null); return; }
+    // im Anlauf: kurz tippen = Schritt im Takt, halten = Winkel (ab 0,18 s, gezählt ab dem Auflegen)
+    if (G.phase === "run") { e.preventDefault(); ptr = { id: e.pointerId, t0: now, press: true }; capture(e); return; }
     if (G.phase === "aim") { e.preventDefault(); ptr = { id: e.pointerId, x0: x, y0: y, x, y }; G.pull = { x0: x, y0: y, x1: x, y1: y, k: 0 }; capture(e); hint(null); return; }
   }
   function capture(e) { try { stage.setPointerCapture(e.pointerId); } catch (er) { /* egal */ } }
@@ -7679,16 +7694,36 @@ table.mini tr.me td { background: var(--gold); }
   }
   function onUp(e) {
     if (!ptr || e.pointerId !== ptr.id) return;
-    ptr = null;
+    const pr = ptr; ptr = null;
     if (!G) return;
-    if (G.phase === "angle") throwAngle();
+    if (G.phase === "run" && pr.press) stepTap(pr.t0);
+    else if (G.phase === "angle") throwAngle();
     else if (G.phase === "aim" && G.pull) aimRelease();
   }
+  // ------------------------------------------------------------------ Anlauf im Takt (Mat 13.11.2026: „zu einfach geworden“)
+  // Schritte in festem Takt; tippt man, wenn der Fuß aufsetzt, wird man schneller, daneben oder gar nicht langsamer. Kein Hämmern:
+  // jeder Schritt zählt nur einmal, ein zweites Tippen ist ein Stolperer.
+  const STEP = 0.34, HOLD = 0.18, WIN = 0.12;
+  const footT = (f) => G.run.t0 + f * STEP;
+  function stepTap(t) {
+    const R0 = G.run, f = Math.max(1, Math.round((t - R0.t0) / STEP)), e = t - footT(f);
+    let acc = 0;
+    if (Math.abs(e) < 0.2 && !R0.tapped[f]) { R0.tapped[f] = 1; acc = clamp(1 - Math.abs(e) / WIN, 0, 1); }
+    else R0.tapped[f] = 1;
+    R0.accs.push(acc); R0.last = { acc, at: now };
+    AU.press(acc, false);
+  }
+  // nicht getippte Schritte zählen als daneben
+  function stepMiss() {
+    const R0 = G.run;
+    for (let f = 1; footT(f) + 0.2 < now; f++) if (!R0.tapped[f]) { R0.tapped[f] = 1; R0.accs.push(0); R0.last = { acc: 0, at: now }; }
+  }
+  const rhythm = () => { const a = G.run.accs.slice(-4); return a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0.3; };
   const curAngle = () => clamp((now - G.ang.t0) * ANG_RATE, 0, 89);
   function throwAngle() {
     if (G.th.x > -0.12) return foul();
     // Kraft aus dem Anlauftempo: wer zu früh loslässt, ist noch langsam
-    doThrow({ ang: curAngle(), pow: 0.78 + 0.22 * clamp(G.th.vx / 6.2, 0, 1), run: G.th.vx, xr: G.th.x + 0.6 });
+    doThrow({ ang: curAngle(), pow: 0.78 + 0.22 * clamp(G.th.vx / 6.2, 0, 1), run: G.th.vx, xr: G.th.x + 0.6, rh: rhythm() });
   }
   // Steinschleuder: Zug in Bühnen-Pixeln → Kraft k (1 = so weit wie nötig für den Kopf) und Richtung
   const PULL_FULL = 150;
@@ -7780,15 +7815,20 @@ table.mini tr.me td { background: var(--gold); }
     }
     if (G.phase === "ready") th.pose = F.ease(th.pose, F.idle(R.POSE.hold, now, 1), dt);
     if (G.phase === "run" || G.phase === "angle") {
-      // Anlauf bis 6 m/s; vor dem Balken Impulsschritte mit langem Arm
-      th.vx = Math.min(6.2, th.vx + 4.6 * dt);
+      // Tempo aus dem Rhythmus: gut im Takt bis 6,4 m/s, daneben um 3 m/s
+      if (G.phase === "run") stepMiss();
+      const vT = 2.6 + 3.8 * rhythm();
+      th.vx += (vT - th.vx) * Math.min(1, dt * (th.vx < vT ? 2.2 : 1.2));
       th.x += th.vx * dt;
-      const imp = th.x > -2.8, u = ((th.x - START_X) / (imp ? 1.1 : 1.5)) % 1;
+      // halten wird zum Winkel
+      if (G.phase === "run" && ptr && ptr.press && now - ptr.t0 >= HOLD) { G.phase = "angle"; G.ang = { t0: ptr.t0 }; ptr.press = false; }
+      // Schritte: zwei je Laufzyklus, Aufsetzen bei u = 0 und 0,5; vor dem Balken Impulsschritte mit langem Arm
+      const imp = th.x > -2.8, u = (((now - G.run.t0) / (2 * STEP)) % 1 + 1) % 1;
       th.pose = F.ease(th.pose, F.seq(imp ? R.IMP : R.RUN, u, true), dt, true);
-      if (Math.floor(u * 2) !== th.lastStep) { th.lastStep = Math.floor(u * 2); AU.step(); }
-      setCam(Math.max(-1.2, th.x + 5.5), 44);
+      const fNow = Math.floor((now - G.run.t0) / STEP);
+      if (fNow !== th.lastStep) { th.lastStep = fNow; AU.step(); if (G.phase === "run") AU.tick(false); }
+      setCam(Math.min(-1.2, th.x + 6.5), 44);
       if (th.x >= 0.05) { ptr = null; foul(); }
-      if (G.phase === "run" && th.x > -0.6 && !G.run.warned) { G.run.warned = true; }
     }
     if (G.phase === "fly") updFly(dt);
     if (G.phase === "zfly") updZiel(dt);
@@ -7924,7 +7964,7 @@ table.mini tr.me td { background: var(--gold); }
     if (ziel) facts.push([`Zug ${Math.round(inp.p * 100)} %`, ""]);
     else if (res.why !== "foul") {
       const p = inp.pow;
-      facts.push([`Anlauf ${m1(inp.run)} m/s`, inp.run > 5.6 ? "g" : "w"]);
+      facts.push([`Anlauf ${m1(inp.run)} m/s` + (inp.rh != null ? ` · Takt ${Math.round(inp.rh * 100)} %` : ""), inp.run > 5.6 ? "g" : "w"]);
       facts.push([`Winkel ${Math.round(inp.ang)}°`, inp.ang >= 35 && inp.ang <= 45 ? "g" : "w"]);
       facts.push([`Abwurf ${m1(Math.max(0, -inp.xr))} m vor dem Balken`, -inp.xr < 0.8 ? "g" : ""]);
     }
@@ -7991,7 +8031,8 @@ table.mini tr.me td { background: var(--gold); }
     const th = G.th, ball = G.ball;
     const held = ball && (G.phase === "ready" || G.phase === "run" || G.phase === "angle" || G.phase === "check" || G.phase === "checkOk" || G.phase === "walk" && G.walk.then !== "scoop" || G.phase === "fly" && now < G.fl.t0) ? { d: Ph.SIZE[ball.size].d, f: ball.f, ice: Ph.iceAt(ball), type: ball.type } : null;
     return {
-      arc: ["ready", "run", "angle"].includes(G.phase) ? { x: th.x + 0.25, deg: G.phase === "angle" ? curAngle() : null, speed: G.phase === "ready" ? null : th.vx / 6.2 } : null,
+      arc: ["ready", "run", "angle"].includes(G.phase) ? { x: th.x + 0.25, deg: G.phase === "angle" ? curAngle() : null, speed: G.phase === "ready" ? null : th.vx / 6.4,
+        beat: G.phase === "run" ? (((now - G.run.t0) / STEP) % 1 + 1) % 1 : null, foot: th.x, dots: G.run && G.phase !== "ready" ? G.run.accs.slice(-7) : null, last: G.run && G.run.last && now - G.run.last.at < 0.35 ? G.run.last.acc : null } : null,
       cam, focus: G.focus, marks: G.marks, judge: G.judge, tape: G.tape, crumbs: G.crumbs, ball: G.flyBall || null, trail: G.trail,
       patches: ["pick", "walk", "scoop", "form"].includes(G.phase) && G.patches ? G.patches : null,
       thrower: { x: th.x, z: th.z, dir: th.dir, pose: th.pose, lift: th.lift || 0, mood: th.mood, look: myLook(), kit: R.kit(S.glove), glove: S.glove, held },
@@ -8054,9 +8095,17 @@ table.mini tr.me td { background: var(--gold); }
     pick(id) { if (G.phase === "rack") beginPick(); pickPatch(id); }, size: chooseSize, done: formDone, take: takeRack, self: beginPick,
     pressBeats(n, off) { for (let i = 0; i < n; i++) { const ph = ((now - G.form.t0) / BEAT) % 1; this.step((1 - ph) * BEAT + (off || 0) + 0.0001); formPress(); this.step(0.05); } },
     // Weitwurf: Anlauf (Sekunden), dann Winkel halten bis deg
-    throwTap(run, deg) {
-      G.phase = "run"; G.run = { t0: now }; hint(null);
-      this.step(run);
+    throwTap(run, deg, off) {
+      G.phase = "run"; G.run = { t0: now, tapped: {}, accs: [] }; hint(null);
+      // bei jedem Aufsetzen tippen (off = Versatz in Sekunden; null = gar nicht tippen)
+      const end = now + run;
+      for (let f = 1; off !== null && footT(f) + (off || 0) <= end; f++) {
+        const tf = footT(f) + (off || 0);
+        if (tf > now) this.step(tf - now);
+        if (G.phase !== "run") return G.phase;
+        stepTap(tf);
+      }
+      if (end > now) this.step(end - now);
       if (G.phase !== "run") return G.phase;
       G.phase = "angle"; G.ang = { t0: now };
       this.step(deg / ANG_RATE);
