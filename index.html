@@ -48,7 +48,13 @@ h2 { font-family: var(--font-display); font-size: 21px; line-height: 1.1; text-t
 .place b { display: block; color: var(--ink); font-family: var(--font-display); letter-spacing: 0.06em; font-size: 13px; text-transform: uppercase; }
 .col { display: flex; flex-direction: column; gap: 8px; margin-top: 2px; }
 .row2 { display: flex; gap: 8px; }
-.row2 > * { flex: 1; }
+.row2 > * { flex: 1 1 0; min-width: 0; }
+/* Menü: nichts darf über die Karte hinaus – Texte brechen um, Knöpfe teilen sich die Breite */
+.card.menu .big, .card.menu .mid { white-space: normal; overflow-wrap: anywhere; hyphens: auto; }
+.card.menu .big span { line-height: 1.1; }
+.card.menu .big small { line-height: 1.2; }
+.card.menu .mid { padding: 8px 6px; font-size: 12.5px; letter-spacing: 0.03em; text-align: center; line-height: 1.15; }
+.card.menu .big { padding: 6px 10px; }
 .big, .mid, .pill { font-family: var(--font-display); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; border: 2px solid var(--ink-deep); background: var(--paper); white-space: nowrap; }
 .big { display: flex; flex-direction: column; align-items: flex-start; padding: 7px 14px; font-size: 18px; box-shadow: 3px 3px 0 var(--ink-deep); text-align: left; }
 .big small { font-family: var(--font-body); font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 12.5px; opacity: 0.85; }
@@ -201,6 +207,14 @@ table.mini tr.me td { background: var(--gold); }
 .rkLuz button { white-space: nowrap; }
 .rkLuz button:disabled { opacity: 0.55; }
 
+/* Taktschule im Training */
+#drill { position: absolute; right: 12px; top: 136px; width: 400px; max-width: calc(100% - 24px); background: rgba(244,235,218,0.96); border: 2px solid #1E2530; box-shadow: 4px 4px 0 rgba(0,0,0,0.25); padding: 8px 12px; z-index: 5; }
+#drill p { margin: 3px 0 6px; font-size: 13px; line-height: 1.3; }
+#drill .drRow { display: flex; align-items: center; gap: 10px; }
+#drill #drCnt { flex: 1; display: flex; gap: 5px; }
+#drill #drCnt i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #1E2530; }
+#drill #drCnt i.on { background: #3F6B55; }
+
 /* Cold Medal Games · Fenster „Deine Figur“ (pass/pass.css)
    Aussehen wie die Menüs des Skispringens: Papier mit Doppelrahmen, Knöpfe wie Druckmarken, Futura für Titel und Knöpfe,
    Buchschrift für Lesetext. Farben und Schriften kommen aus den Variablen des Spiels (alle Spiele der Reihe haben sie),
@@ -349,6 +363,7 @@ table.mini tr.me td { background: var(--gold); }
     <div id="hint" hidden></div>
     <div id="say" hidden></div>
     <div id="reveal" hidden></div>
+    <div id="drill" hidden><div class="kicker" id="drKick"></div><p id="drTxt"></p><div class="drRow"><span id="drCnt"></span><button class="lnk" id="drSkip">Kann ich schon</button><button class="mid red" id="drGo"></button></div></div>
     <div id="patches"></div>
     <div id="rack" hidden>
       <div id="rkRes" hidden>
@@ -6881,6 +6896,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       if (L.word) { c.font = `700 17px ${F}`; c.textAlign = "center"; c.fillStyle = ["#C23B2A", "#D9682B", "#3F6B55"][L.word[1]]; c.fillText(L.word[0], hx, y + 40); }
     }
     function angleArc(c, M, a, t) {
+      if (a.drill) return;
       const { X, Y, S } = M, cx = X(a.x, 0), cy = Y(1.55, 0), R0 = Math.max(46, 2.4 * S(0));
       c.save();
       c.fillStyle = "rgba(241,231,210,0.82)"; c.strokeStyle = INK; c.lineWidth = 2;
@@ -7740,7 +7756,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.9";
+  const VERSION = "0.9.1";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender;
@@ -7833,7 +7849,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       cond = { seed: sd, alt: 1856, temp: t.temp, tod: t.tod, sky: t.sky, thaw: t.temp >= -3 && t.tod === "morning" && t.sky !== "sturm", wind: { x: wk[0], z: wk[1], gust: wk[2] } };
       if (t.sky === "sturm") cond.wind = { x: -4.5, z: 2.2, gust: 2.2 };   // im Sturm gibt es keinen stillen Tag
     } else cond = Ph.conditions(sd);
-    const g = { mode, seed: sd, cond, n: 0, best: 0, pts: 0, marks: [], helper: { x: 44, z: 5 }, phase: "report", th: { x: START_X, z: 0, dir: 1, pose: F.POSES.stand }, judge: { flag: null, at: 0 }, crumbs: [], tries: [], last: null };
+    const g = { mode, seed: sd, cond, drilled: testMode, n: 0, best: 0, pts: 0, marks: [], helper: { x: 44, z: 5 }, phase: "report", th: { x: START_X, z: 0, dir: 1, pose: F.POSES.stand }, judge: { flag: null, at: 0 }, crumbs: [], tries: [], last: null };
     if (mode !== "train") g.comp = C.create(sd, cond, { name: myName(), nat: myNat() }, 11, mode === "ziel" ? "ziel" : "weit");
     R.setScene(sd, cond.tod, cond.sky, cond.wind.x);
     return g;
@@ -8154,9 +8170,39 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     }
     G.phase = "ready"; G.th.dir = 1; G.th.x = START_X; G.th.vx = 0;
     setCam(START_X + 6.5, 44);
+    if (G.mode === "train" && !G.drilled) { G.drilled = true; return drillIntro(); }
     hint(S.tips.throw < 3 && G.mode !== "train" ? "Tippen: Anlauf · im Schritt-Takt tippen (Ring) · vor dem Balken halten · loslassen" : null, "top");
     updChips();
   }
+
+  // ------------------------------------------------------------------ Taktschule (Training, vor dem ersten Wurf): der Werfer läuft am Platz,
+  // man übt nur das Tippen im Schritt-Takt, bis 6 Schritte sitzen; dann erst kommt der Wurf mit Halten und Loslassen
+  const DRILL_N = 6;
+  function drillIntro() {
+    G.phase = "drillIntro"; G.th.x = START_X + 2; hint(null);
+    drillCard("TAKTSCHULE · 1/2", "Dein Werfer läuft gleich los – erst einmal am Platz. Bei jedem Schritt läuft oben ein Punkt auf die Linie zu, und du hörst den Schritt. <b>Tippe genau dann, wenn der Punkt die Linie trifft.</b> Im Takt wird der Werfer schneller, daneben oder gar nicht wird er langsamer. Einmal je Schritt – Hämmern zählt nicht.", "Los geht's", true);
+  }
+  function drillCard(kick, html, go, skip) {
+    const el = $("drill"); el.hidden = !kick; if (!kick) return;
+    $("drKick").textContent = kick; $("drTxt").innerHTML = html; $("drGo").textContent = go || ""; $("drGo").hidden = !go; $("drSkip").hidden = !skip; $("drCnt").textContent = "";
+  }
+  function drillStart() {
+    G.phase = "drill"; G.run = { t0: now + 0.5, tapped: {}, accs: [] }; G.th.vx = 0; G.th.lastF = 0;
+    drillCard("TAKTSCHULE · 1/2", "Tippe, wenn ein Punkt die Linie trifft.", null, true); drillCount();
+  }
+  function drillCount() { const n = (G.run.log || []).filter((x) => x.acc > 0.5).length; $("drCnt").innerHTML = Array.from({ length: DRILL_N }, (_, i) => `<i class="${i < n ? "on" : ""}"></i>`).join(""); return n; }
+  function drillDone() {
+    G.phase = "drillOk";
+    drillCard("TAKTSCHULE · 2/2", "Sitzt! Jetzt mit Wurf: genau so im Takt anlaufen. Vor dem Balken erscheint auf der Leiste ein roter Strich <b>HALTEN</b> – dann den Finger liegen lassen, der Winkel steigt; bei etwa <b>40°</b> loslassen. Zu spät gehalten heißt übertreten.", "Zum Wurf", false);
+  }
+  function drillEnd() { drillCard(null); G.run = null; G.phase = "ready"; G.th.x = START_X; G.th.vx = 0; G.th.pose = F.POSES.stand; }
+  function footTick(loud) {
+    const th = G.th; let f = th.lastF || 0;
+    while (now >= footT(f + 1)) f++;
+    if (f !== (th.lastF || 0)) { th.lastF = f; AU.step(); if (loud) AU.tick(G.phase === "drill"); }
+  }
+  $("drGo").onclick = (e) => { e.stopPropagation(); AU.unlock(); if (G.phase === "drillIntro") drillStart(); else drillEnd(); };
+  $("drSkip").onclick = (e) => { e.stopPropagation(); drillEnd(); };
 
   // ------------------------------------------------------------------ Eingabe: Finger auflegen und wischen
   let ptr = null;
@@ -8173,9 +8219,9 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     if (G.phase === "form") { e.preventDefault(); formPress(); return; }
     if (G.phase === "show") { e.preventDefault(); if (now - G.reveal.t0 > 0.8) endReveal(); return; }
     const [x, y] = stagePoint(e.clientX, e.clientY);
-    if (G.phase === "ready") { e.preventDefault(); G.phase = "run"; G.run = { t0: now, tapped: {}, accs: [] }; hint(null); return; }
+    if (G.phase === "ready") { e.preventDefault(); G.phase = "run"; G.run = { t0: now, tapped: {}, accs: [] }; G.th.lastF = 0; hint(null); return; }
     // im Anlauf: kurz tippen = Schritt im Takt, halten = Winkel (ab 0,18 s, gezählt ab dem Auflegen)
-    if (G.phase === "run") { e.preventDefault(); ptr = { id: e.pointerId, t0: now, press: true }; capture(e); return; }
+    if (G.phase === "run" || G.phase === "drill") { e.preventDefault(); ptr = { id: e.pointerId, t0: now, press: true }; capture(e); return; }
     if (G.phase === "aim") { e.preventDefault(); ptr = { id: e.pointerId, x0: x, y0: y, x, y }; G.pull = { x0: x, y0: y, x1: x, y1: y, k: 0 }; capture(e); hint(null); return; }
   }
   function capture(e) { try { stage.setPointerCapture(e.pointerId); } catch (er) { /* egal */ } }
@@ -8187,7 +8233,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     if (!ptr || e.pointerId !== ptr.id) return;
     const pr = ptr; ptr = null;
     if (!G) return;
-    if (G.phase === "run" && pr.press) stepTap(pr.t0);
+    if ((G.phase === "run" || G.phase === "drill") && pr.press) { stepTap(pr.t0); if (G.phase === "drill" && drillCount() >= DRILL_N) drillDone(); }
     else if (G.phase === "angle") throwAngle();
     else if (G.phase === "aim" && G.pull) aimRelease();
   }
@@ -8322,10 +8368,18 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       // Schritte: zwei je Laufzyklus, Aufsetzen bei u = 0 und 0,5; vor dem Balken Impulsschritte mit langem Arm
       const imp = th.x > -2.8, u = (((now - G.run.t0) / (2 * STEP)) % 1 + 1) % 1;
       th.pose = F.ease(th.pose, F.seq(imp ? R.IMP : R.RUN, u, true), dt, true);
-      const fNow = Math.floor((now - G.run.t0) / STEP);
-      if (fNow !== th.lastStep) { th.lastStep = fNow; AU.step(); if (G.phase === "run") AU.tick(false); }
+      footTick(G.phase === "run");
       setCam(Math.min(-1.2, th.x + 6.5), 44);
       if (th.x >= 0.05) { ptr = null; foul(); }
+    }
+    if (G.phase === "drill") {
+      if (now >= G.run.t0) stepMiss();
+      const vT = 2.6 + 3.8 * rhythm(); th.vx += (vT - th.vx) * Math.min(1, dt * 2.2);
+      const u = (((now - G.run.t0) / (2 * STEP)) % 1 + 1) % 1;
+      th.pose = F.ease(th.pose, F.seq(R.RUN, u, true), dt, true);
+      if (now >= G.run.t0) footTick(true);
+      setCam(th.x + 5, 50);
+      if ((G.run.log || []).length > 40) drillDone();   // nach 40 Schritten geht es auch so weiter
     }
     if (G.phase === "fly") updFly(dt);
     if (G.phase === "zfly") updZiel(dt);
@@ -8646,7 +8700,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     const th = G.th, ball = G.ball;
     const held = ball && (G.phase === "ready" || G.phase === "run" || G.phase === "angle" || G.phase === "check" || G.phase === "checkOk" || G.phase === "walk" && G.walk.then !== "scoop" || G.phase === "fly" && now < G.fl.t0) ? { d: Ph.SIZE[ball.size].d, f: ball.f, ice: Ph.iceAt(ball), type: ball.type } : null;
     return {
-      arc: ["ready", "run", "angle"].includes(G.phase) ? { x: th.x + 0.25, deg: G.phase === "angle" ? curAngle() : null, speed: G.phase === "ready" ? null : th.vx / 6.4,
+      arc: G.phase === "drill" ? { x: th.x, drill: true, lane: laneView() } : ["ready", "run", "angle"].includes(G.phase) ? { x: th.x + 0.25, deg: G.phase === "angle" ? curAngle() : null, speed: G.phase === "ready" ? null : th.vx / 6.4,
         beat: G.phase === "run" ? beatPhase() : null, foot: th.x, dots: G.run && G.phase !== "ready" ? G.run.accs.slice(-7) : null, last: G.run && G.run.last && now - G.run.last.at < 0.35 ? G.run.last.acc : null, lane: G.mode === "train" ? laneView() : null } : null,
       board: boardLines(), helper: helperView(), photo: isZiel() ? null : { x: PHOTO.x, z: PHOTO.z, flash: G.flash != null ? G.flash : null },
       say: G.say && now >= G.say.at && now - G.say.at < 2.6 ? G.say : null,
@@ -8657,14 +8711,14 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   }
   // Trainings-Taktleiste: Punkte für jeden Fußaufsatz laufen auf die Linie zu; dazu, wann man halten muss, und was beim letzten Tipp los war
   function laneView() {
-    const th = G.th, run = G.phase !== "ready" && G.run ? G.run : null, t = run ? now - run.t0 : -0.6;
+    const th = G.th, run = G.phase !== "ready" && G.run ? G.run : null, t = run ? now - run.t0 : -0.6, drill = G.phase === "drill";
     const v = Math.max(1.5, th.vx || 2.6), holdIn = run ? (-(v * 40 / angRate()) - 0.3 - th.x) / v : null;
     const L = run && run.last && now - run.last.at < 0.6 ? run.last : null;
     let word = null;
     if (L) word = L.miss ? ["VERPASST", 0] : L.twice ? ["DOPPELT", 0] : L.acc > 0.75 ? ["GENAU!", 2] : L.e < 0 ? [L.acc > 0.3 ? "KNAPP FRÜH" : "ZU FRÜH", L.acc > 0.3 ? 1 : 0] : [L.acc > 0.3 ? "KNAPP SPÄT" : "ZU SPÄT", L.acc > 0.3 ? 1 : 0];
     const times = []; if (run) for (let f = 1; f < 40; f++) times[f] = footT(f) - run.t0; else for (let f = 1; f < 40; f++) times[f] = f * STEP;
     return { t, step: STEP, win: WIN, times, log: run ? (run.log || []) : [], hold: G.phase === "run" && holdIn != null && holdIn < 1.6 ? Math.max(0, holdIn) : null, angle: G.phase === "angle",
-      word, tip: G.phase === "ready" ? "Tippen startet den Anlauf" : G.phase === "angle" ? "Halten … bei 40° loslassen" : holdIn != null && holdIn < 0.15 ? "JETZT HALTEN!" : "Tippen, wenn ein Punkt die Linie trifft" };
+      word, tip: drill ? "Tippen, wenn ein Punkt die Linie trifft" : G.phase === "ready" ? "Tippen startet den Anlauf" : G.phase === "angle" ? "Halten … bei 40° loslassen" : holdIn != null && holdIn < 0.15 ? "JETZT HALTEN!" : "Tippen, wenn ein Punkt die Linie trifft" };
   }
   // Schiefertafel: was der Kampfrichter zuletzt angeschrieben hat
   function boardLines() {
@@ -8735,6 +8789,8 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     VERSION, get S() { return S; }, get G() { return G; }, get cam() { return cam; }, sanitize, Ph, C, HELPERS,
     test(on) { testMode = !!on; set3d(); },
     use3d(on) { R.use3d = !!on; },
+    // Taktschule im Test: n Schritte genau im Takt tippen
+    drillTaps(n) { for (let f = 1; f <= n && G.phase === "drill"; f++) { const tf = footT(f); if (tf > now) this.step(tf - now); stepTap(now); if (drillCount() >= DRILL_N) drillDone(); } return G.phase; },
     step(sec) { const n = Math.ceil(sec / 0.02); for (let i = 0; i < n; i++) update(sec / n); render(); },
     open(mode, seed) { G = newGame(mode, seed); rpMode = mode; fillReport(); show("scrReport"); },
     go() { $("rpGo").click(); },
