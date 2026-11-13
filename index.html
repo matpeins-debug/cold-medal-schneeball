@@ -191,6 +191,16 @@ table.mini tr.me td { background: var(--gold); }
 #reveal .rvGo { font-size: 11px; color: #5A5148; margin-top: 5px; letter-spacing: 0.05em; }
 @keyframes rvPop { 0% { transform: scale(1.25); } 100% { transform: scale(1); } }
 
+/* Kafi Luz vom Hüttenwirt */
+.rkLuz { display: flex; align-items: center; gap: 8px; margin: 4px 0 2px; padding: 3px 6px; background: rgba(122,74,34,0.10); border-left: 3px solid #7A4A22; font-size: 11.5px; }
+.rkLuz .luzT { flex: 1; font-style: italic; color: #5A3A1E; }
+.rkLuz .luzG { display: flex; gap: 3px; }
+.rkLuz .luzG i { width: 9px; height: 13px; border: 1.5px solid #5A3A1E; border-top: none; border-radius: 0 0 3px 3px; background: transparent; }
+.rkLuz .luzG i.on { background: linear-gradient(#F4EBDA 0 25%, #8A5A2E 25%); }
+.rkLuz .luzG i.half { background: linear-gradient(#F4EBDA 0 60%, #8A5A2E 60%); }
+.rkLuz button { white-space: nowrap; }
+.rkLuz button:disabled { opacity: 0.55; }
+
 /* Cold Medal Games · Fenster „Deine Figur“ (pass/pass.css)
    Aussehen wie die Menüs des Skispringens: Papier mit Doppelrahmen, Knöpfe wie Druckmarken, Futura für Titel und Knöpfe,
    Buchschrift für Lesetext. Farben und Schriften kommen aus den Variablen des Spiels (alle Spiele der Reihe haben sie),
@@ -348,6 +358,7 @@ table.mini tr.me td { background: var(--gold); }
       </div>
       <div class="rkHead"><div><div class="kicker" id="rkKick"></div><b id="rkWho"></b></div><button class="mid" id="rkSelf">Selbst formen</button></div>
       <div class="rkGrid" id="rkGrid"></div>
+      <div class="rkLuz"><span class="luzG" id="rkLuzG"></span><span class="luzT" id="rkLuzT"></span><button class="pill" id="rkLuz">Kafi Luz trinken</button></div>
       <div class="rkFoot"><span id="rkFoot"></span><button class="lnk" id="rkWeather" hidden>Wetter ändern</button></div>
     </div>
     <div id="form" hidden>
@@ -414,7 +425,9 @@ table.mini tr.me td { background: var(--gold); }
         <h3>Spiel</h3>
         <p>Inoffizielles Fanspiel der Reihe Cold Medal Games. Alle Werferinnen und Werfer sind erfunden; St. Moritz ist frei nachempfunden (Plakatstil der 1920er).</p>
         <h3>So geht’s</h3>
-        <p>Ball wählen: Dein Helfer hat fertige Bälle im Korb, oder du formst selbst (Fleck wählen, Größe wählen, im Takt drücken, wenn sich der Ring schließt). Weitwurf: Finger auflegen startet den Anlauf, dann schnell nach oben wischen. Steil gibt einen hohen Bogen, leicht schräg den weitesten Wurf; das Tempo gibt die Kraft. Nicht über den Balken treten. Zielwurf: nach oben wischen, seitlich zielen, das Tempo bestimmt, wie weit der Ball fliegt.</p>
+        <p>Ball wählen: Dein Helfer hat fertige Bälle im Korb, oder du formst selbst (Fleck wählen, Größe wählen, im Takt drücken, wenn sich der Ring schließt). Weitwurf: Tippen startet den Anlauf; tippe bei jedem Schritt, wenn der Fuß aufsetzt (Ring am Fuß, im Training eine Taktleiste) – im Takt wirst du schneller. Vor dem Balken den Finger liegen lassen: der Winkel steigt; bei etwa 40° loslassen. Nicht über den Balken treten. Zielwurf: Finger auflegen und nach unten ziehen wie eine Steinschleuder, Fadenkreuz aufs Ziel, loslassen.</p>
+        <h3>Kafi Luz</h3>
+        <p>Der Hüttenwirt schenkt vor jedem Wurf ein Kafi Luz aus (Kaffee mit Träsch), ein Glas je Wurf, höchstens vier im Blut. Es wärmt und macht Mut: der Wurf hat mehr Kraft, bei Frost und im Sturm noch etwas mehr. Dafür kommt der Takt aus dem Tritt (die Schritte werden unregelmäßig), der Winkel steigt schneller und das Bild schwankt. Beim Zielwurf beruhigt ein Glas die Hand, mehr lässt sie zittern. Nach jedem Wurf baut sich ein halbes Glas ab.</p>
         <h3>Schnee</h3>
         <p>Um 0 °C pappt der Schnee am besten. Bei Frost und im Schatten bröselt er, bei Tauwetter wird er schwer und nass, morgens nach Tauwetter liegt Harsch. Ein zu lockerer Ball zerfällt im Flug. Ein Eisball fliegt weiter, ist aber verboten: Der Kampfrichter kontrolliert zufällig, wer erwischt wird, ist aus dem Bewerb ausgeschlossen.</p>
         <h3>Wertung</h3>
@@ -6857,7 +6870,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       c.beginPath(); c.rect(x0 + 2, y - 21, w - 4, 42); c.clip();
       const done = {}; for (const e of L.log) done[e.f] = e;
       for (let f = 1; f < 40; f++) {
-        const x = hx + (f * L.step - L.t) * pps; if (x < x0 - 20) continue; if (x > x0 + w + 20) break;
+        const x = hx + ((L.times ? L.times[f] : f * L.step) - L.t) * pps; if (x < x0 - 20) continue; if (x > x0 + w + 20) break;
         const d = done[f], col = d ? (d.acc > 0.75 ? "#3F6B55" : d.acc > 0.3 ? "#D9682B" : "#C23B2A") : "#23466B";
         c.fillStyle = col; c.strokeStyle = INK; c.lineWidth = 1.5; c.beginPath(); c.arc(x, y, d ? 6 : 9, 0, TAU); c.fill(); c.stroke();
         if (!d) { c.fillStyle = "#F4EBDA"; c.beginPath(); c.arc(x - 2.5, y - 2.5, 2.5, 0, TAU); c.fill(); }
@@ -7717,6 +7730,8 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
         src.connect(fl); fl.connect(g); g.connect(out); src.start(); lfo.start(); return [src, lfo]; };
       S._st = [...mk(380, 1.4, 0.09, 0.11), ...mk(1100, 3.5, 0.035, 0.17)];
     },
+    // Anstoßen und Schlucken
+    clink() { tone(2350, 0.25, 0.08, "sine"); setTimeout(() => tone(3100, 0.18, 0.05, "sine"), 60); setTimeout(() => noise(0.25, 300, 160, 1.5, 0.15, "lowpass"), 350); },
     applause(k) { for (let i = 0; i < 18 * k; i++) setTimeout(() => noise(0.05, 2000 + Math.random() * 1500, 1500, 2, 0.08 + Math.random() * 0.08), Math.random() * 1400 * k); },
   };
   root.SWAudio = S;
@@ -7725,7 +7740,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.8.1";
+  const VERSION = "0.9";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender;
@@ -7940,6 +7955,23 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   }
   const STATE_TXT = { gut: "fest", locker: "locker", eis: "Eisball" };
   // Neuer Versuch: Ballkorb zeigen (mit dem Ergebnis des letzten Wurfs oben). Ein Tipp auf einen Ball, und es geht weiter.
+  // ------------------------------------------------------------------ Kafi Luz vom Hüttenwirt (Kaffee mit Träsch): wärmt und macht Mut,
+  // aber der Takt kommt aus dem Tritt, der Winkel läuft schneller, die Hand zittert, das Bild schwankt. Ein Glas je Wurf, baut sich langsam ab.
+  const LUZ = { boost: [0, 0.045, 0.06, 0.045, 0.02], jit: [0, 0.025, 0.05, 0.08, 0.115], max: 4,
+    say: ["Proscht! Das wärmt d'Händ.", "Gsundheit! Jetz gaht's los.", "Hoppla, nomol eis?", "Jetz isch aber gnueg, gäll!", "De Wirt schänkt nüm ii."] };
+  const luzBoost = () => { const L = Math.min(4, Math.ceil(G.luz || 0)); if (!L) return 0; const cold = G.cond.temp <= -5 || G.cond.sky === "sturm" ? 0.025 : 0; return (LUZ.boost[L] + cold) * Math.min(1, G.luz / L); };
+  const luzPct = (l) => (inp => inp)((LUZ.boost[Math.min(4, Math.ceil(l))] + (G.cond.temp <= -5 || G.cond.sky === "sturm" ? 0.025 : 0)) * Math.min(1, l / Math.ceil(l)) * 100);
+  function drinkLuz() {
+    if (!G || G.phase !== "rack" || G.luzNow || (G.luz || 0) >= LUZ.max) return;
+    G.luz = Math.min(LUZ.max, (G.luz || 0) + 1); G.luzNow = true; G.luzN = (G.luzN || 0) + 1;
+    AU.clink(); fillLuz(true);
+  }
+  function fillLuz(drank) {
+    const L = G.luz || 0, n = Math.ceil(L), b = $("rkLuz");
+    $("rkLuzG").innerHTML = Array.from({ length: LUZ.max }, (_, i) => `<i class="${i < n ? "on" : ""}${i < n && i + 1 > L ? " half" : ""}"></i>`).join("");
+    $("rkLuzT").textContent = drank ? "«" + LUZ.say[Math.min(4, n - 1 + (n >= LUZ.max ? 1 : 0))] + "»" : n === 0 ? "Hüttenwirt: «Es Kafi Luz gäge d'Chälti?»" : n >= 3 ? "Du hast einen Schwips: Takt und Hand wackeln." : n >= 1 ? (isZiel() ? "Ein Glas beruhigt die Hand – mehr nicht." : "Warm und mutig: mehr Wumms, aber der Takt wird unruhig.") : "";
+    b.disabled = G.luzNow || L >= LUZ.max; b.textContent = L >= LUZ.max ? "Nichts mehr" : G.luzNow ? "Prost!" : "Kafi Luz trinken";
+  }
   function beginAttempt() {
     G.phase = "rack"; G.ball = null; G.fl = null; G.tape = null; G.judge = { flag: null, at: 0 }; G.focus = null; G.crumbs = []; G.hit = null; G.zball = null;
     G.th = { x: START_X, z: 0, dir: 1, pose: F.POSES.stand, vx: 0 };
@@ -7965,6 +7997,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       el.onclick = (e) => { e.stopPropagation(); takeRack(i); };
       grid.appendChild(el);
     });
+    G.luzNow = false; fillLuz(false);
     fillLast();
     $("rack").hidden = false;
     updChips();
@@ -7990,6 +8023,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     buildPatchButtons();
   }
   $("rkSelf").onclick = (e) => { e.stopPropagation(); beginPick(); };
+  $("rkLuz").onclick = (e) => { e.stopPropagation(); drinkLuz(); };
   $("rkWeather").onclick = (e) => { e.stopPropagation(); openReport("train"); };
 
   // ------------------------------------------------------------------ Kontrolle: der Kampfrichter prüft zufällig den Ball. Eisball = Ausschluss.
@@ -8161,7 +8195,10 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   // Schritte in festem Takt; tippt man, wenn der Fuß aufsetzt, wird man schneller, daneben oder gar nicht langsamer. Kein Hämmern:
   // jeder Schritt zählt nur einmal, ein zweites Tippen ist ein Stolperer.
   const STEP = 0.34, HOLD = 0.18, WIN = 0.12;
-  const footT = (f) => G.run.t0 + f * STEP;
+  // mit Kafi Luz kommt der Takt aus dem Tritt: jeder Fußaufsatz verschiebt sich ein wenig (fest je Wurf, sichtbar am Ring und auf der Leiste)
+  const footT = (f) => G.run.t0 + f * STEP + luzJit(f);
+  const luzJit = (f) => { const a = LUZ.jit[Math.min(4, Math.ceil(G.luz || 0))] * Math.min(1, (G.luz || 0) / Math.max(1, Math.ceil(G.luz || 0))); return a ? a * (Math.sin(f * 2.31 + G.n * 1.7) * 0.7 + Math.sin(f * 0.83 + G.seed % 7) * 0.5) : 0; };
+  function beatPhase() { const r = G.run; let f = Math.max(0, Math.floor((now - r.t0) / STEP) - 1); while (f < 400 && (f + 1 ? footT(f + 1) : 0) <= now) f++; const a = f ? footT(f) : r.t0, b = footT(f + 1); return clamp((now - a) / Math.max(0.05, b - a), 0, 1); }
   function stepTap(t) {
     const R0 = G.run, f = Math.max(1, Math.round((t - R0.t0) / STEP)), e = t - footT(f);
     let acc = 0;
@@ -8177,11 +8214,12 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     for (let f = 1; footT(f) + 0.2 < now; f++) if (!R0.tapped[f]) { R0.tapped[f] = 1; R0.accs.push(0); R0.last = { acc: 0, at: now, miss: true }; (R0.log = R0.log || []).push({ f, acc: 0, miss: true }); }
   }
   const rhythm = () => { const a = G.run.accs.slice(-4); return a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0.3; };
-  const curAngle = () => clamp((now - G.ang.t0) * ANG_RATE, 0, 89);
+  const angRate = () => ANG_RATE * (1 + 0.12 * (G.luz || 0));
+  const curAngle = () => clamp((now - G.ang.t0) * angRate(), 0, 89);
   function throwAngle() {
     if (G.th.x > -0.12) return foul();
     // Kraft aus dem Anlauftempo: wer zu früh loslässt, ist noch langsam
-    doThrow({ ang: curAngle(), pow: 0.78 + 0.22 * clamp(G.th.vx / 6.2, 0, 1), run: G.th.vx, xr: G.th.x + 0.6, rh: rhythm() });
+    doThrow({ ang: curAngle(), pow: 0.78 + 0.22 * clamp(G.th.vx / 6.2, 0, 1), run: G.th.vx, xr: G.th.x + 0.6, rh: rhythm(), kraft: 1 + luzBoost(), luz: G.luz || 0 });
   }
   // Steinschleuder: Zug in Bühnen-Pixeln → Kraft k (1 = so weit wie nötig für den Kopf) und Richtung
   const PULL_FULL = 150;
@@ -8191,7 +8229,8 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     return { v: G.vNeed * (0.45 + 0.55 * k), lat, k };
   }
   // leichtes Zittern der Hand: wandert das Fadenkreuz, wandert auch der Wurf
-  const wobble = () => ({ lat: Math.sin(now * 2.3) * 0.3 + Math.sin(now * 5.1) * 0.12, v: Math.sin(now * 1.7) * 0.01 });
+  const wobble = () => { const l = G.luz || 0, k = l <= 1 ? 1 - 0.35 * l : 0.65 + 0.8 * (l - 1);   // ein Glas beruhigt die Hand, mehr lässt sie zittern
+     return { lat: (Math.sin(now * 2.3) * 0.3 + Math.sin(now * 5.1) * 0.12) * k, v: Math.sin(now * 1.7) * 0.01 * k }; };
   function setPull(x, y) {
     const p = G.pull; p.x1 = x; p.y1 = y; aimPreview();
   }
@@ -8471,6 +8510,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       if (rec) { S.rec[recK] = res.dist; save(); }
     }
     if (comp) C.aiRound(G.comp, G.n);
+    if (G.luz) G.luz = Math.max(0, G.luz - 0.5);
     G.last = { res, inp, ball: G.ball, pick: G.pick, n: G.n, rec, pb, runLog: G.run && !ziel ? (G.run.log || []) : [] };
     G.gest = ziel ? null : rec || pb ? "jubel" : res.valid ? "nicken" : "abwinken";
     G.gestT = now;
@@ -8539,6 +8579,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     else if (res.why !== "foul") {
       const p = inp.pow;
       facts.push([`Anlauf ${m1(inp.run)} m/s` + (inp.rh != null ? ` · Takt ${Math.round(inp.rh * 100)} %` : ""), inp.run > 5.6 ? "g" : "w"]);
+      if (inp.luz) facts.push([`Kafi Luz: +${Math.round(luzPct(inp.luz))} % Kraft, Takt unruhig`, "w"]);
       facts.push([`Winkel ${Math.round(inp.ang)}°`, inp.ang >= 35 && inp.ang <= 45 ? "g" : "w"]);
       facts.push([`Abwurf ${m1(Math.max(0, -inp.xr))} m vor dem Balken`, -inp.xr < 0.8 ? "g" : ""]);
     }
@@ -8606,10 +8647,10 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     const held = ball && (G.phase === "ready" || G.phase === "run" || G.phase === "angle" || G.phase === "check" || G.phase === "checkOk" || G.phase === "walk" && G.walk.then !== "scoop" || G.phase === "fly" && now < G.fl.t0) ? { d: Ph.SIZE[ball.size].d, f: ball.f, ice: Ph.iceAt(ball), type: ball.type } : null;
     return {
       arc: ["ready", "run", "angle"].includes(G.phase) ? { x: th.x + 0.25, deg: G.phase === "angle" ? curAngle() : null, speed: G.phase === "ready" ? null : th.vx / 6.4,
-        beat: G.phase === "run" ? (((now - G.run.t0) / STEP) % 1 + 1) % 1 : null, foot: th.x, dots: G.run && G.phase !== "ready" ? G.run.accs.slice(-7) : null, last: G.run && G.run.last && now - G.run.last.at < 0.35 ? G.run.last.acc : null, lane: G.mode === "train" ? laneView() : null } : null,
+        beat: G.phase === "run" ? beatPhase() : null, foot: th.x, dots: G.run && G.phase !== "ready" ? G.run.accs.slice(-7) : null, last: G.run && G.run.last && now - G.run.last.at < 0.35 ? G.run.last.acc : null, lane: G.mode === "train" ? laneView() : null } : null,
       board: boardLines(), helper: helperView(), photo: isZiel() ? null : { x: PHOTO.x, z: PHOTO.z, flash: G.flash != null ? G.flash : null },
       say: G.say && now >= G.say.at && now - G.say.at < 2.6 ? G.say : null,
-      cam, focus: G.focus, marks: G.marks, judge: G.judge, tape: G.tape, crumbs: G.crumbs, ball: G.flyBall || null, trail: G.trail,
+      cam: G.luz >= 1 ? { cx: cam.cx + Math.sin(now * 0.8) * 0.12 * G.luz, ppm: cam.ppm * (1 + Math.sin(now * 0.53) * 0.008 * G.luz) } : cam, focus: G.focus, marks: G.marks, judge: G.judge, tape: G.tape, crumbs: G.crumbs, ball: G.flyBall || null, trail: G.trail,
       patches: ["pick", "walk", "scoop", "form"].includes(G.phase) && G.patches ? G.patches : null,
       thrower: { x: th.x, z: th.z, dir: th.dir, pose: th.pose, lift: th.lift || 0, mood: th.mood, look: myLook(), kit: R.kit(S.glove), glove: S.glove, held, puff: G.phase === "run" || G.phase === "angle" ? 1.5 : 0.6 },
     };
@@ -8617,11 +8658,12 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   // Trainings-Taktleiste: Punkte für jeden Fußaufsatz laufen auf die Linie zu; dazu, wann man halten muss, und was beim letzten Tipp los war
   function laneView() {
     const th = G.th, run = G.phase !== "ready" && G.run ? G.run : null, t = run ? now - run.t0 : -0.6;
-    const v = Math.max(1.5, th.vx || 2.6), holdIn = run ? (-(v * 40 / ANG_RATE) - 0.3 - th.x) / v : null;
+    const v = Math.max(1.5, th.vx || 2.6), holdIn = run ? (-(v * 40 / angRate()) - 0.3 - th.x) / v : null;
     const L = run && run.last && now - run.last.at < 0.6 ? run.last : null;
     let word = null;
     if (L) word = L.miss ? ["VERPASST", 0] : L.twice ? ["DOPPELT", 0] : L.acc > 0.75 ? ["GENAU!", 2] : L.e < 0 ? [L.acc > 0.3 ? "KNAPP FRÜH" : "ZU FRÜH", L.acc > 0.3 ? 1 : 0] : [L.acc > 0.3 ? "KNAPP SPÄT" : "ZU SPÄT", L.acc > 0.3 ? 1 : 0];
-    return { t, step: STEP, win: WIN, log: run ? (run.log || []) : [], hold: G.phase === "run" && holdIn != null && holdIn < 1.6 ? Math.max(0, holdIn) : null, angle: G.phase === "angle",
+    const times = []; if (run) for (let f = 1; f < 40; f++) times[f] = footT(f) - run.t0; else for (let f = 1; f < 40; f++) times[f] = f * STEP;
+    return { t, step: STEP, win: WIN, times, log: run ? (run.log || []) : [], hold: G.phase === "run" && holdIn != null && holdIn < 1.6 ? Math.max(0, holdIn) : null, angle: G.phase === "angle",
       word, tip: G.phase === "ready" ? "Tippen startet den Anlauf" : G.phase === "angle" ? "Halten … bei 40° loslassen" : holdIn != null && holdIn < 0.15 ? "JETZT HALTEN!" : "Tippen, wenn ein Punkt die Linie trifft" };
   }
   // Schiefertafel: was der Kampfrichter zuletzt angeschrieben hat
@@ -8712,7 +8754,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       if (end > now) this.step(end - now);
       if (G.phase !== "run") return G.phase;
       G.phase = "angle"; G.ang = { t0: now };
-      this.step(deg / ANG_RATE);
+      this.step(deg / angRate());
       if (G.phase !== "angle") return G.phase;
       throwAngle();
       return G.phase;
