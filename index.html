@@ -160,7 +160,8 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
 .rDist.bad { color: var(--red); font-size: 22px; text-transform: uppercase; }
 .rWhy { font-size: 12px; line-height: 1.25; }
 .rSay { font-family: var(--font-display); font-style: italic; font-size: 13px; color: #7A4A22; margin-top: 2px; }
-.rSay:empty { display: none; }
+.rSay:empty, .rCoach:empty { display: none; }
+.rCoach { font-size: 12px; line-height: 1.3; margin-top: 3px; padding: 3px 6px; background: rgba(63,107,85,0.12); border-left: 3px solid #3F6B55; }
 #rkRes { position: relative; }
 .rPhoto { position: absolute; right: calc(100% + 18px); top: 4px; width: 150px; margin: 0; padding: 5px 5px 3px; background: #F4EBDA; box-shadow: 0 3px 10px rgba(0,0,0,0.35); transform: rotate(-4deg); z-index: 3; }
 .rPhoto img { display: block; width: 100%; height: auto; }
@@ -330,7 +331,7 @@ table.mini tr.me td { background: var(--gold); }
     <div id="rack" hidden>
       <div id="rkRes" hidden>
         <div class="rTop"><div><div class="rKick" id="rKick"></div><div class="rDist num" id="rDist"></div></div><table class="mini" id="rMini"></table></div>
-        <div class="rWhy" id="rWhy"></div><div class="rSay" id="rSay"></div><figure class="rPhoto" id="rPhoto" hidden><img alt="Foto vom Einschlag"><figcaption></figcaption></figure>
+        <div class="rWhy" id="rWhy"></div><div class="rSay" id="rSay"></div><div class="rCoach" id="rCoach"></div><figure class="rPhoto" id="rPhoto" hidden><img alt="Foto vom Einschlag"><figcaption></figcaption></figure>
         <div class="rFacts" id="rFacts"></div>
       </div>
       <div class="rkHead"><div><div class="kicker" id="rkKick"></div><b id="rkWho"></b></div><button class="mid" id="rkSelf">Selbst formen</button></div>
@@ -6823,6 +6824,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
         snowball(ctx, X(b.x, b.z), Y(b.y, b.z), rr, b);
       }
       if (V.arc) angleArc(ctx, M, V.arc, t);
+      if (V.arc && V.arc.lane) beatLane(ctx, V.arc.lane);
       if (V.thrower) breath(ctx, M, V.thrower, t);
       weather(ctx, t, cam.cx);
       grade(ctx, night);
@@ -6831,6 +6833,27 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 
     // Winkelanzeige wie bei Track & Field: Viertelkreis an der Schulter, grüner Bereich 36–44°, Zeiger steigt beim Halten
     // a = { x, deg (oder null), speed 0 … 1, zone } in Weltkoordinaten der Schulter
+    // Trainings-Taktleiste unten: Punkte (Fußaufsätze) laufen von rechts auf die Linie zu, grünes Fenster = getroffen;
+    // roter Strich „HALTEN“ zeigt, wann man den Finger liegen lassen muss
+    function beatLane(c, L) {
+      const w = 420, x0 = W / 2 - w / 2, y = 96, hx = x0 + 80, pps = 230, F = "Futura, 'Avenir Next Condensed', 'Roboto Condensed', sans-serif";
+      c.save();
+      c.fillStyle = "rgba(244,235,218,0.92)"; c.strokeStyle = INK; c.lineWidth = 2; c.beginPath(); c.roundRect ? c.roundRect(x0, y - 22, w, 44, 6) : c.rect(x0, y - 22, w, 44); c.fill(); c.stroke();
+      c.fillStyle = "rgba(63,107,85,0.28)"; c.fillRect(hx - L.win * pps, y - 20, 2 * L.win * pps, 40);
+      c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); c.moveTo(hx, y - 20); c.lineTo(hx, y + 20); c.stroke();
+      c.beginPath(); c.rect(x0 + 2, y - 21, w - 4, 42); c.clip();
+      const done = {}; for (const e of L.log) done[e.f] = e;
+      for (let f = 1; f < 40; f++) {
+        const x = hx + (f * L.step - L.t) * pps; if (x < x0 - 20) continue; if (x > x0 + w + 20) break;
+        const d = done[f], col = d ? (d.acc > 0.75 ? "#3F6B55" : d.acc > 0.3 ? "#D9682B" : "#C23B2A") : "#23466B";
+        c.fillStyle = col; c.strokeStyle = INK; c.lineWidth = 1.5; c.beginPath(); c.arc(x, y, d ? 6 : 9, 0, TAU); c.fill(); c.stroke();
+        if (!d) { c.fillStyle = "#F4EBDA"; c.beginPath(); c.arc(x - 2.5, y - 2.5, 2.5, 0, TAU); c.fill(); }
+      }
+      if (L.hold != null) { const x = hx + L.hold * pps; c.fillStyle = "#C23B2A"; c.fillRect(x - 3, y - 20, 6, 40); c.font = `700 11px ${F}`; c.textAlign = "left"; c.fillText("HALTEN", x + 6, y - 8); }
+      c.restore();
+      c.font = `600 12px ${F}`; c.textAlign = "left"; c.fillStyle = INK; c.fillText(L.tip.toUpperCase(), x0 + 4, y - 30);
+      if (L.word) { c.font = `700 17px ${F}`; c.textAlign = "center"; c.fillStyle = ["#C23B2A", "#D9682B", "#3F6B55"][L.word[1]]; c.fillText(L.word[0], hx, y + 40); }
+    }
     function angleArc(c, M, a, t) {
       const { X, Y, S } = M, cx = X(a.x, 0), cy = Y(1.55, 0), R0 = Math.max(46, 2.4 * S(0));
       c.save();
@@ -6848,19 +6871,19 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
         c.fillText(`${Math.round(a.deg)}°`, cx + R0 * 0.32, cy - R0 - 8);
       }
       // Takt des Anlaufs: Ring am Fuß schließt sich zum Aufsetzen, Punkte zeigen die letzten Schritte
-      if (a.beat != null) {
+      if (a.beat != null && !a.lane) {
         const fx = X(a.foot, 0), fy = Y(0, 0), rr = 8 + (1 - a.beat) * 30, hot = a.beat > 0.82 || a.beat < 0.08;
         c.strokeStyle = hot ? "#C23B2A" : "rgba(35,70,107,0.75)"; c.lineWidth = 3;
         c.beginPath(); c.ellipse(fx, fy, rr, rr * 0.45, 0, 0, TAU); c.stroke();
         c.strokeStyle = "rgba(35,70,107,0.3)"; c.lineWidth = 1.5; c.beginPath(); c.ellipse(fx, fy, 8, 3.6, 0, 0, TAU); c.stroke();
       }
-      if (a.last != null) {
+      if (a.last != null && !a.lane) {
         const fx = X(a.foot, 0), fy = Y(0, 0) - 2.2 * S(0);
         c.font = "700 14px Futura, 'Avenir Next Condensed', 'Roboto Condensed', sans-serif"; c.textAlign = "center";
         c.fillStyle = a.last > 0.75 ? "#3F6B55" : a.last > 0.3 ? "#D9682B" : "#C23B2A";
         c.fillText(a.last > 0.75 ? "TAKT!" : a.last > 0.3 ? "KNAPP" : "DANEBEN", fx, fy);
       }
-      if (a.dots) a.dots.forEach((v, i) => { c.fillStyle = v > 0.75 ? "#3F6B55" : v > 0.3 ? "#D9682B" : "#C23B2A"; c.strokeStyle = INK; c.lineWidth = 1; c.beginPath(); c.arc(cx - R0 * 0.1 + 6 + i * 13, cy + 36, 4.5, 0, TAU); c.fill(); c.stroke(); });
+      if (a.dots && !a.lane) a.dots.forEach((v, i) => { c.fillStyle = v > 0.75 ? "#3F6B55" : v > 0.3 ? "#D9682B" : "#C23B2A"; c.strokeStyle = INK; c.lineWidth = 1; c.beginPath(); c.arc(cx - R0 * 0.1 + 6 + i * 13, cy + 36, 4.5, 0, TAU); c.fill(); c.stroke(); });
       // Tempo des Anlaufs
       if (a.speed != null) {
         const bw = R0 * 1.2, bx = cx - bw * 0.1, by = cy + 16;
@@ -7647,7 +7670,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.7";
+  const VERSION = "0.7.1";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender;
@@ -8083,15 +8106,16 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   function stepTap(t) {
     const R0 = G.run, f = Math.max(1, Math.round((t - R0.t0) / STEP)), e = t - footT(f);
     let acc = 0;
-    if (Math.abs(e) < 0.2 && !R0.tapped[f]) { R0.tapped[f] = 1; acc = clamp(1 - Math.abs(e) / WIN, 0, 1); }
+    const twice = !!R0.tapped[f];
+    if (Math.abs(e) < 0.2 && !twice) { R0.tapped[f] = 1; acc = clamp(1 - Math.abs(e) / WIN, 0, 1); }
     else R0.tapped[f] = 1;
-    R0.accs.push(acc); R0.last = { acc, at: now };
+    R0.accs.push(acc); R0.last = { acc, at: now, e, twice }; (R0.log = R0.log || []).push({ f, acc, e: twice ? null : e });
     AU.press(acc, false);
   }
   // nicht getippte Schritte zählen als daneben
   function stepMiss() {
     const R0 = G.run;
-    for (let f = 1; footT(f) + 0.2 < now; f++) if (!R0.tapped[f]) { R0.tapped[f] = 1; R0.accs.push(0); R0.last = { acc: 0, at: now }; }
+    for (let f = 1; footT(f) + 0.2 < now; f++) if (!R0.tapped[f]) { R0.tapped[f] = 1; R0.accs.push(0); R0.last = { acc: 0, at: now, miss: true }; (R0.log = R0.log || []).push({ f, acc: 0, miss: true }); }
   }
   const rhythm = () => { const a = G.run.accs.slice(-4); return a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0.3; };
   const curAngle = () => clamp((now - G.ang.t0) * ANG_RATE, 0, 89);
@@ -8291,24 +8315,51 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       G.photo = { src: c2.toDataURL("image/jpeg", 0.8), n: sn.n, dist: sn.dist };
     } catch (e) { G.photo = null; }
   }
-  // Kommentar auf Schweizerdeutsch zum Wurf (aus dem Seed gewählt, damit er nicht immer gleich klingt)
+  // Kommentar auf Schweizerdeutsch: nicht bei jedem Wurf, aber bei den besonderen immer; jede Ansage kommt erst wieder, wenn alle anderen der Sorte dran waren
   const SAY = {
-    rekord: ["Heiterefahne, isch dä wiit!", "Jesses Gott, das isch es Gschoss!", "Uiuiui – Rekord, gopfriedstutz!"],
-    super: ["Hopp! Das isch en Wurf gsi!", "Lässig, dä gaht wiit!", "Bravo, sauguet gmacht!", "Wow, dä het Pfupf gha!"],
-    guet: ["Nöd schlächt.", "Isch guet, gäll.", "Chasch luege lah.", "Rächt ordeli."],
-    mau: ["Ä chli churz, gell.", "Da gaht no meh.", "Nu nöd hudle!", "Schad, dä isch verbröslet."],
-    foul: ["Übertrete, gäll!", "Halt, halt – übere Balke!", "Nänei, das zellt nöd."],
-    aus: ["Näbe dra isch au vorbii.", "Ojeh, im Uus.", "Dä isch abgschwirrt."],
-    hut: ["Zylinder ab – hopp de Bäse!", "Volltreffer, Heiterefahne!"], kopf: ["Mitten uf de Grind!", "Am Chopf, sauber!"],
-    bauch: ["Uf de Ranze, guet.", "Bauchtreffer, bitte!"], fuss: ["Wenigschtens am Fuess.", "Grad no erwütscht."], nix: ["Dänebe!", "Schad, nüt troffe.", "Uiuiui, dä isch dure."],
+    rekord: ["Heiterefahne, isch dä wiit!", "Jesses Gott, das isch es Gschoss!", "Uiuiui – Rekord, gopfriedstutz!", "Das gits jo nöd! Neue Rekord!", "Grüezi Bestwiite!", "Herrgott nomol, dä isch bis uf Chur gfloge!",
+      "Das isch Wältklass, Hand ufs Härz!", "So wiit het no keine gworfe!", "Da staunt sogar de Hüttewart!", "Rekord! Da gits es Kafi Schnaps!"],
+    super: ["Hopp! Das isch en Wurf gsi!", "Lässig, dä gaht wiit!", "Bravo, sauguet gmacht!", "Wow, dä het Pfupf gha!", "Gopfried, isch dä guet!", "Das isch es Gschössli!", "Dä fliegt und fliegt …",
+      "Mega! De Fotograf het en au gseh.", "Huere guet, wükli!", "Do lueg emol, de het Chraft!", "Chapeau, das isch en Huufe Meter!", "So gaht das, gell!", "Dä isch über alli Bärge!"],
+    guet: ["Nöd schlächt.", "Isch guet, gäll.", "Chasch luege lah.", "Rächt ordeli.", "Doch, doch, das gaht.", "Solid, nüt z'mäckere.", "Ganz e rächte Wurf.", "Me cha nöd chlage.", "Jo, scho rächt.",
+      "Ordeli gworfe.", "Das isch es gsunds Mittelmass.", "Da isch no Luft obe."],
+    mau: ["Ä chli churz, gell.", "Da gaht no meh.", "Nu nöd hudle!", "Schad, dä isch verbröslet.", "Hesch kalti Händ?", "Isch dä vo de Oma gworfe?", "Mol, das isch eher es Schneebälleli.",
+      "Nüt für ungut, aber …", "Muesch meh Schwung neh!", "Dä het kei Lust gha.", "Oha, das isch es Gmües.", "Ufstah, Chrone richte, wiitermache!"],
+    foul: ["Übertrete, gäll!", "Halt, halt – übere Balke!", "Nänei, das zellt nöd.", "Rot! De Fuess isch drüber.", "Ojeh, de Balke isch kei Vorschlag!", "Zu wiit vüre, schad drum.", "Da pfiift de Kampfrichter!"],
+    aus: ["Näbe dra isch au vorbii.", "Ojeh, im Uus.", "Dä isch abgschwirrt.", "De gaht zu de Zueschauer!", "Achtung, Chöpf iizieh!", "Ganz schräg, dä Wurf."],
+    hut: ["Zylinder ab – hopp de Bäse!", "Volltreffer, Heiterefahne!", "De Huet flügt, herrlich!", "Gnau uf de Zylinder, Bravo!"],
+    kopf: ["Mitten uf de Grind!", "Am Chopf, sauber!", "De Schneemaa gseht Stärnli!", "Bätsch, uf d'Nase!"],
+    bauch: ["Uf de Ranze, guet.", "Bauchtreffer, bitte!", "Mitti druf, nöd schlächt.", "Das het i de Buuch gschosse."],
+    fuss: ["Wenigschtens am Fuess.", "Grad no erwütscht.", "Am Zeh, immerhin.", "Unte dure, aber troffe."],
+    nix: ["Dänebe!", "Schad, nüt troffe.", "Uiuiui, dä isch dure.", "De Schneemaa lacht di us.", "Nüt gsi.", "Do hesch de Wald troffe."],
   };
+  const deck = {};
+  function pickSay(k) {
+    if (!deck[k] || !deck[k].length) { const a = SAY[k].slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } deck[k] = a; }
+    return deck[k].pop();
+  }
   function comment(res) {
     let k;
     if (isZiel()) k = res.part || "nix";
     else if (!res.valid) k = res.why === "foul" ? "foul" : "aus";
     else k = res.dist >= 45 && res.dist > S.rec[isComp() ? "comp" : "train"] ? "rekord" : res.dist >= 50 ? "super" : res.dist >= 40 ? "guet" : "mau";
-    const L = SAY[k], i = (G.n * 7 + (G.seed >>> 3) + G.tries.length * 3) % L.length;
-    G.say = { t: L[i], at: now + 0.25, k };
+    // immer bei Rekord, weiten Würfen, Zylinder; sonst etwa jedes zweite Mal
+    const must = k === "rekord" || k === "super" || k === "hut", p = { guet: 0.35, mau: 0.45, foul: 0.6, aus: 0.6 }[k] || 0.4;
+    if (!must && !testMode && Math.random() > p) { G.say = null; G.lastSay = null; return; }
+    const t = pickSay(k);
+    G.say = { t, at: now + 0.25, k }; G.lastSay = t;
+  }
+  // Trainer im Training: sagt nach jedem Wurf, woran es lag (Takt, Halten, Winkel)
+  function coachTip(L) {
+    const inp = L.inp || {}, res = L.res, log = (L.runLog || []);
+    if (res.why === "foul") return "Trainer: Zu spät gehalten – du bist über den Balken. Halte, sobald der rote Strich „HALTEN“ die Linie trifft.";
+    const taps = log.filter((x) => !x.miss && x.e != null), miss = log.filter((x) => x.miss).length, early = taps.filter((x) => x.acc < 0.75 && x.e < 0).length, late = taps.filter((x) => x.acc < 0.75 && x.e > 0).length;
+    if (log.length && miss >= log.length / 2) return "Trainer: Tippe bei jedem Schritt einmal – genau wenn ein Punkt die Linie trifft. Nicht getippt heißt langsamer.";
+    if (early > late && early >= 2) return "Trainer: Du tippst zu früh. Warte, bis der Punkt auf der Linie ist – der Fuß setzt dann auf.";
+    if (late > early && late >= 2) return "Trainer: Du tippst zu spät. Tippe schon, wenn der Punkt die Linie erreicht.";
+    if (inp.ang != null && (inp.ang < 33 || inp.ang > 47)) return inp.ang < 33 ? "Trainer: Takt passt. Halte etwas länger – um 40° fliegt der Ball am weitesten." : "Trainer: Takt passt. Lass früher los – über 45° geht der Ball nur hoch.";
+    if (inp.xr != null && -inp.xr > 1.2) return "Trainer: Gut! Du kannst noch näher an den Balken – etwas später halten bringt Meter.";
+    return "Trainer: Sauber! Takt, Winkel und Abwurf passen – jetzt im Wettkampf zeigen.";
   }
   function sayBox() {
     const el = $("say"), on = G && G.say && now >= G.say.at && now - G.say.at < 2.8 && !["rack", "report"].includes(G.phase);
@@ -8360,7 +8411,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       if (rec) { S.rec[recK] = res.dist; save(); }
     }
     if (comp) C.aiRound(G.comp, G.n);
-    G.last = { res, inp, ball: G.ball, pick: G.pick, n: G.n, rec, pb };
+    G.last = { res, inp, ball: G.ball, pick: G.pick, n: G.n, rec, pb, runLog: G.run && !ziel ? (G.run.log || []) : [] };
     G.gest = ziel ? null : rec || pb ? "jubel" : res.valid ? "nicken" : "abwinken";
     G.gestT = now;
     if (!ziel && (rec || pb)) AU.applause(rec ? 1 : 0.5);
@@ -8390,7 +8441,8 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       else if (res.valid && res.m < res.m0 * 0.8) why += " Hat unterwegs Schnee verloren.";
     }
     $("rWhy").textContent = nb(why);
-    $("rSay").textContent = G.say ? "«" + G.say.t + "»" : "";
+    $("rSay").textContent = G.lastSay ? "«" + G.lastSay + "»" : "";
+    $("rCoach").textContent = G.mode === "train" && !ziel ? coachTip(L) : ""; 
     const ph = $("rPhoto"), pp = G.photo && G.photo.n === L.n ? G.photo : null;
     ph.hidden = !pp; if (pp) { ph.querySelector("img").src = pp.src; ph.querySelector("figcaption").textContent = nb(`${m1(pp.dist)} m · Foto: Atelier Gredig`); }
     const facts = [];
@@ -8466,13 +8518,23 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     const held = ball && (G.phase === "ready" || G.phase === "run" || G.phase === "angle" || G.phase === "check" || G.phase === "checkOk" || G.phase === "walk" && G.walk.then !== "scoop" || G.phase === "fly" && now < G.fl.t0) ? { d: Ph.SIZE[ball.size].d, f: ball.f, ice: Ph.iceAt(ball), type: ball.type } : null;
     return {
       arc: ["ready", "run", "angle"].includes(G.phase) ? { x: th.x + 0.25, deg: G.phase === "angle" ? curAngle() : null, speed: G.phase === "ready" ? null : th.vx / 6.4,
-        beat: G.phase === "run" ? (((now - G.run.t0) / STEP) % 1 + 1) % 1 : null, foot: th.x, dots: G.run && G.phase !== "ready" ? G.run.accs.slice(-7) : null, last: G.run && G.run.last && now - G.run.last.at < 0.35 ? G.run.last.acc : null } : null,
+        beat: G.phase === "run" ? (((now - G.run.t0) / STEP) % 1 + 1) % 1 : null, foot: th.x, dots: G.run && G.phase !== "ready" ? G.run.accs.slice(-7) : null, last: G.run && G.run.last && now - G.run.last.at < 0.35 ? G.run.last.acc : null, lane: G.mode === "train" ? laneView() : null } : null,
       board: boardLines(), helper: helperView(), photo: isZiel() ? null : { x: PHOTO.x, z: PHOTO.z, flash: G.flash != null ? G.flash : null },
       say: G.say && now >= G.say.at && now - G.say.at < 2.6 ? G.say : null,
       cam, focus: G.focus, marks: G.marks, judge: G.judge, tape: G.tape, crumbs: G.crumbs, ball: G.flyBall || null, trail: G.trail,
       patches: ["pick", "walk", "scoop", "form"].includes(G.phase) && G.patches ? G.patches : null,
       thrower: { x: th.x, z: th.z, dir: th.dir, pose: th.pose, lift: th.lift || 0, mood: th.mood, look: myLook(), kit: R.kit(S.glove), glove: S.glove, held, puff: G.phase === "run" || G.phase === "angle" ? 1.5 : 0.6 },
     };
+  }
+  // Trainings-Taktleiste: Punkte für jeden Fußaufsatz laufen auf die Linie zu; dazu, wann man halten muss, und was beim letzten Tipp los war
+  function laneView() {
+    const th = G.th, run = G.phase !== "ready" && G.run ? G.run : null, t = run ? now - run.t0 : -0.6;
+    const v = Math.max(1.5, th.vx || 2.6), holdIn = run ? (-(v * 40 / ANG_RATE) - 0.3 - th.x) / v : null;
+    const L = run && run.last && now - run.last.at < 0.6 ? run.last : null;
+    let word = null;
+    if (L) word = L.miss ? ["VERPASST", 0] : L.twice ? ["DOPPELT", 0] : L.acc > 0.75 ? ["GENAU!", 2] : L.e < 0 ? [L.acc > 0.3 ? "KNAPP FRÜH" : "ZU FRÜH", L.acc > 0.3 ? 1 : 0] : [L.acc > 0.3 ? "KNAPP SPÄT" : "ZU SPÄT", L.acc > 0.3 ? 1 : 0];
+    return { t, step: STEP, win: WIN, log: run ? (run.log || []) : [], hold: G.phase === "run" && holdIn != null && holdIn < 1.6 ? Math.max(0, holdIn) : null, angle: G.phase === "angle",
+      word, tip: G.phase === "ready" ? "Tippen startet den Anlauf" : G.phase === "angle" ? "Halten … bei 40° loslassen" : holdIn != null && holdIn < 0.15 ? "JETZT HALTEN!" : "Tippen, wenn ein Punkt die Linie trifft" };
   }
   // Schiefertafel: was der Kampfrichter zuletzt angeschrieben hat
   function boardLines() {
