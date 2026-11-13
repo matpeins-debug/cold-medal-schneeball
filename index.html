@@ -180,6 +180,17 @@ table.mini tr.me td { background: var(--gold); }
 .rkFoot { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 #turn { display: none; }
 
+/* Zwischensequenz nach dem Wurf: große Weite, Wertung, Spruch */
+#reveal { position: absolute; left: 50%; top: 60px; transform: translateX(-50%); text-align: center; pointer-events: none; min-width: 300px;
+  background: rgba(244,235,218,0.94); border: 2px solid #1E2530; box-shadow: 4px 4px 0 rgba(0,0,0,0.25); padding: 8px 22px 9px; }
+#reveal .rvN { font-family: var(--font-display); font-weight: 800; font-size: 46px; line-height: 1; color: #1E2530; letter-spacing: 0.01em; }
+#reveal .rvN.in { animation: rvPop 0.35s ease-out; }
+#reveal .rvN.bad { color: #9E2B1E; }
+#reveal .rvS { font-family: var(--font-display); font-weight: 700; font-size: 13px; letter-spacing: 0.1em; color: #3F6B55; margin-top: 4px; min-height: 16px; }
+#reveal .rvSay { font-family: var(--font-display); font-style: italic; font-size: 16px; color: #7A4A22; margin-top: 4px; }
+#reveal .rvGo { font-size: 11px; color: #5A5148; margin-top: 5px; letter-spacing: 0.05em; }
+@keyframes rvPop { 0% { transform: scale(1.25); } 100% { transform: scale(1); } }
+
 /* Cold Medal Games · Fenster „Deine Figur“ (pass/pass.css)
    Aussehen wie die Menüs des Skispringens: Papier mit Doppelrahmen, Knöpfe wie Druckmarken, Futura für Titel und Knöpfe,
    Buchschrift für Lesetext. Farben und Schriften kommen aus den Variablen des Spiels (alle Spiele der Reihe haben sie),
@@ -327,6 +338,7 @@ table.mini tr.me td { background: var(--gold); }
     <button class="ibtn" id="abort" aria-label="Zurück zum Menü">×</button>
     <div id="hint" hidden></div>
     <div id="say" hidden></div>
+    <div id="reveal" hidden></div>
     <div id="patches"></div>
     <div id="rack" hidden>
       <div id="rkRes" hidden>
@@ -7713,7 +7725,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.8";
+  const VERSION = "0.8.1";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender;
@@ -8125,6 +8137,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     }
     AU.unlock();
     if (G.phase === "form") { e.preventDefault(); formPress(); return; }
+    if (G.phase === "show") { e.preventDefault(); if (now - G.reveal.t0 > 0.8) endReveal(); return; }
     const [x, y] = stagePoint(e.clientX, e.clientY);
     if (G.phase === "ready") { e.preventDefault(); G.phase = "run"; G.run = { t0: now, tapped: {}, accs: [] }; hint(null); return; }
     // im Anlauf: kurz tippen = Schritt im Takt, halten = Winkel (ab 0,18 s, gezählt ab dem Auflegen)
@@ -8277,6 +8290,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     }
     if (G.phase === "fly") updFly(dt);
     if (G.phase === "zfly") updZiel(dt);
+    if (G.phase === "show") updReveal();
     if (G.phase === "aim" && G.pull) aimPreview();
     if (G.phase === "foul") {
       const u = now - G.thr.t0;
@@ -8289,7 +8303,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       th.pose = F.ease(th.pose, F.idle(F.POSES.stand, now, 1), dt);
       if (G.tape.u >= 1 && !G.shown && now - G.tape.t0 > 1.5) afterThrow();
     }
-    if ((G.phase === "rack" || G.phase === "dsq") && G.gest) {
+    if ((G.phase === "rack" || G.phase === "dsq" || G.phase === "show" && G.reveal && G.reveal.landed) && G.gest) {
       const r = F.gesture(G.gest, now - G.gestT);
       if (r) { th.pose = F.ease(th.pose, r.pose, dt, true); th.lift = r.lift; th.mood = r.mood; } else { G.gest = null; th.lift = 0; }
     }
@@ -8408,7 +8422,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     return "Trainer: Sauber! Takt, Winkel und Abwurf passen – jetzt im Wettkampf zeigen.";
   }
   function sayBox() {
-    const el = $("say"), on = G && G.say && now >= G.say.at && now - G.say.at < 2.8 && !["rack", "report"].includes(G.phase);
+    const el = $("say"), on = false && G && G.say && now >= G.say.at && now - G.say.at < 2.8 && !["rack", "report", "show"].includes(G.phase);
     if (el.hidden === !on && (!on || el.dataset.t === G.say.t)) return;
     el.hidden = !on; if (on) { el.textContent = "«" + G.say.t + "»"; el.dataset.t = G.say.t; el.className = /foul|aus|nix/.test(G.say.k) ? "bad" : ""; }
   }
@@ -8460,14 +8474,42 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     G.last = { res, inp, ball: G.ball, pick: G.pick, n: G.n, rec, pb, runLog: G.run && !ziel ? (G.run.log || []) : [] };
     G.gest = ziel ? null : rec || pb ? "jubel" : res.valid ? "nicken" : "abwinken";
     G.gestT = now;
-    if (!ziel && (rec || pb)) AU.applause(rec ? 1 : 0.5);
-    const last = comp && G.n >= TRIES - 1;
-    if (last) {
-      if (ziel && G.pts > S.rec.ziel) { S.rec.ziel = G.pts; save(); }
-      return showStand();
-    }
+    // kurze Zwischensequenz: Weite zählt hoch, Jubel oder Abwinken, erst dann der nächste Ball (Tippen kürzt ab)
+    const ok = ziel ? res.pts > 0 : res.valid;
+    G.reveal = { t0: now, dur: testMode ? 0.3 : ok ? 4.6 : 3.0, count: testMode ? 0.05 : ok ? 1.5 : 0.6, ziel, ok, rec, pb, last: comp && G.n >= TRIES - 1, ticks: 0, landed: false,
+      val: ziel ? res.pts : res.valid ? res.dist : 0, place: comp ? C.place(G.comp) : 0 };
+    G.phase = "show";
+  }
+  function endReveal() {
+    const R0 = G.reveal; if (!R0 || R0.done) return; R0.done = true; $("reveal").hidden = true;
+    if (R0.last) { if (R0.ziel && G.pts > S.rec.ziel) { S.rec.ziel = G.pts; save(); } return showStand(); }
     G.n++;
     beginAttempt();
+  }
+  function updReveal() {
+    const R0 = G.reveal, u = now - R0.t0;
+    if (R0.ok && u < R0.count && u > R0.ticks * 0.11) { R0.ticks++; AU.tick(R0.ticks % 3 === 0); }
+    if (!R0.landed && u >= R0.count) {
+      R0.landed = true; AU.thud(true);
+      if (R0.ok) AU.applause(R0.rec ? 1.2 : R0.pb ? 0.8 : R0.val >= (R0.ziel ? 5 : 45) ? 0.5 : 0.25);
+      G.gestT = now;
+    }
+    // Kamera: erst beim Aufschlag, nach dem Hochzählen zurück zum Werfer, der jubelt oder abwinkt
+    if (!R0.ziel && R0.landed) setCam(G.th.x + 3.2, 52);
+    if (u >= R0.dur) endReveal();
+  }
+  function revealBox() {
+    const el = $("reveal"), R0 = G && G.phase === "show" ? G.reveal : null;
+    if (!R0) { if (!el.hidden) el.hidden = true; return; }
+    el.hidden = false;
+    const u = now - R0.t0, k = R0.ok ? clamp(u / R0.count, 0, 1) : 1, e = 1 - Math.pow(1 - k, 3), res = G.fl.res;
+    const num = R0.ziel ? (R0.ok ? `+${Math.round(R0.val * e)} Punkte` : "Daneben") : R0.ok ? nb(`${m1(R0.val * e)} m`) : (res.why === "foul" ? "Übertreten" : "Im Aus");
+    let sub = "";
+    if (R0.landed) sub = R0.rec ? "NEUE BESTWEITE!" : R0.pb ? "WEITESTER WURF HEUTE" : R0.ziel ? (res.part ? PART_TXT[res.part].replace("!", "").toUpperCase() : "KEIN TREFFER") : R0.ok ? "GÜLTIG" : "UNGÜLTIG";
+    if (R0.landed && R0.place) sub += ` · ZWISCHENRANG ${R0.place}`;
+    const html = `<div class="rvN num${R0.ok ? "" : " bad"}${R0.landed ? " in" : ""}">${esc(num)}</div><div class="rvS">${esc(sub)}</div>` +
+      (R0.landed && G.lastSay ? `<div class="rvSay">«${esc(G.lastSay)}»</div>` : "") + (u > 1.2 ? `<div class="rvGo">Tippen: weiter</div>` : "");
+    if (el.dataset.h !== html) { el.innerHTML = html; el.dataset.h = html; }
   }
   // Ergebnis des letzten Wurfs oben im Ballkorb, mit kleinem Zwischenstand
   function fillLast() {
@@ -8616,7 +8658,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   function render() {
     if (isZiel()) R.drawAim(ctx, aimView(), now);
     else { R.draw(ctx, view(), now); if (G && G.snap && now >= G.snap.at) takeSnap(); }
-    sayBox();
+    sayBox(); revealBox();
     if (G) { placePatchButtons(); updWind(); }
   }
 
