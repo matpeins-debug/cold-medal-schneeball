@@ -40,7 +40,7 @@ button { border: 0; background: none; cursor: pointer; -webkit-tap-highlight-col
 /* Bildschirme */
 .scr { position: absolute; inset: 0; display: flex; align-items: center; justify-content: flex-start; padding: 14px 18px; }
 .card { position: relative; background: var(--paper); border: 3px solid var(--ink-deep); box-shadow: 5px 5px 0 rgba(0,0,0,0.4); padding: 14px 16px; }
-.card.menu { width: 330px; max-height: 100%; display: flex; flex-direction: column; gap: 7px; padding: 12px 14px; }
+.card.menu { width: 360px; max-height: 100%; display: flex; flex-direction: column; gap: 7px; padding: 12px 14px; }
 #scrReport, #scrStand, #scrInfo, #scrPass { justify-content: center; background: rgba(14,22,38,0.38); }
 h1 { font-family: var(--font-display); font-size: 36px; line-height: 1; text-transform: uppercase; letter-spacing: 0.02em; }
 h2 { font-family: var(--font-display); font-size: 21px; line-height: 1.1; text-transform: uppercase; margin: 3px 0 8px; }
@@ -123,7 +123,7 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
 .patch:active { transform: translate(calc(-50% + 2px), calc(-100% + 2px)); box-shadow: 0 0 0 var(--ink-deep); }
 
 /* Ballkorb: fertige Bälle vom Helfer */
-#rack { position: absolute; right: 12px; top: 50px; width: 430px; background: var(--paper); border: 3px solid var(--ink-deep); box-shadow: 4px 4px 0 rgba(0,0,0,0.35); padding: 8px 10px 9px; pointer-events: auto; }
+#rack { position: absolute; right: 12px; top: 48px; width: 440px; max-height: 336px; background: var(--paper); border: 3px solid var(--ink-deep); box-shadow: 4px 4px 0 rgba(0,0,0,0.35); padding: 8px 10px 9px; pointer-events: auto; }
 .rkHead { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .rkHead b { font-family: var(--font-display); font-size: 15px; letter-spacing: 0.03em; text-transform: uppercase; white-space: nowrap; }
 .rkHead .mid { padding: 6px 10px; font-size: 12px; }
@@ -135,7 +135,7 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
 .rkBall i { font-style: normal; font-size: 10px; padding: 0 4px; margin-top: 1px; align-self: flex-start; border: 1px solid var(--ink-deep); }
 .rkBall i.gut { background: var(--green); color: var(--paper); } .rkBall i.locker { background: #D9C7A4; } .rkBall i.eis { background: var(--ice); }
 .rkBall:active { transform: translate(1px, 1px); }
-.rkFoot { font-size: 11.5px; color: var(--muted); line-height: 1.3; }
+.rkFoot { font-size: 11px; color: var(--muted); line-height: 1.25; }
 
 /* Formen */
 #form { position: absolute; right: 12px; top: 50px; width: 400px; background: var(--paper); border: 3px solid var(--ink-deep); box-shadow: 4px 4px 0 rgba(0,0,0,0.35); padding: 8px 10px 10px; pointer-events: auto; }
@@ -152,17 +152,21 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
 #fDone { width: 100%; }
 #fDone:disabled { opacity: 0.45; }
 
-/* Ergebnis eines Versuchs */
-#res { position: absolute; right: 12px; top: 50px; width: 270px; background: var(--paper); border: 3px solid var(--ink-deep); box-shadow: 4px 4px 0 rgba(0,0,0,0.35); padding: 9px 12px 11px; pointer-events: auto; }
-.rKick { font-family: var(--font-display); font-size: 11px; letter-spacing: 0.18em; color: var(--red); font-weight: 600; }
-.rDist { font-size: 44px; line-height: 1; font-weight: 700; margin: 2px 0; }
-.rDist.bad { color: var(--red); font-size: 30px; text-transform: uppercase; letter-spacing: 0.02em; }
-.rWhy { font-size: 13px; line-height: 1.3; }
-.rFacts { display: flex; flex-wrap: wrap; gap: 4px; margin: 7px 0 9px; }
-.rFacts span { font-family: var(--font-display); font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; padding: 2px 6px; border: 1.5px solid var(--ink-deep); background: #FBF6EA; white-space: nowrap; }
+/* Ergebnis des letzten Wurfs, oben im Ballkorb */
+#rkRes { border-bottom: 2px solid var(--ink-deep); padding-bottom: 6px; margin-bottom: 6px; }
+.rTop { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+.rKick { font-family: var(--font-display); font-size: 11px; letter-spacing: 0.16em; color: var(--red); font-weight: 600; white-space: nowrap; }
+.rDist { font-size: 30px; line-height: 1; font-weight: 700; margin: 1px 0; white-space: nowrap; }
+.rDist.bad { color: var(--red); font-size: 22px; text-transform: uppercase; }
+.rWhy { font-size: 12px; line-height: 1.25; }
+.rFacts { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 4px; }
+.rFacts span { font-family: var(--font-display); font-size: 10.5px; letter-spacing: 0.03em; text-transform: uppercase; padding: 1px 5px; border: 1.5px solid var(--ink-deep); background: #FBF6EA; white-space: nowrap; }
 .rFacts span.g { background: var(--green); color: var(--paper); }
 .rFacts span.w { background: var(--warn); color: var(--paper); }
-.rBtns { display: flex; gap: 8px; justify-content: flex-end; }
+table.mini { width: auto; font-size: 11px; }
+table.mini td { padding: 0 4px; border-bottom: 1px solid rgba(30,39,52,0.12); }
+table.mini tr.me td { background: var(--gold); }
+.rkFoot { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 #turn { display: none; }
 
 /* Cold Medal Games · Fenster „Deine Figur“ (pass/pass.css)
@@ -313,9 +317,14 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
     <div id="hint" hidden></div>
     <div id="patches"></div>
     <div id="rack" hidden>
+      <div id="rkRes" hidden>
+        <div class="rTop"><div><div class="rKick" id="rKick"></div><div class="rDist num" id="rDist"></div></div><table class="mini" id="rMini"></table></div>
+        <div class="rWhy" id="rWhy"></div>
+        <div class="rFacts" id="rFacts"></div>
+      </div>
       <div class="rkHead"><div><div class="kicker" id="rkKick"></div><b id="rkWho"></b></div><button class="mid" id="rkSelf">Selbst formen</button></div>
       <div class="rkGrid" id="rkGrid"></div>
-      <div class="rkFoot" id="rkFoot"></div>
+      <div class="rkFoot"><span id="rkFoot"></span><button class="lnk" id="rkWeather" hidden>Wetter ändern</button></div>
     </div>
     <div id="form" hidden>
       <div class="fSizes" id="fSizes"></div>
@@ -328,13 +337,6 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
         </div>
       </div>
     </div>
-    <div id="res" hidden>
-      <div class="rKick" id="rKick"></div>
-      <div class="rDist num" id="rDist"></div>
-      <div class="rWhy" id="rWhy"></div>
-      <div class="rFacts" id="rFacts"></div>
-      <div class="rBtns"><button class="mid" id="rAlt" hidden></button><button class="mid red" id="rNext">Weiter</button></div>
-    </div>
   </div>
 
   <section class="scr" id="scrMenu">
@@ -343,8 +345,11 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
       <h1>Schneeball</h1>
       <div class="place"><b>St. Moritz · 1856 m</b><span>Schnee lesen, Ball formen, so weit wie möglich werfen.</span></div>
       <div class="col">
-        <button class="big red" id="bComp"><span>Wettkampf</span><small id="mComp"></small></button>
-        <button class="big" id="bTrain"><span>Training</span><small id="mTrain"></small></button>
+        <div class="row2">
+          <button class="big red" id="bComp"><span>Weitwurf</span><small id="mComp"></small></button>
+          <button class="big red" id="bZiel"><span>Zielwurf</span><small id="mZiel"></small></button>
+        </div>
+        <button class="big" id="bTrain"><span>Training Weitwurf</span><small id="mTrain"></small></button>
         <div class="row2">
           <button class="mid" id="bFig">Deine Figur</button>
           <button class="mid" id="bSound"></button>
@@ -384,11 +389,11 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
         <h3>Spiel</h3>
         <p>Inoffizielles Fanspiel der Reihe Cold Medal Games. Alle Werferinnen und Werfer sind erfunden; St. Moritz ist frei nachempfunden (Plakatstil der 1920er).</p>
         <h3>So geht’s</h3>
-        <p>Schnee holen: Tippe auf einen Fleck. Ball formen: Größe wählen, dann im Takt drücken, wenn sich der Ring schließt. Werfen: Finger auflegen (Anlauf), dann schnell nach oben wischen. Die Richtung gibt den Winkel, das Tempo die Kraft. Nicht über den Balken treten.</p>
+        <p>Ball wählen: Dein Helfer hat fertige Bälle im Korb, oder du formst selbst (Fleck wählen, Größe wählen, im Takt drücken, wenn sich der Ring schließt). Weitwurf: Finger auflegen startet den Anlauf, dann schnell nach oben wischen. Steil gibt einen hohen Bogen, leicht schräg den weitesten Wurf; das Tempo gibt die Kraft. Nicht über den Balken treten. Zielwurf: nach oben wischen, seitlich zielen, das Tempo bestimmt, wie weit der Ball fliegt.</p>
         <h3>Schnee</h3>
-        <p>Um 0 °C pappt der Schnee am besten. Bei Frost und im Schatten bröselt er, bei Tauwetter wird er schwer und nass, morgens nach Tauwetter liegt Harsch. Ein zu lockerer Ball zerfällt im Flug, ein zu fester wird zum Eisball und zählt nicht.</p>
+        <p>Um 0 °C pappt der Schnee am besten. Bei Frost und im Schatten bröselt er, bei Tauwetter wird er schwer und nass, morgens nach Tauwetter liegt Harsch. Ein zu lockerer Ball zerfällt im Flug. Ein Eisball fliegt weiter, ist aber verboten: Der Kampfrichter kontrolliert zufällig, wer erwischt wird, ist aus dem Bewerb ausgeschlossen.</p>
         <h3>Wertung</h3>
-        <p>Drei Versuche, der weiteste zählt; die besten acht werfen im Finale drei weitere. Gemessen wird auf 10 cm, vom Balken bis zum Aufschlag; zerbricht der Ball, zählt der größte Brocken. Der Ball muss im Sektor landen.</p>
+        <p>Je Bewerb fünf Würfe. Weitwurf: der weiteste zählt, gemessen auf 10 cm vom Balken bis zum Aufschlag; zerbricht der Ball, zählt der größte Brocken; der Ball muss im Sektor landen. Zielwurf: Schneemann in 10 bis 18 m, Zylinder 10 Punkte, Kopf 5, Bauch 3, Fuß 2; die Summe zählt.</p>
         <h3>Datenschutz</h3>
         <p id="ifPriv"></p>
         <h3>Impressum</h3>
@@ -517,6 +522,7 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
   function state(ball) { return ball.f >= iceAt(ball) ? "eis" : ball.f < LOOSE ? "locker" : "gut"; }
   // Festigkeit im Flug (0 … 1): Schnee, Güte, wie fest gedrückt, wie gleichmäßig im Takt
   function strength(ball) {
+    if (state(ball) === "eis") return 1;
     const S = SNOW[ball.type], Gl = GLOVES[ball.glove] || GLOVES.wolle;
     const acc = ball.n ? ball.accSum / ball.n : 0.5;
     return clamp(S.bind * ball.q * clamp((ball.f - 0.2) / 0.5, 0, 1) * (0.62 + 0.38 * acc) + Gl.smooth, 0, 1);
@@ -550,13 +556,15 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
     const R = release(ball, inp, seed), rho = airRho(c), sig = strength(ball);
     let { x, y, z, vx, vy, vz, m, d } = R;
     const m0 = m, path = [], events = [];
+    // Eisball: glatt und hart, zerbröselt nicht, weniger Luftwiderstand. Erlaubt ist er nicht (Kontrolle, Ausschluss: game.js/comp.js).
+    const icy = state(ball) === "eis", cd = icy ? CD * 0.8 : CD;
     let t = 0, broke = null, breakAt = sig < 0.4 ? 0.06 + sig * 1.4 : Infinity;
     const shed = 1.1 * (1 - sig) ** 2;
     let n = 0;
     while (t < 12) {
       const w = windAt(c, t + (inp.t0 || 0));
       const rx = vx - w.x, ry = vy, rz = vz - w.z, sp = Math.hypot(rx, ry, rz);
-      const A = Math.PI * d * d / 4, k = 0.5 * rho * CD * A / m;
+      const A = Math.PI * d * d / 4, k = 0.5 * rho * cd * A / m;
       vx -= k * sp * rx * DT; vy -= (G + k * sp * ry) * DT; vz -= k * sp * rz * DT;
       const px = x, py = y, pz = z;
       x += vx * DT; y += vy * DT; z += vz * DT; t += DT;
@@ -581,13 +589,15 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
     const ang = Math.atan2(z, x) * 180 / Math.PI;
     let why = null;
     if (inp.foul) why = "foul";
-    else if (state(ball) === "eis") why = "eis";
     else if (x <= 0.5 || Math.abs(ang) > SECTOR) why = "aus";
     return { x, z, t, dist, valid: !why, why, ang, broke, m0, m, sig, path, events, rel: R };
   }
 
   // Bewertung des Abwurfs für die Anzeige: wie viel Kraft, wie viel ging durchs Verreißen verloren
-  const WHY = { foul: "Übergetreten", eis: "Eisball", aus: "Im Aus" };
+  const WHY = { foul: "Übergetreten", eis: "Eisball", aus: "Im Aus", dsq: "Ausschluss" };
+  // Kontrolle durch den Kampfrichter: jeder dritte Ball etwa wird geprüft (aus dem Seed, für alle gleich wahrscheinlich)
+  const CHECK = 0.3;
+  const checked = (seed, who, n) => rng(hash("kontrolle", seed, who, n))() < CHECK;
 
   // Beste Wahl an diesem Tag (für die KI und zum Testen): ein voller Wurf mit gutem Ball je Fleck und Größe
   function bestChoice(c) {
@@ -604,8 +614,49 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
     return best;
   }
 
+  // ------------------------------------------------------------------ Zielwurf: Schneemann mit Zylinder in D Metern
+  // Treffer: Zylinder 10, Kopf 5, Bauch 3, Fuß 2. Abwurf flach (Winkel fest), Tempo aus dem Wischen, seitlich aus der Richtung.
+  const MAN = { hat: { y0: 1.72, y1: 2.05, w: 0.15 }, head: { y: 1.5, r: 0.21 }, belly: { y: 0.98, r: 0.33 }, foot: { y: 0.42, r: 0.44 } };
+  const AIM_ANG = 18;
+  // nötige Geschwindigkeit, um in D Metern auf Kopfhöhe anzukommen (für die KI und die Anzeige)
+  function aimSpeed(D, c, ball) {
+    let lo = 4, hi = 40;
+    for (let i = 0; i < 26; i++) { const v = (lo + hi) / 2, r = target(ball, { v, lat: 0, t0: 0 }, c, 1, D, true); if (r.y > MAN.head.y) hi = v; else lo = v; }
+    return (lo + hi) / 2;
+  }
+  function target(ball, inp, c, seed, D, quiet) {
+    const r = rng(hash("ziel", seed)), m = mass(ball), rho = airRho(c);
+    const icy = state(ball) === "eis", cd = icy ? CD * 0.8 : CD;
+    const a = (AIM_ANG + (quiet ? 0 : gauss(r) * 0.8)) * Math.PI / 180, lat = (inp.lat + (quiet ? 0 : gauss(r) * 0.4)) * Math.PI / 180;
+    let x = 0, y = 1.8, z = 0, vx = inp.v * Math.cos(a) * Math.cos(lat), vy = inp.v * Math.sin(a), vz = inp.v * Math.cos(a) * Math.sin(lat), t = 0, n = 0;
+    const d = SIZE[ball.size].d, path = [];
+    while (t < 6 && x < D && y > 0) {
+      const w = windAt(c, t + (inp.t0 || 0)), rx = vx - w.x * 0.5, rz = vz - w.z, sp = Math.hypot(rx, vy, rz);
+      const k = 0.5 * rho * cd * Math.PI * d * d / 4 / m;
+      vx -= k * sp * rx * DT; vy -= (G + k * sp * vy) * DT; vz -= k * sp * rz * DT;
+      const px = x, py = y, pz = z;
+      x += vx * DT; y += vy * DT; z += vz * DT; t += DT;
+      if (x >= D) { const u = (D - px) / (x - px); y = py + (y - py) * u; z = pz + (z - pz) * u; t -= DT * (1 - u); x = D; }
+      if (y <= 0) { const u = py / (py - y); x = px + (x - px) * u; z = pz + (z - pz) * u; y = 0; }
+      if (n++ % 4 === 0) path.push([t, x, y, z]);
+    }
+    path.push([t, x, y, z]);
+    // Treffer am Schneemann (Ballradius zählt mit)
+    const br = d / 2;
+    let pts = 0, part = null;
+    if (x >= D - 1e-6) {
+      const inC = (cy, cr) => Math.hypot(y - cy, z) <= cr + br;
+      if (y >= MAN.hat.y0 - br && y <= MAN.hat.y1 + br && Math.abs(z) <= MAN.hat.w + br) { pts = 10; part = "hut"; }
+      else if (inC(MAN.head.y, MAN.head.r)) { pts = 5; part = "kopf"; }
+      else if (inC(MAN.belly.y, MAN.belly.r)) { pts = 3; part = "bauch"; }
+      else if (inC(MAN.foot.y, MAN.foot.r)) { pts = 2; part = "fuss"; }
+    }
+    return { x, y, z, t, pts, part, path, D };
+  }
+
   const api = { DT, G, SECTOR, LOOSE, SNOW, SIZES, SIZE, GLOVES, PATCHES, PATCH, TODS, SKIES, rng, hash, gauss, clamp,
-    teff, snowAt, conditions, windAt, airRho, press, newBall, iceAt, state, strength, mass, vCap, release, fly, WHY, bestChoice };
+    teff, snowAt, conditions, windAt, airRho, press, newBall, iceAt, state, strength, mass, vCap, release, fly, WHY, bestChoice,
+    CHECK, checked, MAN, AIM_ANG, aimSpeed, target };
   root.SWPhys = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);
@@ -625,59 +676,79 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
     ["Anni Holzknecht", "AUT", 0.66], ["Pierre Mollard", "FRA", 0.62], ["Toni Kerschbaumer", "GER", 0.56], ["Vera Hrubá", "CZE", 0.5],
     ["Nils Ekström", "SWE", 0.44], ["Lotte Brandl", "AUT", 0.38],
   ];
-  const ROUNDS = 3, FINAL = 8, FROUNDS = 3;
+  // Mat 13.11.2026: höchstens fünf Würfe, kein Finale mehr
+  const ROUNDS = 5;
+  const DIST = [10, 12, 14, 16, 18];   // Zielwurf: Abstand zum Schneemann je Wurf
 
-  // Ein Versuch der KI: Schnee wählen, Ball formen, werfen. a = { name, nat, sk }, n = Nummer des Versuchs
-  function aiThrow(a, n, c, seed, best) {
-    const r = rng(hash("ai", seed, a.name, n)), sk = a.sk;
-    // Wer stark ist, liest den Schnee; die anderen nehmen manchmal irgendeinen Fleck
+  // Ein Versuch der KI: Schnee wählen, Ball formen, werfen. a = { name, nat, sk, cheat }, n = Nummer des Versuchs
+  function aiBall(a, n, c, seed, best, r) {
+    const sk = a.sk;
     const patch = r() < 0.35 + sk * 0.6 ? best.patch : P.PATCHES[Math.floor(r() * P.PATCHES.length)].id;
     const sn = P.snowAt(patch, c);
     const size = r() < 0.4 + sk * 0.5 ? best.size : P.SIZES[Math.floor(r() * 3)].id;
     const b = P.newBall(sn.type, size, sn.q, "wolle");
     const ice = P.iceAt(b), err = (1 - sk) * 0.32 + 0.04;
-    b.f = clamp(Math.min(0.8, ice - 0.1) + gauss(r) * err, 0.15, 1.3);
+    // Wer schummelt, nimmt manchmal absichtlich einen Eisball
+    b.f = r() < a.cheat ? ice + 0.12 : clamp(Math.min(0.8, ice - 0.1) + gauss(r) * err, 0.15, ice - 0.02);   // aus Versehen wird keiner zum Eisball
     b.n = 6; b.accSum = 6 * clamp(0.55 + sk * 0.45 + gauss(r) * 0.08, 0, 1);
+    return { b, type: sn.type, size };
+  }
+  function aiThrow(a, n, c, seed, best) {
+    const r = rng(hash("ai", seed, a.name, n)), sk = a.sk, { b, type, size } = aiBall(a, n, c, seed, best, r);
+    if (P.state(b) === "eis" && P.checked(seed, a.name, n)) return { dist: 0, valid: false, why: "dsq", type, size };
     const inp = {
       ang: 39 + gauss(r) * (2 + (1 - sk) * 7), pow: clamp(0.8 + sk * 0.15 + gauss(r) * (0.04 + (1 - sk) * 0.08), 0.5, 1.4),
-      run: 2.2 + sk * 1.8, xr: -0.15 - (1 - sk) * 0.9 - r() * 0.2, kraft: 0.84 + sk * 0.12, t0: n * 13 + r() * 6,
+      run: 3.4 + sk * 2.4, xr: -0.15 - (1 - sk) * 0.9 - r() * 0.2, kraft: 0.84 + sk * 0.12, t0: n * 13 + r() * 6,
     };
     inp.foul = r() < 0.03 + (1 - sk) * 0.03;
     const res = P.fly(b, inp, c, hash(seed, a.name, n));
-    return { dist: res.dist, valid: res.valid, why: res.why, type: sn.type, size };
+    return { dist: res.dist, valid: res.valid, why: res.why, type, size, ice: P.state(b) === "eis" };
+  }
+  // Zielwurf der KI: Punkte 0 … 10
+  function aiAim(a, n, c, seed, best) {
+    const r = rng(hash("aiz", seed, a.name, n)), sk = a.sk, { b } = aiBall(a, n, c, seed, best, r);
+    if (P.state(b) === "eis" && P.checked(seed, a.name, "z" + n)) return { pts: 0, valid: false, why: "dsq" };
+    const D = DIST[n], v = P.aimSpeed(D, c, b) * (1.025 + gauss(r) * (0.025 + (1 - sk) * 0.06));
+    const lat = gauss(r) * (0.5 + (1 - sk) * 1.4) - P.windAt(c, n * 9).z * 0.12 * sk;
+    const res = P.target(b, { v, lat, t0: n * 9 }, c, hash(seed, a.name, "z", n), D);
+    return { pts: res.pts, valid: true, part: res.part };
   }
 
-  // Neuer Wettkampf: Feld (ohne den Spieler) und Bedingungen
-  function create(seed, c, me, nAI) {
+  // Neuer Wettkampf: Feld (ohne den Spieler) und Bedingungen. ev = "weit" oder "ziel"
+  function create(seed, c, me, nAI, ev) {
     const r = rng(hash("feld", seed));
     const pool = FIELD.slice().sort(() => r() - 0.5).slice(0, nAI || 11).map((f) => ({ name: f[0], nat: f[1], sk: clamp(f[2] + (r() - 0.5) * 0.08, 0.2, 1), me: false }));
-    const all = [...pool, { name: me.name, nat: me.nat, sk: 1, me: true }];
-    for (const a of all) a.tries = [];
-    return { seed, c, all, round: 0, best: P.bestChoice(c), out: false, done: false };
+    // zwei im Feld schummeln gern mit Eisbällen
+    for (let i = 0; i < pool.length; i++) pool[i].cheat = i % 5 === 2 ? 0.45 : 0.02;
+    const all = [...pool, { name: me.name, nat: me.nat, sk: 1, me: true, cheat: 0 }];
+    for (const a of all) { a.tries = []; a.dsq = false; }
+    return { seed, c, all, ev: ev || "weit", round: 0, best: P.bestChoice(c), done: false };
   }
+  // Wertung: Weitwurf = weitester Wurf, Zielwurf = Summe der Punkte; ausgeschlossen = 0 und ganz unten
+  const score = (C, a) => (a.dsq ? -1 : C.ev === "ziel" ? a.tries.reduce((s, t) => s + (t && t.valid ? t.pts : 0), 0) : bestOf(a));
   const bestOf = (a) => a.tries.reduce((m, t) => (t && t.valid && t.dist > m ? t.dist : m), 0);
-  // Sortierung: beste Weite, dann zweitbeste (wie in der Leichtathletik)
   function ranked(C) {
-    const key = (a) => a.tries.filter((t) => t && t.valid).map((t) => t.dist).sort((x, y) => y - x);
+    const key = (a) => C.ev === "ziel" ? a.tries.filter((t) => t && t.valid).map((t) => t.pts).sort((x, y) => y - x) : a.tries.filter((t) => t && t.valid).map((t) => t.dist).sort((x, y) => y - x);
     return C.all.slice().sort((a, b) => {
+      const d0 = score(C, b) - score(C, a); if (d0) return d0;
       const ka = key(a), kb = key(b);
       for (let i = 0; i < Math.max(ka.length, kb.length); i++) { const d = (kb[i] || 0) - (ka[i] || 0); if (d) return d; }
       return a.me ? -1 : b.me ? 1 : 0;
     });
   }
-  // Die KI wirft ihren Versuch dieser Runde (nur wer noch dabei ist)
+  // Die KI wirft ihren Versuch dieser Runde; wer mit dem Eisball erwischt wird, ist ausgeschlossen
   function aiRound(C, n) {
-    const finalists = n >= ROUNDS ? new Set(ranked(C).slice(0, FINAL)) : null;
     for (const a of C.all) {
-      if (a.me || (finalists && !finalists.has(a))) continue;
-      a.tries[n] = aiThrow(a, n, C.c, C.seed, C.best);
+      if (a.me || a.dsq) continue;
+      const t = C.ev === "ziel" ? aiAim(a, n, C.c, C.seed, C.best) : aiThrow(a, n, C.c, C.seed, C.best);
+      a.tries[n] = t;
+      if (t.why === "dsq") a.dsq = true;
     }
   }
   const me = (C) => C.all.find((a) => a.me);
   const place = (C) => ranked(C).indexOf(me(C)) + 1;
-  const inFinal = (C) => place(C) <= FINAL;
 
-  const api = { FIELD, ROUNDS, FINAL, FROUNDS, aiThrow, create, ranked, aiRound, bestOf, me, place, inFinal };
+  const api = { FIELD, ROUNDS, DIST, aiThrow, aiAim, create, ranked, aiRound, bestOf, score, me, place };
   root.SWComp = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);
@@ -4929,7 +5000,10 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
     jubel: [[0, POSES.stand], [0.35, POSES.cheer], [0.6, { lean: -2, crouch: 0, sL: [6, 14], fL: [0, 14], aF: [150, 26], aB: [-150, -26], hd: -14 }], [1, POSES.cheer]],
     winken: [[0, POSES.wave], [0.5, Object.assign({}, POSES.wave, { aF: [112, 66] })], [1, POSES.wave]],
   };
-  const KEYS = ["lean", "crouch", "hd", "ao"], PAIRS = ["sL", "fL", "aF", "aB"];
+  // fA/sA Spiel-/Standbein seitlich abgespreizt, aFA/aBA Arm vorn/hinten seitlich gehoben (Grad, frei, Standard 0):
+  // Drehung um die Achse nach vorn durch Hüfte bzw. Schulter – sichtbar, sobald sich die Figur dreht (Eiskunstlauf 0.43)
+  // ao3: Arme seitlich für die 3D-Figur (figur3d.js), unabhängig von der Blickrichtung; 2D nutzt es nicht
+  const KEYS = ["lean", "crouch", "hd", "ao", "fA", "sA", "aFA", "aBA", "ao3"], PAIRS = ["sL", "fL", "aF", "aB"];
   const val = (o, k) => (o[k] == null ? 0 : o[k]);
   function mix(a, b, t) {
     const o = {};
@@ -4939,8 +5013,12 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
   }
   // Posen als Zahlenreihe (für weiche Kurven durch Schlüsselbilder); lift = Höhe über dem Boden (Sprung)
   const CH = 12;
-  const toVec = (p, lift) => [val(p, "lean"), val(p, "crouch"), val(p, "hd"), p.sL[0], p.sL[1], p.fL[0], p.fL[1], p.aF[0], p.aF[1], p.aB[0], p.aB[1], lift || 0, val(p, "ao")];
-  const toPose = (v) => ({ lean: v[0], crouch: v[1], hd: v[2], sL: [v[3], v[4]], fL: [v[5], v[6]], aF: [v[7], v[8]], aB: [v[9], v[10]], ao: v[12] || 0 });
+  const toVec = (p, lift) => [val(p, "lean"), val(p, "crouch"), val(p, "hd"), p.sL[0], p.sL[1], p.fL[0], p.fL[1], p.aF[0], p.aF[1], p.aB[0], p.aB[1], lift || 0, val(p, "ao"), val(p, "fA"), val(p, "sA"), val(p, "aFA"), val(p, "aBA"), val(p, "ao3")];
+  const toPose = (v) => {
+    const o = { lean: v[0], crouch: v[1], hd: v[2], sL: [v[3], v[4]], fL: [v[5], v[6]], aF: [v[7], v[8]], aB: [v[9], v[10]], ao: v[12] || 0 };
+    ["fA", "sA", "aFA", "aBA", "ao3"].forEach((k, i) => { if (v[13 + i]) o[k] = v[13 + i]; });
+    return o;
+  };
   // Weiche Kurve durch Schlüsselbilder K = [[t, Zahlenreihe], …]: Geschwindigkeit ohne Sprung (Hermite-Kurve), aber kein
   // Überschwingen: an Umkehrpunkten und Haltepunkten steht die Bewegung kurz (Steigung 0). loop: zyklisch, letztes = erstes Bild.
   function spline(K, t, loop) {
@@ -5054,7 +5132,7 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
     return o;
   }
   // weich nachführen: Rumpf und Beine zügig, Arme etwas später (fließender Armzug); fast = Sprung, Sturz
-  const RATE = { lean: 9, crouch: 9, hd: 8, ao: 6.5, sL: 13, fL: 11, aF: 6.5, aB: 6 };
+  const RATE = { lean: 9, crouch: 9, hd: 8, ao: 6.5, sL: 13, fL: 11, aF: 6.5, aB: 6, fA: 11, sA: 13, aFA: 6.5, aBA: 6, ao3: 7 };
   function ease(cur, tgt, dt, fast) {
     if (!cur) return tgt;
     const o = {}, m = fast ? 2.4 : 1, a = (k) => 1 - Math.exp(-RATE[k] * m * dt);
@@ -5215,8 +5293,14 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
     const split = L.pattern === "split", stripe = L.pattern === "stripe";
     const legN = split ? acc : suit, legF = split ? accD : suitD;
     // Beine: Fuß je nach Ausrüstung; Ski und Stiefel zeichnet derselbe Teil, damit die Reihenfolge stimmt
-    const leg = (pts, z0, z1, w, col, shinDeg, skiDeg, near) => {
-      const q = pts.map((pt, i) => P(pt, z0 + (z1 - z0) * i / (pts.length - 1)));
+    // seitlich abspreizen: Drehung um die Achse nach vorn durch den ersten Punkt (Hüfte, Schulter), nach außen (Seite von z0)
+    const abd = (pt, i, root, z, A, side) => {
+      if (!A || !i) return [pt[1], z];
+      const dy = pt[1] - root[1], a = rad(A);
+      return [root[1] + dy * Math.cos(a), z + side * dy * Math.sin(a)];
+    };
+    const leg = (pts, z0, z1, w, col, shinDeg, skiDeg, near, A) => {
+      const q = pts.map((pt, i) => { const [y, z] = abd(pt, i, pts[0], z0 + (z1 - z0) * i / (pts.length - 1), A, Math.sign(z0) || 1); return P([pt[0], y], z); });
       parts.push({ d: depth(q), f: () => {
         const an = q[q.length - 1];
         if (SKI[K.feet]) ski(ctx, an, skiDeg || 0, c, SKI[K.feet], near, W, skiC);
@@ -5237,18 +5321,18 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
     };
     const sk = o.ski || {};
     // Standbein auf der nahen Seite (zs = 1), die nahe Seite ist heller
-    leg([hip, fKn, fAn], -Z.hip * zs, -Z.hip * zs, 6, zs > 0 ? legF : legN, J.fSh, zs > 0 ? sk.f : sk.n, zs < 0);
-    leg([hip, knee, ank], Z.hip * zs, Z.hip * 0.6 * zs, 6.2, zs > 0 ? legN : legF, J.sKn, zs > 0 ? sk.n : sk.f, zs > 0);
+    leg([hip, fKn, fAn], -Z.hip * zs, -Z.hip * zs, 6, zs > 0 ? legF : legN, J.fSh, zs > 0 ? sk.f : sk.n, zs < 0, p.fA);
+    leg([hip, knee, ank], Z.hip * zs, Z.hip * 0.6 * zs, 6.2, zs > 0 ? legN : legF, J.sKn, zs > 0 ? sk.n : sk.f, zs > 0, p.sA);
     // Arme mit Hand (Haut oder Handschuh) und Stock
     const hand = K.glove === "suit" ? suit : K.glove ? GLOVE : skin;
     // ao (Grad, frei, Standard 0): Arme seitlich vom Körper weg, um die senkrechte Achse durch die Schulter gedreht
     const ao = rad(p.ao || 0), aoC = Math.cos(ao), aoS = Math.sin(ao);
-    const arm = (pts, z0, z1, col, near) => {
+    const arm = (pts, z0, z1, col, near, A) => {
       const q = pts.map((pt, i) => {
-        const z = z0 + (z1 - z0) * i / (pts.length - 1);
-        if (!ao || !i) return P(pt, z);
+        const [y, z] = abd(pt, i, pts[0], z0 + (z1 - z0) * i / (pts.length - 1), A, Math.sign(z0) || 1);
+        if (!ao || !i) return P([pt[0], y], z);
         const dx = pt[0] - pts[0][0];
-        return P([pts[0][0] + dx * aoC, pt[1]], z + Math.sign(z0) * Math.abs(dx) * aoS);
+        return P([pts[0][0] + dx * aoC, y], z + Math.sign(z0) * Math.abs(dx) * aoS);
       });
       parts.push({ d: depth(q), f: () => {
         const h = q[q.length - 1], e = q[q.length - 2], an = Math.atan2(h[1] - e[1], h[0] - e[0]);
@@ -5268,8 +5352,8 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
       let l = POLE; if (dy > 0.05) l = Math.min(l, (GROUND - h[1]) / dy);
       return [h[0] + dx * l, h[1] + dy * l];
     };
-    arm(J.aB, -Z.sh, -Z.sh - 2, suitD, false);
-    arm(J.aF, Z.sh, Z.sh + 2, shade(suit, 1.08), true);
+    arm(J.aB, -Z.sh, -Z.sh - 2, suitD, false, p.aBA);
+    arm(J.aF, Z.sh, Z.sh + 2, shade(suit, 1.08), true, p.aFA);
     // Rumpf: Querschnitt als Ellipse (Tiefe im Profil, Breite von vorn); sichtbare halbe Breite je Höhe
     const hw = (dep, wid) => Math.sqrt((dep * c) ** 2 + (wid * sn) ** 2);
     const lvl = [[2.5, 6.2, 6.8], [-6, 4.6, 5.4], [-18, 7.2, 7.4], [-25.5, 7, 8.6]]; // [y im Rumpf, Tiefe, Breite]
@@ -6063,20 +6147,37 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
 
   // ------------------------------------------------------------------ Posen des Werfens (Format von figur/)
   const g = (o) => Object.assign({ lean: 2, crouch: 0, sL: [2, 3], fL: [-3, 3], aF: [8, -10], aB: [-6, -8], hd: 0 }, o);
+  // Bewegungsablauf nach den Wurfphasen der Biomechanik (Ausholen, Schritt, Bogenspannung, Beschleunigen, Abbremsen, Ausschwingen)
+  // und dem Speerwurf (Anlauf mit Ball am Kopf, Impulsschritte mit langem Arm, Stemmschritt). sL = Standbein (verankert), fL = freies Bein.
   const POSE = {
     hold: g({ lean: 4, sL: [3, 5], fL: [-8, 6], aF: [34, 100], aB: [22, 70], hd: 2 }),
     scoop: g({ lean: 72, sL: [42, 76], fL: [18, 62], aF: [26, 6], aB: [16, 8], hd: 18 }),
     form: g({ lean: 22, sL: [26, 52], fL: [6, 50], aF: [52, 64], aB: [46, 70], hd: 14 }),
     formP: g({ lean: 24, sL: [28, 56], fL: [8, 54], aF: [56, 54], aB: [50, 58], hd: 16 }),
-    cock: g({ lean: -6, sL: [-6, 6], fL: [22, 12], aF: [-100, -78], aB: [96, 8], hd: -4 }),
-    runA: g({ lean: 8, sL: [-22, 16], fL: [36, 62], aF: [-96, -80], aB: [88, 14], hd: -2 }),
-    runB: g({ lean: 8, sL: [16, 8], fL: [-30, 40], aF: [-104, -76], aB: [98, 10], hd: -2 }),
-    release: g({ lean: 16, sL: [-20, 6], fL: [30, 10], aF: [150, 8], aB: [-28, -24], hd: -6 }),
-    follow: g({ lean: 36, sL: [-28, 12], fL: [26, 22], aF: [42, 8], aB: [-52, -6], hd: 8 }),
+    // Anlauf: Ball neben dem Kopf, Arm locker angewinkelt
+    runA: g({ lean: 10, sL: [-22, 14], fL: [38, 70], aF: [-78, -100], aB: [60, 40], hd: 0 }),
+    runB: g({ lean: 10, sL: [18, 8], fL: [-34, 46], aF: [-82, -96], aB: [-10, 30], hd: 0 }),
+    // Impulsschritte: Arm lang nach hinten, Oberkörper zurück, Gegenarm zeigt nach vorn
+    impA: g({ lean: -8, sL: [-18, 10], fL: [34, 40], aF: [-104, -6], aB: [96, 6], hd: -6 }),
+    impB: g({ lean: -10, sL: [14, 6], fL: [-30, 30], aF: [-106, -4], aB: [94, 8], hd: -6 }),
+    // Stemmschritt: vorderes Bein gestreckt aufgesetzt (Standbein), hinteres Bein gebeugt, Arm ganz hinten
+    stemm: g({ lean: -16, sL: [30, 2], fL: [-36, 34], aF: [-112, -8], aB: [100, 0], hd: -8 }),
+    // Bogenspannung: Hüfte vor, Ellbogen hoch, Ball hinter dem Kopf
+    bogen: g({ lean: -4, sL: [24, 4], fL: [-32, 40], aF: [-128, -62], aB: [70, 20], hd: -4 }),
+    // Abwurf vor und über dem Kopf, Gegenarm zieht nach unten
+    release: g({ lean: 18, sL: [20, 6], fL: [-28, 30], aF: [148, 8], aB: [-24, -30], hd: -8 }),
+    // Ausschwingen: Arm quer vor dem Körper nach unten, hinteres Bein schwingt nach vorn und fängt ab
+    follow: g({ lean: 40, sL: [14, 16], fL: [8, 44], aF: [34, 12], aB: [-56, -6], hd: 8 }),
+    catch: g({ lean: 22, sL: [6, 10], fL: [40, 36], aF: [24, 8], aB: [-30, -10], hd: 4 }),
     stumble: g({ lean: 46, sL: [-34, 38], fL: [52, 82], aF: [110, 30], aB: [84, 40], hd: -10 }),
+    cock: null,
   };
+  POSE.cock = POSE.stemm;
   const RUN = [[0, POSE.runA], [0.5, POSE.runB], [1, POSE.runA]];
-  const THROW = [[0, POSE.cock], [0.35, POSE.release], [0.7, POSE.follow], [1, POSE.follow]];
+  const IMP = [[0, POSE.impA], [0.5, POSE.impB], [1, POSE.impA]];
+  // Wurf ab dem Loslassen des Fingers (0 … 1 über 0,9 s): Stemmen, Bogen, Abwurf bei 0,2, Ausschwingen, Abfangen
+  const THROW = [[0, POSE.stemm], [0.1, POSE.bogen], [0.2, POSE.release], [0.42, POSE.follow], [0.75, POSE.catch], [1, POSE.catch]];
+  const T_REL = 0.18;   // Sekunden vom Loslassen bis der Ball die Hand verlässt
   // Kleidung wie 1928: Strickmütze, Pullover mit Bordüre, Kniebundhose, Wollstrümpfe, Lederschuhe; Handschuhe je nach Wahl
   function kit(glove) {
     return { head: "cap", feet: "shoes", torso: "sweater", legs: "knickers", glove: glove === "ohne" ? false : glove === "leder" ? true : "suit",
@@ -6117,12 +6218,13 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
   function create(dpr0) {
     let pano = null, panoKey = "", dpr = dpr0 || 1, world = buildWorld(1, "SUI"), tod = "afternoon";
     const R = {
-      POSE, RUN, THROW, kit, W, H, GY, BACK, HOR, ZB, KF, make,
+      POSE, RUN, IMP, THROW, T_REL, kit, W, H, GY, BACK, HOR, ZB, KF, make,
       setDpr(v) { if (Math.abs(v - dpr) > 0.01) { dpr = v; panoKey = ""; } },
       setScene(seed, theme) { tod = theme; world = buildWorld(seed, "SUI"); panoKey = ""; },
       get tod() { return tod; },
       draw,
       drawFig,
+      drawAim,
       drawBallClose,
       drawGauge,
       drawWind,
@@ -6376,6 +6478,104 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
       // Gehäuse des Maßbands am Balken
       c.fillStyle = "#6B4A2E"; c.beginPath(); c.arc(X(0, 0), Y(0.1, 0), Math.max(3, 0.18 * S(0)), 0, TAU); c.fill();
     }
+    // ---------------------------------------------------------------- Zielwurf: Blick über die eigenen Hände auf den Schneemann
+    // V = { D, ball, hand: { u, held }, hit: { part, at, z, y }, splats, glove, suit, skin }; Kamera bei x = -1,2 in Augenhöhe
+    const AH = 196, FOC = 700, CX = -1.2, CY = 1.62;
+    function aimProj(x, y, z) { const dx = Math.max(0.3, x - CX), k = FOC / dx; return [W / 2 - z * k, AH - (y - CY) * k, k]; }
+    function drawAim(ctx, V, t) {
+      ensurePano();
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      PAN.drawSky(ctx, pano, AH, 0, 1, W, H, t);
+      PAN.drawPanorama(ctx, pano, { cx: 90, ppm: 30 }, AH, 0, 1, W, H, t, null);
+      const night = KB.themeName() === "evening";
+      const gr = ctx.createLinearGradient(0, AH, 0, H);
+      gr.addColorStop(0, night ? "#C9C3CF" : SNOWB); gr.addColorStop(0.25, night ? "#E3D9D6" : "#EEF0EE"); gr.addColorStop(1, night ? "#EADFD6" : SNOW);
+      ctx.fillStyle = gr; ctx.fillRect(0, AH + 6, W, H - AH);
+      // Bäume weit hinten
+      for (const tr of world.trees) { const [px, py, k] = aimProj(60 + (tr.x % 40), 0, (tr.x * 7 % 60) - 30); fir(ctx, px, py, tr.h * k, night); }
+      // Zäune links und rechts mit Zuschauern
+      for (const sg of [1, -1]) {
+        const z = sg * 7;
+        for (let x = 40; x >= 0; x -= 1.2) {
+          const [px, py, k] = aimProj(x, 0, z);
+          if (px < -60 || px > W + 60) continue;
+          const r = KB.rng((x * 10 | 0) + (sg > 0 ? 7 : 3));
+          if (r() < 0.8) { const ph = r() * 6, bob = Math.max(0, Math.sin(t * 3 + ph)) * 0.05; ctx.fillStyle = KB.pick(r, ST.JACKET); ctx.fillRect(px - 0.22 * k, py - (1.55 + bob) * k, 0.44 * k, 0.95 * k); ctx.fillStyle = KB.pick(r, ST.SKIN); ctx.beginPath(); ctx.arc(px, py - (1.72 + bob) * k, 0.13 * k, 0, TAU); ctx.fill(); if (r() < 0.7) { ctx.fillStyle = KB.pick(r, ST.HAT); ctx.fillRect(px - 0.15 * k, py - (1.9 + bob) * k, 0.3 * k, 0.1 * k); } }
+        }
+        ctx.strokeStyle = "#6B4A2E"; ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let x = 0; x <= 40; x += 2) { const a = aimProj(x, 0, z - sg * 0.6), b = aimProj(x, 0.9, z - sg * 0.6); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); }
+        let a = aimProj(0, 0.75, z - sg * 0.6), b = aimProj(40, 0.75, z - sg * 0.6); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]);
+        ctx.stroke();
+      }
+      // Wurfbahn mit Kreide, Linien bei 10, 12, … 18 m, Tafel mit Abstand
+      ctx.strokeStyle = "rgba(255,255,255,0.95)"; ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (const z of [-1.4, 1.4]) { const a = aimProj(0, 0, z), b = aimProj(30, 0, z); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); }
+      ctx.stroke();
+      ctx.strokeStyle = "rgba(120,140,170,0.6)"; ctx.lineWidth = 1.2;
+      for (let d = 10; d <= 18; d += 2) { const a = aimProj(d, 0, -1.4), b = aimProj(d, 0, 1.4); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); }
+      const D = V.D || 12;
+      { const [px, py, k] = aimProj(D, 0, -1.9), kk = k * 0.42; ctx.strokeStyle = "#5A3E26"; ctx.lineWidth = Math.max(1, 0.05 * k); ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px, py - 0.45 * k); ctx.stroke(); board(ctx, px, py - 0.4 * k, kk, `${D} M`, PAPER, INK); }
+      // Schneemann
+      snowmanFront(ctx, D, V, t);
+      // Ball im Flug
+      if (V.ball) {
+        const b = V.ball, [px0, py0, k] = aimProj(b.x, b.y, b.z), [sx, sy] = aimProj(b.x, 0, b.z);
+        // die ersten 2 m kommt der Ball aus der Hand rechts unten ins Bild
+        const u = clamp(b.x / 2, 0, 1), e = u * u * (3 - 2 * u), px = (W / 2 + 52) * (1 - e) + px0 * e, py = (H - 92) * (1 - e) + py0 * e;
+        const rr = Math.max(2.4, 24 * (1 - e) + b.d / 2 * k * 1.6 * e);
+        ctx.fillStyle = "rgba(60,80,110,0.2)"; ellipse(ctx, sx, sy, rr * 1.2, rr * 0.35);
+        snowball(ctx, px, py, rr, b);
+      }
+      if (V.crumbs) for (const c of V.crumbs) { const [px, py, k] = aimProj(c.x, c.y, c.z); ctx.globalAlpha = clamp(c.a, 0, 1); ctx.fillStyle = c.col || "#FBF8F1"; const rr = Math.max(1, c.r * k); ctx.fillRect(px - rr / 2, py - rr / 2, rr, rr); ctx.globalAlpha = 1; }
+      hands(ctx, V, t);
+    }
+    function snowmanFront(ctx, D, V, t) {
+      const M = P.MAN, hit = V.hit, P0 = (y, z) => aimProj(D, y, z || 0);
+      const ball = (y, r) => { const [px, py, k] = P0(y); const gr = ctx.createRadialGradient(px - r * k * 0.35, py - r * k * 0.4, 1, px, py, r * k);
+        gr.addColorStop(0, "#FFFFFF"); gr.addColorStop(0.7, "#F2F4F6"); gr.addColorStop(1, "#C9D4DE");
+        ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(px, py, r * k, 0, TAU); ctx.fill(); ctx.strokeStyle = "rgba(20,27,37,0.5)"; ctx.lineWidth = 1.2; ctx.stroke(); return [px, py, k]; };
+      const [fx, fy, k] = P0(0); ctx.fillStyle = "rgba(60,80,110,0.2)"; ellipse(ctx, fx, fy, 0.6 * k, 0.1 * k);
+      ball(M.foot.y, M.foot.r);
+      const [bx, by] = ball(M.belly.y, M.belly.r);
+      // Knöpfe und Schal
+      ctx.fillStyle = INK; for (const yy of [1.12, 0.98, 0.84]) { const [px, py] = P0(yy); ctx.beginPath(); ctx.arc(px, py, 0.03 * k, 0, TAU); ctx.fill(); }
+      const [hx, hy] = ball(M.head.y, M.head.r);
+      ctx.fillStyle = "#C23B2A"; { const [sx, sy] = P0(1.3); ctx.fillRect(sx - 0.24 * k, sy - 0.05 * k, 0.48 * k, 0.1 * k); ctx.fillRect(sx + 0.08 * k, sy, 0.09 * k, 0.28 * k); }
+      // Gesicht: Kohleaugen, Karotte, Mund
+      ctx.fillStyle = INK; for (const zz of [0.07, -0.07]) { const [ex, ey] = P0(1.56, zz); ctx.beginPath(); ctx.arc(ex, ey, 0.025 * k, 0, TAU); ctx.fill(); }
+      { const [nx, ny] = P0(1.49); ctx.fillStyle = "#D9682B"; ctx.beginPath(); ctx.moveTo(nx - 0.03 * k, ny - 0.02 * k); ctx.lineTo(nx + 0.12 * k, ny + 0.01 * k); ctx.lineTo(nx - 0.03 * k, ny + 0.025 * k); ctx.fill(); }
+      ctx.fillStyle = INK; for (let i = -2; i <= 2; i++) { const [mx, my] = P0(1.4 - Math.abs(i) * -0.008, i * 0.035); ctx.beginPath(); ctx.arc(mx, my, 0.012 * k, 0, TAU); ctx.fill(); }
+      // Zylinder: fliegt bei einem Treffer davon
+      const hu = hit && hit.part === "hut" ? clamp((t - hit.at) / 0.9, 0, 1) : 0;
+      if (hu < 1) {
+        const lift = hu * 1.4, side = hu * 0.9, rot = hu * 2.5;
+        const [px, py] = P0(M.hat.y0 + lift, -side);
+        ctx.save(); ctx.translate(px, py); ctx.rotate(rot);
+        ctx.fillStyle = INK; ctx.fillRect(-0.25 * k, -0.04 * k, 0.5 * k, 0.05 * k); ctx.fillRect(-M.hat.w * k, -(M.hat.y1 - M.hat.y0) * k, 2 * M.hat.w * k, (M.hat.y1 - M.hat.y0 - 0.03) * k);
+        ctx.fillStyle = "#C23B2A"; ctx.fillRect(-M.hat.w * k, -0.11 * k, 2 * M.hat.w * k, 0.05 * k);
+        ctx.restore();
+      }
+      // Treffer: Schneeflecken
+      if (V.splats) for (const sp of V.splats) { const [px, py] = P0(sp.y, sp.z); ctx.fillStyle = "rgba(255,255,255,0.95)"; ctx.strokeStyle = "rgba(120,140,170,0.6)"; ctx.lineWidth = 1; ctx.beginPath(); for (let i = 0; i < 9; i++) { const a = i / 9 * TAU, rr = (0.05 + (i % 2) * 0.03) * k; i ? ctx.lineTo(px + Math.cos(a) * rr, py + Math.sin(a) * rr) : ctx.moveTo(px + rr, py); } ctx.closePath(); ctx.fill(); ctx.stroke(); }
+    }
+    // eigene Hände vorn im Bild, mit Handschuhen; u = Wurfbewegung 0 … 1
+    function hands(ctx, V, t) {
+      const h = V.hand || {}, u = h.u || 0, gl = V.glove;
+      const hc = gl === "ohne" ? (V.skin || "#E2B48F") : gl === "leder" ? "#5A3A24" : gl === "faust" ? "#2F5D8A" : (V.suit || "#C23B2A");
+      const bob = Math.sin(t * 2) * 2;
+      const mit = (x, y, sx, rot) => { ctx.save(); ctx.translate(x, y); ctx.rotate(rot); ctx.scale(sx, 1); ctx.fillStyle = hc; ctx.strokeStyle = INK; ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.ellipse(0, 0, 34, 46, 0, 0, TAU); ctx.fill(); ctx.stroke();
+        if (gl !== "faust") { ctx.beginPath(); ctx.ellipse(-26, -22, 11, 20, -0.5, 0, TAU); ctx.fill(); ctx.stroke(); }
+        ctx.fillStyle = "#3A3F4A"; ctx.fillRect(-28, 36, 56, 40); ctx.restore(); };
+      // linke Hand bleibt, rechte wirft
+      mit(W / 2 - 110, H - 30 + bob + u * 30, -1, -0.25);
+      const rx = W / 2 + 70 + u * 40, ry = H - 40 + bob - Math.sin(Math.min(1, u) * Math.PI) * 120 + u * 60;
+      if (h.held) snowball(ctx, rx - 18, ry - 52, 24, h.held);
+      mit(rx, ry, 1, 0.2 + u * 0.6);
+    }
+
     return R;
   }
 
@@ -6533,10 +6733,10 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
   root.SWAudio = S;
 })(typeof window !== "undefined" ? window : globalThis);
 
-/* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Wettkampf, Spielstand. */
+/* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.1.1";
+  const VERSION = "0.2";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender;
@@ -6551,13 +6751,13 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
 
   // ------------------------------------------------------------------ Spielstand (nur auf diesem Gerät; Name, Land und Figur im Pass)
   const KEY = "coldmedal-schneeball";
-  const DEF = { v: 1, glove: "wolle", sound: 1, rec: { comp: 0, train: 0 }, medals: [0, 0, 0], tips: { form: 0, throw: 0 }, train: { temp: -1, tod: "morning", sky: "klar", wind: "mild" }, comps: 0 };
+  const DEF = { v: 1, glove: "wolle", sound: 1, rec: { comp: 0, train: 0, ziel: 0 }, medals: [0, 0, 0], tips: { form: 0, throw: 0, ziel: 0 }, train: { temp: -1, tod: "morning", sky: "klar", wind: "mild" }, comps: 0 };
   function sanitize(o) {
     const S = JSON.parse(JSON.stringify(DEF));
     if (!o || typeof o !== "object") return S;
     if (Ph.GLOVES[o.glove]) S.glove = o.glove;
     S.sound = o.sound === 0 ? 0 : 1;
-    if (o.rec) for (const k of ["comp", "train"]) if (Number.isFinite(o.rec[k]) && o.rec[k] >= 0 && o.rec[k] < 200) S.rec[k] = +o.rec[k];
+    if (o.rec) for (const k of ["comp", "train", "ziel"]) if (Number.isFinite(o.rec[k]) && o.rec[k] >= 0 && o.rec[k] < 200) S.rec[k] = +o.rec[k];
     if (Array.isArray(o.medals)) S.medals = [0, 1, 2].map((i) => (Number.isInteger(o.medals[i]) && o.medals[i] >= 0 ? o.medals[i] : 0));
     if (o.tips) for (const k of Object.keys(S.tips)) if (Number.isInteger(o.tips[k])) S.tips[k] = clamp(o.tips[k], 0, 99);
     if (o.train) {
@@ -6582,7 +6782,7 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
 
   // ------------------------------------------------------------------ Bühne: 844 × 390, skaliert; im Hochformat gedreht
   const stage = $("stage"), cv = $("cv"), ctx = cv.getContext("2d");
-  let uiS = 1, rotated = false, dpr = 1;
+  let uiS = 1, rotated = false, dpr = 1, R = null;
   function layout() {
     const vw = window.innerWidth, vh = window.innerHeight;
     rotated = vh > vw * 1.05;
@@ -6599,7 +6799,6 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
     if (!rotated) return [(cx - r.left) / uiS, (cy - r.top) / uiS];
     return [(cy - r.top) / uiS, (r.right - cx) / uiS];
   }
-  let R = null;
   layout();
   R = RD.create(dpr);
   window.addEventListener("resize", layout);
@@ -6609,12 +6808,13 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
   function show(id) { for (const s of SCREENS) $(s).hidden = s !== id; $("hud").hidden = !!id; }
 
   // ------------------------------------------------------------------ Zustand eines Durchgangs
-  const START_X = -2.3;
-  let G = null;           // laufendes Spiel (Training oder Wettkampf)
-  let now = 0;            // Spielzeit in Sekunden
-  let testMode = false;
+  // mode: "comp" = Weitwurf-Wettkampf, "train" = Training Weitwurf, "ziel" = Zielwurf-Wettkampf
+  const START_X = -7.5;   // langer Anlauf (Mat 13.11.2026)
+  const TRIES = C.ROUNDS; // höchstens fünf Würfe
+  let G = null, now = 0, testMode = false;
   const cam = { cx: -2, ppm: 40 }, camT = { cx: -2, ppm: 40 };
-  const idleView = { cond: null };
+  const isZiel = () => G && G.mode === "ziel";
+  const isComp = () => G && (G.mode === "comp" || G.mode === "ziel");
 
   function newGame(mode, seed) {
     const sd = seed != null ? seed >>> 0 : (Date.now() ^ (Math.random() * 1e9)) >>> 0;
@@ -6623,21 +6823,24 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
       const t = S.train, wk = { still: [0, 0, 0], mild: [1.2, 0.6, 0.5], boeig: [-2.2, 1.6, 1.6] }[t.wind];
       cond = { seed: sd, alt: 1856, temp: t.temp, tod: t.tod, sky: t.sky, thaw: t.temp >= -3 && t.tod === "morning", wind: { x: wk[0], z: wk[1], gust: wk[2] } };
     } else cond = Ph.conditions(sd);
-    const g = { mode, seed: sd, cond, n: 0, best: 0, marks: [], phase: "report", th: { x: START_X, z: 0, dir: 1, pose: F.POSES.stand }, judge: { flag: null, at: 0 }, crumbs: [], tries: [] };
-    if (mode === "comp") g.comp = C.create(sd, cond, { name: myName(), nat: myNat() });
+    const g = { mode, seed: sd, cond, n: 0, best: 0, pts: 0, marks: [], phase: "report", th: { x: START_X, z: 0, dir: 1, pose: F.POSES.stand }, judge: { flag: null, at: 0 }, crumbs: [], tries: [], last: null };
+    if (mode !== "train") g.comp = C.create(sd, cond, { name: myName(), nat: myNat() }, 11, mode === "ziel" ? "ziel" : "weit");
     R.setScene(sd, cond.tod);
     return g;
   }
 
   // ------------------------------------------------------------------ Menü
   function fillMenu() {
-    $("mComp").textContent = nb(S.rec.comp ? `Bestweite ${m1(S.rec.comp)} m` + (S.medals.some((x) => x) ? ` · ${medalText()}` : "") : "Gegen elf Werferinnen und Werfer");
-    $("mTrain").textContent = nb(S.rec.train ? `Bestweite ${m1(S.rec.train)} m · Schnee und Wetter wählen` : "Schnee und Wetter wählen, üben");
+    $("mComp").textContent = nb(S.rec.comp ? `Bestweite ${m1(S.rec.comp)} m` : "Wer wirft am weitesten?");
+    $("mZiel").textContent = nb(S.rec.ziel ? `Bestwert ${S.rec.ziel} Punkte` : "Triff den Zylinder");
+    $("mTrain").textContent = nb((S.rec.train ? `Bestweite ${m1(S.rec.train)} m · ` : "") + "Schnee und Wetter wählen" + (S.medals.some((x) => x) ? ` · ${medalText()}` : ""));
     $("bSound").textContent = S.sound ? "Ton an" : "Ton aus";
     $("mFoot").textContent = `Version ${VERSION} · inoffizielles Fanspiel`;
   }
   const medalText = () => [["Gold", 0], ["Silber", 1], ["Bronze", 2]].filter(([, i]) => S.medals[i]).map(([n, i]) => `${S.medals[i]}× ${n}`).join(", ");
-  $("bComp").onclick = () => { AU.unlock(); if (!PS.get().name) { pending = () => openReport("comp"); passUi.open({ ask: true, title: "Wie heißt du?" }); show("scrPass"); return; } openReport("comp"); };
+  function needName(then) { if (PS.get().name) return then(); pending = then; passUi.open({ ask: true, title: "Wie heißt du?" }); show("scrPass"); }
+  $("bComp").onclick = () => { AU.unlock(); needName(() => openReport("comp")); };
+  $("bZiel").onclick = () => { AU.unlock(); needName(() => openReport("ziel")); };
   $("bTrain").onclick = () => { AU.unlock(); openReport("train"); };
   $("bFig").onclick = () => { pending = null; passUi.open({ title: "Deine Figur" }); show("scrPass"); };
   $("bSound").onclick = () => { S.sound = S.sound ? 0 : 1; AU.on = !!S.sound; save(); fillMenu(); AU.unlock(); };
@@ -6659,8 +6862,7 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
 
   // ------------------------------------------------------------------ Schneebericht (Wettkampf) und Bedingungen (Training)
   function windWord(w) {
-    const a = Math.abs(w.x);
-    if (a < 0.4 && Math.abs(w.z) < 0.6) return ["Windstill", ""];
+    if (Math.abs(w.x) < 0.4 && Math.abs(w.z) < 0.6) return ["Windstill", ""];
     return [`${sg(w.x)} m/s`, (w.x >= 0 ? "Rückenwind" : "Gegenwind") + (w.gust >= 1.2 ? ", böig" : "")];
   }
   function reportSay(c) {
@@ -6673,21 +6875,16 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
     if (c.thaw && c.tod === "morning") parts.push("Gestern war es warm, heute Morgen ist er gefroren: wo Sonne war, liegt Harsch.");
     if (c.sky === "neu") parts.push("Über Nacht kam Neuschnee.");
     if (c.sky === "foehn") parts.push("Föhn: warm und böig.");
-    if (c.tod !== "evening" && c.sky !== "grau" && c.sky !== "neu") parts.push("An der Hütte scheint die Sonne auf die Wand.");
     if (!has("papp").length && !has("nass").length) parts.push("Pappschnee gibt es heute kaum: lies den Schnee genau.");
+    parts.push("Eisbälle sind verboten, der Kampfrichter kontrolliert.");
     return parts.join(" ");
   }
   let rpMode = "comp";
-  function openReport(mode) {
-    rpMode = mode;
-    G = newGame(mode);
-    fillReport();
-    show("scrReport");
-  }
+  function openReport(mode) { rpMode = mode; G = newGame(mode); fillReport(); show("scrReport"); }
   function fillReport() {
-    const c = G.cond, train = rpMode === "train";
+    const c = G.cond, train = rpMode === "train", ziel = rpMode === "ziel";
     $("rpKick").textContent = train ? "TRAINING · SCHNEE UND WETTER" : "SCHNEEBERICHT";
-    $("rpTitle").textContent = train ? "Wie soll es heute sein?" : "Wettkampf in St. Moritz";
+    $("rpTitle").textContent = train ? "Wie soll es heute sein?" : ziel ? "Zielwurf in St. Moritz" : "Weitwurf in St. Moritz";
     const [ww, wd] = windWord(c.wind);
     $("rpGrid").innerHTML = [
       ["Temperatur", nb(`${String(c.temp).replace(".", ",").replace("-", "−")} °C`), c.temp <= -5 ? "Frost" : c.temp > 1 ? "Tauwetter" : "um null Grad"],
@@ -6715,18 +6912,13 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
         set.appendChild(r);
       }
     }
-    $("rpSay").textContent = reportSay(c);
+    $("rpSay").textContent = (ziel ? "Fünf Würfe auf den Schneemann, von 10 bis 18 m. Zylinder 10, Kopf 5, Bauch 3, Fuß 2 Punkte. " : train ? "" : "Fünf Würfe, der weiteste zählt. ") + reportSay(c);
   }
   $("rpBack").onclick = () => { G = null; fillMenu(); show("scrMenu"); };
   $("rpGo").onclick = () => { AU.unlock(); show(null); beginAttempt(); };
 
-  // ------------------------------------------------------------------ Ein Versuch: Schnee holen
-  function patchList(sel) {
-    return Ph.PATCHES.map((p) => ({ id: p.id, x: p.x, z: p.id === "huette" ? 3.6 : p.id === "baum" ? 1.3 : p.id === "weg" ? 0.4 : -1.6, type: Ph.snowAt(p.id, G.cond).type, sel: p.id === sel }));
-  }
-  const PATCH_SUB = { weg: "festgetreten", baum: "im Schatten", huette: "an der Wand", feld: "offen" };
-  // ------------------------------------------------------------------ Ballkorb: ein Helfer hat fertige Bälle bereit (Mat 12.11.2026: nicht jedes Mal laufen und formen)
-  // Bessere Helfer schaltet man mit Medaillen frei; sie lesen den Schnee besser und formen gleichmäßiger.
+  // ------------------------------------------------------------------ Ballkorb: ein Helfer hat fertige Bälle bereit (Mat 12.11.2026)
+  // Bessere Helfer schaltet man mit Medaillen frei. Ein Eisball liegt immer dabei: verboten, aber verlockend.
   const HELPERS = [
     { id: "hansi", name: "Hansi", say: "Bub vom Dorf", sk: 0.4, ok: () => true },
     { id: "resi", name: "Resi", say: "Tochter vom Hüttenwirt", sk: 0.68, ok: () => S.medals.some((x) => x) || S.comps >= 3, lock: "nach der ersten Medaille oder drei Wettkämpfen" },
@@ -6736,41 +6928,44 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
   function makeRack() {
     const h = helper(), r = Ph.rng(Ph.hash(G.seed, "korb", G.n, h.id)), best = Ph.bestChoice(G.cond), out = [];
     for (let i = 0; i < 6; i++) {
-      // ein guter Helfer holt öfter den besten Schnee und die passende Größe
       const pid = i < 4 ? Ph.PATCHES[i].id : r() < h.sk ? best.patch : Ph.PATCHES[Math.floor(r() * 4)].id;
       const sn = Ph.snowAt(pid, G.cond);
       const size = r() < 0.25 + h.sk * 0.5 ? best.size : Ph.SIZES[Math.floor(r() * 3)].id;
       const b = Ph.newBall(sn.type, size, sn.q, S.glove), ice = Ph.iceAt(b);
-      b.f = Math.round(clamp(Math.min(0.8, ice - 0.1) + Ph.gauss(r) * (0.05 + (1 - h.sk) * 0.3), 0.2, 1.3) * 1000) / 1000;
+      // der letzte im Korb ist ein Eisball, die anderen werden nie aus Versehen zu Eis
+      b.f = i === 5 ? Math.round((ice + 0.12) * 1000) / 1000 : Math.round(clamp(Math.min(0.8, ice - 0.1) + Ph.gauss(r) * (0.05 + (1 - h.sk) * 0.3), 0.2, ice - 0.03) * 1000) / 1000;
       b.n = 6; b.accSum = 6 * clamp(0.45 + h.sk * 0.5 + Ph.gauss(r) * 0.08, 0, 1);
       out.push({ ball: b, patch: pid });
     }
     return out;
   }
   const STATE_TXT = { gut: "fest", locker: "locker", eis: "Eisball" };
+  // Neuer Versuch: Ballkorb zeigen (mit dem Ergebnis des letzten Wurfs oben). Ein Tipp auf einen Ball, und es geht weiter.
   function beginAttempt() {
-    G.phase = "rack"; G.ball = null; G.fl = null; G.tape = null; G.judge = { flag: null, at: 0 }; G.focus = null; G.crumbs = [];
+    G.phase = "rack"; G.ball = null; G.fl = null; G.tape = null; G.judge = { flag: null, at: 0 }; G.focus = null; G.crumbs = []; G.hit = null; G.zball = null;
     G.th = { x: START_X, z: 0, dir: 1, pose: F.POSES.stand, vx: 0 };
-    G.patches = null;
-    setCam(1.6, 46, true);
-    $("res").hidden = true; $("form").hidden = true; $("patches").innerHTML = "";
+    G.patches = null; G.shown = false; G.gest = null;
+    if (!isZiel()) setCam(0.3, 46, true);
+    $("form").hidden = true; $("patches").innerHTML = "";
     hint(null);
     const h = helper(), nx = HELPERS[HELPERS.indexOf(h) + 1];
     G.rack = makeRack();
-    $("rkKick").textContent = "WÄHL DEINEN BALL";
+    $("rkKick").textContent = G.last ? "NÄCHSTER BALL" : "WÄHL DEINEN BALL";
     $("rkWho").textContent = `${h.name}s Korb · ${h.say}`;
-    $("rkFoot").textContent = nx ? `${nx.name} (${nx.say}) hilft dir ${nx.lock}: bessere Bälle.` : "Gian formt die besten Bälle im Tal.";
+    $("rkFoot").textContent = nx ? nb(`${nx.name} (${nx.say}) hilft dir ${nx.lock}.`) : "Gian formt die besten Bälle im Tal.";
+    $("rkWeather").hidden = G.mode !== "train";
+    $("rkSelf").hidden = isZiel();
     const grid = $("rkGrid"); grid.innerHTML = "";
-    const L = myLook();
     G.rack.forEach((it, i) => {
       const b = it.ball, st = Ph.state(b), el = document.createElement("button");
       el.className = "rkBall"; el.dataset.i = i;
       el.innerHTML = `<canvas width="92" height="92"></canvas><span>${esc(Ph.SIZE[b.size].name)}<small>${esc(Ph.SNOW[b.type].name)}</small><i class="${st}">${STATE_TXT[st]}</i></span>`;
-      const c = el.firstChild.getContext("2d"); c.scale(0.46, 0.46);
+      const c = el.firstChild.getContext("2d"); c.translate(46, 46); c.scale(1.05, 1.05); c.translate(-100, -106);
       R.drawBallClose(c, 200, 200, { ball: b, hands: false }, 0);
       el.onclick = (e) => { e.stopPropagation(); takeRack(i); };
       grid.appendChild(el);
     });
+    fillLast();
     $("rack").hidden = false;
     updChips();
   }
@@ -6780,11 +6975,11 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
     G.ball = it.ball; G.pick = { id: it.patch, type: it.ball.type, q: it.ball.q, helper: helper().name };
     $("rack").hidden = true;
     AU.scoop();
-    ready();
+    control();
   }
-  // selbst Schnee holen und formen (der beste Ball, wenn man es kann)
+  // selbst Schnee holen und formen (nur Weitwurf)
   function beginPick() {
-    if (!G || G.phase !== "rack") return;
+    if (!G || G.phase !== "rack" || isZiel()) return;
     $("rack").hidden = true;
     G.phase = "pick"; G.th.dir = -1;
     G.patches = patchList(null);
@@ -6793,6 +6988,42 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
     buildPatchButtons();
   }
   $("rkSelf").onclick = (e) => { e.stopPropagation(); beginPick(); };
+  $("rkWeather").onclick = (e) => { e.stopPropagation(); openReport("train"); };
+
+  // ------------------------------------------------------------------ Kontrolle: der Kampfrichter prüft zufällig den Ball. Eisball = Ausschluss.
+  function control() {
+    const chk = Ph.checked(G.seed, isZiel() ? "me-z" : "me", G.n);
+    if (!chk) return ready();
+    G.phase = "check"; G.chk = { t0: now, ice: Ph.state(G.ball) === "eis", done: false };
+    G.judge = { flag: null, at: 0, x: isZiel() ? null : START_X + 1.6, walk: true };
+    hint("Kontrolle! Der Kampfrichter prüft deinen Ball …", "top");
+  }
+  function controlDone() {
+    const ice = G.chk.ice;
+    G.judge = { flag: ice ? "r" : "w", at: now, x: isZiel() ? null : START_X + 1.6 };
+    if (!ice) {
+      hint("Alles in Ordnung.", "top"); G.phase = "checkOk";
+      const go = () => { if (G && G.phase === "checkOk") { hint(null); G.judge = { flag: null, at: 0 }; ready(); } };
+      if (testMode) go(); else setTimeout(go, 700);
+      return;
+    }
+    AU.whistle();
+    if (!isComp()) { hint("Eisball! Im Wettkampf wärst du jetzt ausgeschlossen.", "top"); G.phase = "checkOk"; const go = () => { if (G && G.phase === "checkOk") { hint(null); G.judge = { flag: null, at: 0 }; ready(); } }; if (testMode) go(); else setTimeout(go, 1600); return; }
+    // Ausschluss: alle Würfe gestrichen; die anderen werfen zu Ende
+    G.phase = "dsq";
+    const me = C.me(G.comp); me.dsq = true; me.tries[G.n] = { dist: 0, pts: 0, valid: false, why: "dsq" };
+    for (let n = G.n; n < TRIES; n++) C.aiRound(G.comp, n);
+    G.n = TRIES - 1; G.gest = "abwinken"; G.gestT = now;
+    hint("Eisball! Ausschluss aus dem Bewerb.", "top");
+    const go = () => { if (G && G.phase === "dsq") { hint(null); showStand(); } };
+    if (testMode) go(); else setTimeout(go, 2200);
+  }
+
+  // ------------------------------------------------------------------ Selbst formen: Schnee holen
+  function patchList(sel) {
+    return Ph.PATCHES.map((p) => ({ id: p.id, x: p.x, z: p.id === "huette" ? 3.6 : p.id === "baum" ? 1.3 : p.id === "weg" ? 0.4 : -1.6, type: Ph.snowAt(p.id, G.cond).type, sel: p.id === sel }));
+  }
+  const PATCH_SUB = { weg: "festgetreten", baum: "im Schatten", huette: "an der Wand", feld: "offen" };
   function buildPatchButtons() {
     const box = $("patches"); box.innerHTML = "";
     for (const p of G.patches) {
@@ -6821,7 +7052,7 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
     hint(null);
   }
 
-  // ------------------------------------------------------------------ Ball formen
+  // ------------------------------------------------------------------ Selbst formen: im Takt drücken
   const BEAT = 0.62;
   function startForm() {
     G.phase = "form"; G.ball = null; G.form = { t0: now, last: -9, sq: 0, crumbs: [], ticked: -1 };
@@ -6842,8 +7073,7 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
   }
   function chooseSize(id) {
     if (!G || G.phase !== "form") return;
-    const keep = G.ball && G.ball.n > 0;
-    if (keep) return;   // nach dem ersten Druck bleibt die Größe
+    if (G.ball && G.ball.n > 0) return;   // nach dem ersten Druck bleibt die Größe
     G.ball = Ph.newBall(G.pick.type, id, G.pick.q, S.glove);
     G.form.t0 = now; G.form.last = -9;
     for (const b of $("fSizes").children) b.classList.toggle("on", b.dataset.id === id);
@@ -6851,62 +7081,62 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
     hint(S.tips.form < 2 ? "Drück im Takt, wenn sich der Ring schließt" : null, "top");
     drawForm();
   }
-  // Ein Druck (Tippen irgendwo, Leertaste): Genauigkeit gegenüber dem Schlag
   function formPress() {
     if (!G || G.phase !== "form" || !G.ball) return;
     const Fm = G.form, ph = ((now - Fm.t0) / BEAT) % 1, e = Math.min(ph, 1 - ph) * BEAT;
     const win = 0.17 * Ph.GLOVES[S.glove].win, acc = clamp(1 - e / win, 0, 1);
-    const gap = (now - Fm.last) / BEAT;
-    const before = Ph.state(G.ball);
+    const gap = (now - Fm.last) / BEAT, before = Ph.state(G.ball);
     Ph.press(G.ball, acc, gap);
     Fm.last = now; Fm.sq = 1; Fm.acc = acc;
     const st = Ph.state(G.ball);
     AU.press(acc, st === "eis");
-    // Krümel fallen, wenn man daneben drückt oder der Schnee nicht bindet
     const nCr = Math.round((1 - acc) * 5 + (G.ball.type === "pulver" ? 3 : 0));
     for (let i = 0; i < nCr; i++) Fm.crumbs.push({ x: (Math.random() - 0.5) * 60, y: (Math.random() - 0.5) * 30, vx: (Math.random() - 0.5) * 60, vy: -20 - Math.random() * 40, r: 1.5 + Math.random() * 2.5, a: 1 });
-    G.th.squeeze = 0.25;
     if (G.ball.n >= 2 && S.tips.form < 2) { S.tips.form++; save(); hint(null); }
-    if (st === "eis" && before !== "eis") hint("Eisball! Der zählt nicht. Neu formen?", "top");
+    if (st === "eis" && before !== "eis") hint("Eisball! Fliegt weiter, ist aber verboten.", "top");
     drawForm();
   }
   function drawForm() {
     if (!G || !G.form) return;
-    const Fm = G.form, b = G.ball, ph = b ? ((now - Fm.t0) / BEAT) % 1 : null;
-    const L = myLook();
+    const Fm = G.form, b = G.ball, ph = b ? ((now - Fm.t0) / BEAT) % 1 : null, L = myLook();
     R.drawBallClose($("ballCv").getContext("2d"), 200, 200, { ball: b, beat: ph, squeeze: Fm.sq, glove: S.glove, suit: typeof L.suit === "string" ? L.suit : F.SUIT[L.suit], skin: F.SKIN[L.skin] || "#E2B48F", crumbs: Fm.crumbs }, now);
     R.drawGauge($("gaugeCv").getContext("2d"), 150, 150, b);
   }
   function formDone() {
     if (!G || G.phase !== "form" || !G.ball) return;
     $("form").hidden = true; hint(null);
-    G.phase = "walk"; G.walk = { to: START_X, toZ: 0, then: "ready", sp: 6 };
-    G.patches = patchList(null).filter((p) => p.id !== G.pick.id).concat(patchList(G.pick.id).filter((p) => p.id === G.pick.id));
+    G.phase = "walk"; G.walk = { to: START_X, toZ: 0, then: "control", sp: 6 };
   }
   $("fDone").onclick = (e) => { e.stopPropagation(); formDone(); };
 
-  // ------------------------------------------------------------------ Werfen: Finger auflegen = Anlauf, Wischen nach oben = Abwurf
+  // ------------------------------------------------------------------ Bereit
   function ready() {
+    if (isZiel()) {
+      G.phase = "aim"; G.D = C.DIST[G.n]; G.vNeed = Ph.aimSpeed(G.D, G.cond, G.ball);
+      hint(S.tips.ziel < 3 ? "Nach oben wischen · seitlich zielen · das Tempo bestimmt die Weite" : null, "top");
+      updChips(); return;
+    }
     G.phase = "ready"; G.th.dir = 1; G.th.x = START_X; G.th.vx = 0;
-    setCam(2.2, 52);
-    hint(S.tips.throw < 3 ? "Finger auflegen: Anlauf · nach oben wischen: Wurf" : null, "top");
+    setCam(-1.2, 44);
+    hint(S.tips.throw < 3 ? "Finger halten: Anlauf · vor dem Balken nach oben wischen: Wurf" : null, "top");
     updChips();
   }
-  let ptr = null;   // laufende Berührung: Proben [t, x, y]
+
+  // ------------------------------------------------------------------ Eingabe: Finger auflegen und wischen
+  let ptr = null;
   function onDown(e) {
     if (!G || e.button > 0) return;
-    if (e.target.closest && e.target.closest("button, .card, #form, #res")) {
+    if (e.target.closest && e.target.closest("button, .card, #form, #rack")) {
       if (G.phase === "form" && e.target.id === "ballCv") { e.preventDefault(); formPress(); }
       return;
     }
     AU.unlock();
     if (G.phase === "form") { e.preventDefault(); formPress(); return; }
-    if (G.phase !== "ready") return;
+    if (G.phase !== "ready" && G.phase !== "aim") return;
     e.preventDefault();
     const [x, y] = stagePoint(e.clientX, e.clientY);
     ptr = { id: e.pointerId, s: [[now, x, y]], t0: now };
-    G.phase = "run"; G.run = { t0: now };
-    hint(null);
+    if (G.phase === "ready") { G.phase = "run"; G.run = { t0: now }; hint(null); }
     try { stage.setPointerCapture(e.pointerId); } catch (er) { /* egal */ }
   }
   function onMove(e) {
@@ -6920,8 +7150,9 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
     const [x, y] = stagePoint(e.clientX, e.clientY);
     ptr.s.push([now, x, y]);
     const smp = ptr.s; ptr = null;
-    if (!G || G.phase !== "run") return;
-    release(flick(smp));
+    if (!G) return;
+    if (G.phase === "run") release(flick(smp));
+    else if (G.phase === "aim") aimRelease(flick(smp));
   }
   // Wischen auswerten: Richtung und Tempo der letzten 0,12 s
   function flick(smp) {
@@ -6930,28 +7161,27 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
     while (i > 0 && end[0] - smp[i - 1][0] <= 0.12) i--;
     const a = smp[Math.max(0, i - 1)], dt = Math.max(1 / 120, end[0] - a[0]);
     const dx = end[1] - a[1], dy = a[2] - end[2], dist = Math.hypot(dx, dy);
-    // Steilheit des Wischens (gerade nach oben = 90°) → Abwurfwinkel: gerade hoch gibt einen hohen Bogen, leicht schräg den besten
+    // Weitwurf: Steilheit → Abwurfwinkel (gerade hoch = hoher Bogen, leicht schräg = am weitesten)
     const el = Math.atan2(dy, Math.max(1, Math.abs(dx))) * 180 / Math.PI;
-    return { ang: 40 + (el - 65) * 0.6, el, speed: dist / dt, dist, up: dy };
+    return { ang: 40 + (el - 65) * 0.6, el, speed: dist / dt, dist, up: dy, dx };
   }
   const FLICK_FULL = 1500;   // Bühnen-Pixel je Sekunde für volle Kraft
   function release(fk) {
     if (fk.dist < 30 || fk.up < 12) {
-      // kein Wurf: stehen bleiben und zurück, oder schon über dem Balken
       if (G.th.x > -0.12) return foul();
-      G.phase = "walk"; G.walk = { to: START_X, toZ: 0, then: "ready", sp: 3 };
-      hint("Schneller nach oben wischen!");
+      G.phase = "walk"; G.walk = { to: START_X, toZ: 0, then: "ready", sp: 6 };
+      hint("Schneller nach oben wischen!", "top");
       return;
     }
     if (G.th.x > -0.12) return foul();
-    doThrow({ ang: clamp(fk.ang, 5, 75), pow: fk.speed / FLICK_FULL, run: G.th.vx, xr: G.th.x + 0.3 });
+    doThrow({ ang: clamp(fk.ang, 5, 75), pow: fk.speed / FLICK_FULL, run: G.th.vx, xr: G.th.x + 0.6 });
   }
   function doThrow(inp) {
     inp.t0 = now - G.run.t0 + G.n * 7;
     const res = Ph.fly(G.ball, inp, G.cond, Ph.hash(G.seed, "me", G.n));
-    G.fl = { res, inp, t0: now, i: 0, landed: false }; G.trail = [];
-    G.phase = "fly"; G.thr = { t0: now };
-    G.th.vx = 0;
+    // der Ball verlässt die Hand erst nach Stemmen und Bogen (R.T_REL)
+    G.fl = { res, inp, t0: now + R.T_REL, i: 0 }; G.trail = [];
+    G.phase = "fly"; G.thr = { t0: now, vx: G.th.vx };
     if (S.tips.throw < 3) { S.tips.throw++; save(); }
     AU.whoosh(inp.pow);
   }
@@ -6961,17 +7191,35 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
     G.judge = { flag: "r", at: now + 0.5 };
     setTimeout(() => AU.whistle(), testMode ? 0 : 450);
   }
+  // Zielwurf: Tempo → Weite (um das nötige Tempo herum, mit Gefühl), seitliche Richtung → Zielen
+  function aimRelease(fk) {
+    if (fk.dist < 30 || fk.up < 12) { hint("Schneller nach oben wischen!", "top"); return; }
+    const p = clamp(fk.speed / FLICK_FULL, 0.3, 1.9);
+    const v = G.vNeed * (1 + (p - 1) * 0.25), lat = Math.atan2(fk.dx, fk.up) * 180 / Math.PI * 0.22;
+    const inp = { v, lat, t0: now + G.n * 9, p };
+    const res = Ph.target(G.ball, inp, G.cond, Ph.hash(G.seed, "mez", G.n), G.D);
+    G.fl = { res, inp, t0: now + 0.14, i: 0 };
+    G.phase = "zfly"; G.thr = { t0: now };
+    if (S.tips.ziel < 3) { S.tips.ziel++; save(); }
+    hint(null);
+    AU.whoosh(p);
+  }
 
   // ------------------------------------------------------------------ Ablauf je Bild
   function setCam(cx, ppm, snap) { camT.cx = cx; camT.ppm = ppm; if (snap) { cam.cx = cx; cam.ppm = ppm; } }
+  const walkA = { lean: 4, crouch: 0, sL: [-12, 6], fL: [16, 22], aF: [-14, -10], aB: [16, 20], hd: 0 };
+  const walkB = { lean: 4, crouch: 0, sL: [10, 4], fL: [-14, 18], aF: [14, 20], aB: [-14, -10], hd: 0 };
   function update(dt) {
     now += dt;
     if (!G) return;
     const th = G.th;
-    // Kamera weich nachführen
     const k = 1 - Math.exp(-dt * (G.phase === "fly" ? 5 : 3.2));
     cam.ppm += (camT.ppm - cam.ppm) * k; cam.cx += (camT.cx - cam.cx) * k;
-    if (G.phase === "pick" || G.phase === "rack") { th.pose = F.ease(th.pose, F.idle(R.POSE.hold, now, 0.7), dt); }
+    if (G.phase === "pick" || G.phase === "rack" || G.phase === "aim") th.pose = F.ease(th.pose, F.idle(R.POSE.hold, now, 0.7), dt);
+    if (G.phase === "check") {
+      th.pose = F.ease(th.pose, F.idle(R.POSE.hold, now, 0.7), dt);
+      if (now - G.chk.t0 > 1.1 && !G.chk.done) { G.chk.done = true; controlDone(); }
+    }
     if (G.phase === "walk") {
       const w = G.walk, d = w.to - th.x, dz = w.toZ - th.z;
       th.dir = d >= 0 ? 1 : -1;
@@ -6980,17 +7228,15 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
       const u = (Math.abs(th.x) * 0.9) % 1;
       th.pose = F.ease(th.pose, F.seq([[0, walkA], [0.5, walkB], [1, walkA]], u, true), dt, true);
       if (Math.floor(u * 2) !== th.lastStep) { th.lastStep = Math.floor(u * 2); AU.step(); }
-      if (G.walk.then === "ready") setCam(Math.max(th.x + 3, -6), 46);
+      if (w.then !== "scoop") setCam(Math.max(th.x + 6, -6), 44);
       if (Math.abs(d) < 0.02 && Math.abs(dz) < 0.05) {
         th.x = w.to;
         if (w.then === "scoop") { G.phase = "scoop"; G.scoop = now; AU.scoop(); }
+        else if (w.then === "control") control();
         else ready();
       }
     }
-    if (G.phase === "scoop") {
-      th.pose = F.ease(th.pose, R.POSE.scoop, dt, true);
-      if (now - G.scoop > 0.65) startForm();
-    }
+    if (G.phase === "scoop") { th.pose = F.ease(th.pose, R.POSE.scoop, dt, true); if (now - G.scoop > 0.65) startForm(); }
     if (G.phase === "form") {
       const Fm = G.form;
       Fm.sq = Math.max(0, Fm.sq - dt * 6);
@@ -7000,49 +7246,47 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
       if (G.ball) { const b = Math.floor((now - Fm.t0) / BEAT); if (b !== Fm.ticked) { Fm.ticked = b; if (G.ball.n < 3) AU.tick(false); } }
       drawForm();
     }
-    if (G.phase === "ready") {
-      th.pose = F.ease(th.pose, F.idle(R.POSE.hold, now, 1), dt);
-    }
+    if (G.phase === "ready") th.pose = F.ease(th.pose, F.idle(R.POSE.hold, now, 1), dt);
     if (G.phase === "run") {
-      // Anlauf: schneller werden bis 4,2 m/s; ausholen
-      th.vx = Math.min(4.2, th.vx + 5.5 * dt);
+      // Anlauf bis 6 m/s; vor dem Balken Impulsschritte mit langem Arm
+      th.vx = Math.min(6.2, th.vx + 4.6 * dt);
       th.x += th.vx * dt;
-      const u = ((th.x - START_X) / 1.35) % 1;
-      th.pose = F.ease(th.pose, F.seq(R.RUN, u, true), dt, true);
+      const imp = th.x > -2.8, u = ((th.x - START_X) / (imp ? 1.1 : 1.5)) % 1;
+      th.pose = F.ease(th.pose, F.seq(imp ? R.IMP : R.RUN, u, true), dt, true);
       if (Math.floor(u * 2) !== th.lastStep) { th.lastStep = Math.floor(u * 2); AU.step(); }
+      setCam(Math.max(-1.2, th.x + 5.5), 44);
       if (th.x >= 0.05) { ptr = null; foul(); }
     }
     if (G.phase === "fly") updFly(dt);
+    if (G.phase === "zfly") updZiel(dt);
     if (G.phase === "foul") {
       const u = now - G.thr.t0;
       th.x += Math.max(0, 1.6 - u * 3) * dt;
       th.pose = F.ease(th.pose, R.POSE.stumble, dt, true);
-      if (u > 1.4 && !G.shown) showResult();
+      if (u > 1.4 && !G.shown) afterThrow();
     }
     if (G.phase === "measure") {
-      G.tape.u = clamp((now - G.tape.t0) / 1.1, 0, 1);
+      G.tape.u = clamp((now - G.tape.t0) / 1.0, 0, 1);
       th.pose = F.ease(th.pose, F.idle(F.POSES.stand, now, 1), dt);
-      if (G.tape.u >= 1 && !G.shown) showResult();
+      if (G.tape.u >= 1 && !G.shown && now - G.tape.t0 > 1.5) afterThrow();
     }
-    if (G.phase === "result" && G.gest) {
+    if ((G.phase === "rack" || G.phase === "dsq") && G.gest) {
       const r = F.gesture(G.gest, now - G.gestT);
-      if (r) { th.pose = F.ease(th.pose, r.pose, dt, true); th.lift = r.lift; th.mood = r.mood; }
+      if (r) { th.pose = F.ease(th.pose, r.pose, dt, true); th.lift = r.lift; th.mood = r.mood; } else { G.gest = null; th.lift = 0; }
     }
-    // Brocken im Flug und am Boden
     for (const c of G.crumbs) {
       if (c.y > 0) { c.vy -= 9.81 * dt; c.x += c.vx * dt; c.y += c.vy * dt; c.z += c.vz * dt; if (c.y <= 0) { c.y = 0; c.vx = c.vy = c.vz = 0; } }
       else c.a -= dt * 0.25;
     }
     G.crumbs = G.crumbs.filter((c) => c.a > 0);
   }
-  const walkA = { lean: 4, crouch: 0, sL: [-12, 6], fL: [16, 22], aF: [-14, -10], aB: [16, 20], hd: 0 };
-  const walkB = { lean: 4, crouch: 0, sL: [10, 4], fL: [-14, 18], aF: [14, 20], aB: [-14, -10], hd: 0 };
 
   function updFly(dt) {
-    const f = G.fl, res = f.res, t = now - f.t0, th = G.th;
-    // Wurfbewegung
-    th.pose = F.ease(th.pose, F.seq(R.THROW, clamp(t / 0.6, 0, 1)), dt, true);
-    th.x += Math.max(0, 1.2 - t * 4) * dt;
+    const f = G.fl, res = f.res, t = now - f.t0, th = G.th, tu = (now - G.thr.t0) / 0.9;
+    // Wurfbewegung: Stemmen, Bogen, Abwurf, Ausschwingen; der Schwung trägt noch ein Stück
+    th.pose = F.ease(th.pose, F.seq(R.THROW, clamp(tu, 0, 1)), dt, true);
+    th.x += Math.max(0, G.thr.vx * (1 - tu * 2.2)) * dt;
+    if (t < 0) return;
     const P = res.path;
     while (f.i < P.length - 1 && P[f.i + 1][0] <= t) f.i++;
     const a = P[f.i], b = P[Math.min(P.length - 1, f.i + 1)], u = b[0] > a[0] ? clamp((t - a[0]) / (b[0] - a[0]), 0, 1) : 1;
@@ -7050,159 +7294,179 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
     const d0 = Ph.SIZE[G.ball.size].d;
     G.flyBall = { x: bx, y: by, z: bz, d: d0 * Math.cbrt(mr), f: G.ball.f, ice: Ph.iceAt(G.ball), type: G.ball.type };
     G.trail.push([bx, by, bz]); if (G.trail.length > 14) G.trail.shift();
-    // Krümel: lockere Bälle verlieren Schnee, beim Bruch fliegen Brocken weg
     if (mr < (f.lastM || 1) - 0.03) { f.lastM = mr; for (let i = 0; i < 2; i++) G.crumbs.push(crumb(bx, by, bz, 0.04)); }
     for (const ev of res.events) if (!ev.done && t >= ev.t) { ev.done = true; AU.crumble(); for (let i = 0; i < 18; i++) G.crumbs.push(crumb(ev.x, ev.y, ev.z, 0.05)); }
-    // Kamera: Werfer und Ball im Bild
     f.peak = Math.max(f.peak || 0, by);
-    const ppm = Math.min(52, (W * 0.9) / (bx + 6.5), 250 / Math.max(1, f.peak + 0.5));
-    setCam(-4.6 + W / 2 / ppm, ppm);
+    const ppm = Math.min(48, (W * 0.9) / (bx + 9), 250 / Math.max(1, f.peak + 0.5));
+    setCam(-6 + W / 2 / ppm, ppm);
     if (t >= res.t) {
-      // Aufschlag
       G.flyBall = null; G.trail = []; AU.thud(G.ball.size === "orange");
       for (let i = 0; i < 10; i++) G.crumbs.push(crumb(res.x, 0.05, res.z, 0.04, true));
       const best = res.valid && res.dist > G.best;
       G.marks.forEach((m) => { if (best) m.best = false; });
       G.marks.push({ x: res.x, z: res.z, valid: res.valid, best });
-      G.phase = "measure"; G.tape = res.valid ? { x: res.x, z: res.z, u: 0, t0: now + 0.4 } : null;
+      G.phase = "measure"; G.tape = res.valid ? { x: res.x, z: res.z, u: 0, t0: now + 0.3 } : { x: 0, z: 0, u: 0, t0: now + 0.2 };
       G.judge = { flag: res.valid ? "w" : "r", at: now + 0.3 };
       if (res.valid) G.focus = { landed: true, x: res.x }; else setTimeout(() => AU.whistle(), testMode ? 0 : 300);
-      if (!res.valid) G.tape = { x: 0, z: 0, u: 0, t0: now + 0.2 };
     }
+  }
+  function updZiel(dt) {
+    const f = G.fl, res = f.res, t = now - f.t0;
+    G.handU = clamp((now - G.thr.t0) / 0.35, 0, 1);
+    if (t < 0) return;
+    if (!f.hitDone) {
+      const P = res.path;
+      while (f.i < P.length - 1 && P[f.i + 1][0] <= t) f.i++;
+      const a = P[f.i], b = P[Math.min(P.length - 1, f.i + 1)], u = b[0] > a[0] ? clamp((t - a[0]) / (b[0] - a[0]), 0, 1) : 1;
+      G.zball = { x: a[1] + (b[1] - a[1]) * u, y: a[2] + (b[2] - a[2]) * u, z: a[3] + (b[3] - a[3]) * u, d: Ph.SIZE[G.ball.size].d, f: G.ball.f, ice: Ph.iceAt(G.ball), type: G.ball.type };
+      if (t >= res.t) {
+        f.hitDone = true; f.tHit = now; G.zball = null;
+        G.hit = { part: res.part, at: now };
+        if (res.part) { G.splats = (G.splats || []).concat(res.part === "hut" ? [] : [{ y: res.y, z: res.z }]); AU.thud(true); if (res.pts >= 5) AU.applause(res.pts / 10); }
+        else AU.thud(false);
+        for (let i = 0; i < 14; i++) G.crumbs.push(crumb(res.x - 0.05, Math.max(0.05, res.y), res.z, 0.04));
+      }
+    } else if (now - f.tHit > 1.3 && !G.shown) afterThrow();
   }
   function crumb(x, y, z, r, ground) {
     const v = ground ? 1.5 : 3;
     return { x, y: y + 0.01, z, vx: (Math.random() - 0.4) * v, vy: Math.random() * v, vz: (Math.random() - 0.5) * v, r, a: 1, col: Math.random() < 0.5 ? "#FBF8F1" : "#DCE4EC" };
   }
 
-  // ------------------------------------------------------------------ Ergebnis eines Versuchs
+  // ------------------------------------------------------------------ Nach dem Wurf: werten, die anderen werfen, gleich zum nächsten Ball
   const WHY_TXT = {
     foul: "Übergetreten: Der Fuß war über dem Balken.",
-    eis: "Eisball! Der Kampfrichter prüft jeden Ball und lässt ihn nicht gelten.",
     aus: "Im Aus: Der Ball ist neben dem Sektor gelandet.",
   };
-  function showResult() {
+  const PART_TXT = { hut: "Zylinder getroffen!", kopf: "Am Kopf getroffen.", bauch: "Am Bauch getroffen.", fuss: "Am Fuß getroffen." };
+  function afterThrow() {
     G.shown = true;
-    const f = G.fl, res = f.res, inp = f.inp, comp = G.mode === "comp";
+    const f = G.fl, res = f.res, inp = f.inp, comp = isComp(), ziel = isZiel();
     G.tries.push(res);
-    if (comp) C.me(G.comp).tries[G.n] = { dist: res.dist, valid: res.valid, why: res.why };
-    const pb = res.valid && res.dist > G.best;
-    if (res.valid) G.best = Math.max(G.best, res.dist);
-    const recK = comp ? "comp" : "train", rec = res.valid && res.dist > S.rec[recK];
-    if (rec) { S.rec[recK] = res.dist; save(); }
-    $("rKick").textContent = comp ? `${G.n < C.ROUNDS ? "VERSUCH " + (G.n + 1) : "FINALE " + (G.n - C.ROUNDS + 1)} VON ${G.n < C.ROUNDS ? C.ROUNDS : C.FROUNDS}` : `TRAINING · WURF ${G.tries.length}`;
+    let rec = false, pb = false;
+    if (ziel) {
+      G.pts += res.pts;
+      C.me(G.comp).tries[G.n] = { pts: res.pts, valid: true, part: res.part };
+    } else {
+      if (comp) C.me(G.comp).tries[G.n] = { dist: res.dist, valid: res.valid, why: res.why };
+      pb = res.valid && res.dist > G.best;
+      if (res.valid) G.best = Math.max(G.best, res.dist);
+      const recK = comp ? "comp" : "train"; rec = res.valid && res.dist > S.rec[recK];
+      if (rec) { S.rec[recK] = res.dist; save(); }
+    }
+    if (comp) C.aiRound(G.comp, G.n);
+    G.last = { res, inp, ball: G.ball, pick: G.pick, n: G.n, rec, pb };
+    G.gest = ziel ? null : rec || pb ? "jubel" : res.valid ? "nicken" : "abwinken";
+    G.gestT = now;
+    if (!ziel && (rec || pb)) AU.applause(rec ? 1 : 0.5);
+    const last = comp && G.n >= TRIES - 1;
+    if (last) {
+      if (ziel && G.pts > S.rec.ziel) { S.rec.ziel = G.pts; save(); }
+      return showStand();
+    }
+    G.n++;
+    beginAttempt();
+  }
+  // Ergebnis des letzten Wurfs oben im Ballkorb, mit kleinem Zwischenstand
+  function fillLast() {
+    const L = G.last, box = $("rkRes");
+    box.hidden = !L;
+    if (!L) return;
+    const res = L.res, inp = L.inp, ziel = isZiel(), comp = isComp();
+    $("rKick").textContent = comp ? `WURF ${L.n + 1} VON ${TRIES}` : `TRAINING · WURF ${G.tries.length}`;
     const d = $("rDist");
-    d.className = "rDist num" + (res.valid ? "" : " bad");
-    d.textContent = res.valid ? nb(`${m1(res.dist)} m`) : Ph.WHY[res.why] || "Ungültig";
-    let why = res.valid ? (rec ? "Neue Bestweite!" : pb && G.tries.length > 1 ? "Weitester Wurf heute." : "Gültig.") : WHY_TXT[res.why];
-    if (res.valid && res.broke) why += " Der Ball ist zerbrochen: gemessen wird der größte Brocken.";
-    else if (res.valid && res.m < res.m0 * 0.8) why += " Er hat unterwegs Schnee verloren.";
+    if (ziel) { d.className = "rDist num" + (res.pts ? "" : " bad"); d.textContent = res.pts ? `+${res.pts} Punkte` : "Daneben"; }
+    else { d.className = "rDist num" + (res.valid ? "" : " bad"); d.textContent = res.valid ? nb(`${m1(res.dist)} m`) : Ph.WHY[res.why] || "Ungültig"; }
+    let why;
+    if (ziel) why = res.part ? PART_TXT[res.part] : nb(Math.abs(res.z) > 0.4 ? (res.z > 0 ? "Zu weit links." : "Zu weit rechts.") : res.x < G.comp.c && false ? "" : res.y > 1.9 || res.x >= res.D ? "Zu hoch." : "Zu kurz.");
+    else {
+      why = res.valid ? (L.rec ? "Neue Bestweite!" : L.pb && G.tries.length > 1 ? "Weitester Wurf heute." : "Gültig.") : WHY_TXT[res.why];
+      if (res.valid && res.broke) why += " Zerbrochen: der größte Brocken zählt.";
+      else if (res.valid && res.m < res.m0 * 0.8) why += " Hat unterwegs Schnee verloren.";
+    }
     $("rWhy").textContent = nb(why);
     const facts = [];
-    if (G.ball) {
-      const st = Ph.state(G.ball);
-      facts.push([`${Ph.SIZE[G.ball.size].name} · ${Ph.SNOW[G.ball.type].name}` + (G.pick && G.pick.helper ? ` · von ${G.pick.helper}` : ""), ""]);
-      facts.push([st === "eis" ? "Eisball" : st === "locker" ? "zu locker" : "gut geformt", st === "gut" ? "g" : "w"]);
-    }
-    if (res.why !== "foul") {
+    if (L.ball) { const st = Ph.state(L.ball); facts.push([`${Ph.SIZE[L.ball.size].name} · ${Ph.SNOW[L.ball.type].name}`, ""]); if (st !== "gut") facts.push([STATE_TXT[st], "w"]); }
+    if (ziel) facts.push([`Tempo ${Math.round(inp.p * 100)} %`, Math.abs(inp.p - 1.1) < 0.15 ? "g" : ""]);
+    else if (res.why !== "foul") {
       const p = inp.pow;
       facts.push([`Kraft ${Math.round(p * 100)} %` + (p > 1.15 ? " · verrissen" : ""), p >= 0.9 && p <= 1.15 ? "g" : "w"]);
       facts.push([`Winkel ${Math.round(inp.ang)}°`, inp.ang >= 33 && inp.ang <= 45 ? "g" : ""]);
-      facts.push([`Abwurf ${m1(Math.max(0, -inp.xr))} m vor dem Balken`, -inp.xr < 0.6 ? "g" : ""]);
+      facts.push([`Abwurf ${m1(Math.max(0, -inp.xr))} m vor dem Balken`, -inp.xr < 0.8 ? "g" : ""]);
     }
     $("rFacts").innerHTML = facts.map(([t, c]) => `<span class="${c}">${esc(nb(t))}</span>`).join("");
-    // Geste: Jubel bei Bestweite, Nicken bei gültig, Kopf hängen bei ungültig
-    G.gest = rec || (comp && pb) ? "jubel" : res.valid ? (pb ? "faust" : "nicken") : "abwinken";
-    G.gestT = now;
-    if (rec || pb) AU.applause(rec ? 1 : 0.6);
-    G.phase = "result";
-    $("rAlt").hidden = true;
-    if (comp) { $("rNext").textContent = "Weiter"; }
-    else { $("rNext").textContent = "Nächster Ball"; $("rAlt").hidden = false; $("rAlt").textContent = "Wetter"; }
-    $("res").hidden = false;
-    updChips();
+    // kleiner Zwischenstand: die ersten drei und ich
+    if (comp) {
+      const list = C.ranked(G.comp), mi = list.findIndex((a) => a.me), rows = list.slice(0, 3).map((a, i) => [i, a]);
+      if (mi >= 3) rows.push([mi, list[mi]]);
+      $("rMini").innerHTML = rows.map(([i, a]) => `<tr class="${a.me ? "me" : ""}"><td>${i + 1}.</td><td>${esc(a.me ? myName() : a.name.split(" ").pop())}</td><td class="n">${a.dsq ? "DQ" : esc(scoreTxt(a))}</td></tr>`).join("");
+    } else $("rMini").innerHTML = G.best ? `<tr><td>Beste</td><td class="n">${nb(m1(G.best) + " m")}</td></tr>` : "";
   }
-  $("rNext").onclick = (e) => {
-    e.stopPropagation();
-    $("res").hidden = true; G.shown = false; G.gest = null; G.th.lift = 0;
-    if (G.mode === "train") { G.n++; beginAttempt(); return; }
-    // Wettkampf: die anderen werfen ihren Versuch, dann Zwischenstand
-    C.aiRound(G.comp, G.n);
-    showStand();
-  };
-  $("rAlt").onclick = (e) => { e.stopPropagation(); $("res").hidden = true; G.shown = false; openReport("train"); };
-  $("abort").onclick = (e) => { e.stopPropagation(); ptr = null; G = null; hint(null); $("patches").innerHTML = ""; $("rack").hidden = true; $("form").hidden = true; fillMenu(); show("scrMenu"); };
+  const scoreTxt = (a) => (isZiel() ? `${C.score(G.comp, a)} P` : C.bestOf(a) ? nb(m1(C.bestOf(a)) + " m") : "–");
 
-  // ------------------------------------------------------------------ Zwischenstand und Endstand
+  // ------------------------------------------------------------------ Endstand
   const MED = ["#DDA43B", "#B8BEC8", "#B5713E"];
   function showStand() {
-    const X = G.comp, n = G.n, list = C.ranked(X), myP = C.place(X), total = C.ROUNDS + C.FROUNDS;
-    const afterQ = n === C.ROUNDS - 1, last = n === total - 1 || (n >= C.ROUNDS - 1 && !C.inFinal(X)), fin = n >= C.ROUNDS;
-    X.done = last;
-    $("stKick").textContent = last ? "ENDSTAND" : afterQ ? "NACH DREI VERSUCHEN" : `NACH ${fin ? "FINALE " + (n - C.ROUNDS + 1) : "VERSUCH " + (n + 1)}`;
-    $("stTitle").textContent = last ? (myP <= 3 ? `${["Gold", "Silber", "Bronze"][myP - 1]} für dich!` : nb(`Platz ${myP}`)) : afterQ ? (C.inFinal(X) ? "Du bist im Finale!" : "Kein Finale") : "Zwischenstand";
+    const X = G.comp, list = C.ranked(X), myP = C.place(X), ziel = isZiel(), meA = C.me(X);
+    X.done = true;
+    $("stKick").textContent = ziel ? "ENDSTAND ZIELWURF" : "ENDSTAND WEITWURF";
+    $("stTitle").textContent = meA.dsq ? "Ausgeschlossen: Eisball" : myP <= 3 ? `${["Gold", "Silber", "Bronze"][myP - 1]} für dich!` : nb(`Platz ${myP}`);
     const rows = list.map((a, i) => {
-      const tries = a.tries.map((t, j) => (t ? (t.valid ? (C.bestOf(a) === t.dist ? `<b>${m1(t.dist)}</b>` : m1(t.dist)) : `<s>${t.why === "foul" ? "Ü" : t.why === "eis" ? "E" : "✕"}</s>`) : j < n + 1 ? "–" : "")).filter((x, j) => j <= n).join(" · ");
-      const bst = C.bestOf(a);
-      const med = last && i < 3 ? `<span class="medal" style="background:${MED[i]}"></span>` : "";
-      return `<tr class="${a.me ? "me" : ""}${i === C.FINAL - 1 && n <= C.ROUNDS - 1 ? " cut" : ""}"><td class="p">${i + 1}</td><td class="nm">${med}${esc(a.name)} <small>${esc(a.nat)}</small></td><td class="t">${tries}</td><td class="n">${bst ? nb(m1(bst) + " m") : "–"}</td></tr>`;
+      const tries = a.tries.map((t) => (!t ? "–" : t.why === "dsq" ? "<s>Eis</s>" : ziel ? (t.pts ? `<b>${t.pts}</b>` : "0") : t.valid ? (C.bestOf(a) === t.dist ? `<b>${m1(t.dist)}</b>` : m1(t.dist)) : `<s>${t.why === "foul" ? "Ü" : "✕"}</s>`)).join(" · ");
+      const med = !a.dsq && i < 3 ? `<span class="medal" style="background:${MED[i]}"></span>` : "";
+      return `<tr class="${a.me ? "me" : ""}"><td class="p">${a.dsq ? "–" : i + 1}</td><td class="nm">${med}${esc(a.me ? myName() : a.name)} <small>${esc(a.nat)}</small></td><td class="t">${tries}</td><td class="n">${a.dsq ? "DQ" : esc(scoreTxt(a))}</td></tr>`;
     });
-    // Platz sparen: wer weit hinten liegt, nur mit dem Spieler
-    const show10 = rows.filter((r, i) => i < 10 || list[i].me);
-    $("stTab").innerHTML = show10.join("");
-    let note = "";
-    if (afterQ) note = C.inFinal(X) ? "Die besten acht werfen drei weitere Versuche. Es zählt der weiteste aller sechs." : nb(`Nur die besten acht kommen ins Finale. Du bist auf Platz ${myP}.`);
-    else if (!last && !fin) note = "Drei Versuche, der weiteste zählt; danach das Finale der besten acht.";
-    else if (last) note = nb(`Deine Bestweite: ${C.bestOf(C.me(X)) ? m1(C.bestOf(C.me(X))) + " m" : "keine gültige"}.`) + (myP <= 3 ? "" : " Lies den Schnee: Pappschnee fliegt am weitesten, ein guter Ball zerbricht nicht.");
-    $("stNote").textContent = note;
-    $("stGo").textContent = last ? "Fertig" : "Nächster Versuch";
-    if (last) {
-      S.comps++;
-      if (myP <= 3) S.medals[myP - 1]++;
-      save();
-    }
+    $("stTab").innerHTML = rows.filter((r, i) => i < 10 || list[i].me).join("");
+    const dq = list.filter((a) => a.dsq && !a.me).length;
+    $("stNote").textContent = (meA.dsq ? "Der Kampfrichter hat deinen Eisball gefunden. " : "") + (dq ? `${dq === 1 ? "Eine Person wurde" : dq + " wurden"} mit dem Eisball erwischt. ` : "") + (ziel ? "Zylinder 10, Kopf 5, Bauch 3, Fuß 2 Punkte." : "Es zählt der weiteste Wurf.");
+    $("stGo").textContent = "Fertig";
+    S.comps++;
+    if (!meA.dsq && myP <= 3) S.medals[myP - 1]++;
+    save();
     show("scrStand");
   }
-  $("stGo").onclick = () => {
-    if (!G || !G.comp) return;
-    if (G.comp.done) { G = null; fillMenu(); show("scrMenu"); return; }
-    G.n++; show(null); beginAttempt();
-  };
+  $("stGo").onclick = () => { G = null; fillMenu(); show("scrMenu"); };
   $("stMenu").onclick = () => { G = null; fillMenu(); show("scrMenu"); };
+  $("abort").onclick = (e) => { e.stopPropagation(); ptr = null; G = null; hint(null); $("patches").innerHTML = ""; $("rack").hidden = true; $("form").hidden = true; fillMenu(); show("scrMenu"); };
 
   // ------------------------------------------------------------------ Kopfzeile, Wind, Hinweis
   function hint(t, where) { const h = $("hint"); h.hidden = !t; if (t) { h.textContent = nb(t); h.className = where === "top" ? "top" : ""; } }
   function updChips() {
     if (!G) return;
     const ch = [];
-    if (G.mode === "comp") ch.push([G.n < C.ROUNDS ? `Versuch ${G.n + 1}/${C.ROUNDS}` : `Finale ${G.n - C.ROUNDS + 1}/${C.FROUNDS}`, "dark"]);
-    else ch.push(["Training", "dark"]);
-    ch.push([nb(`${String(G.cond.temp).replace(".", ",").replace("-", "−")} °C · ${Ph.TODS[G.cond.tod]}`), ""]);
-    if (G.best) ch.push([nb(`Beste ${m1(G.best)} m`), "good"]);
-    if (G.ball && G.phase !== "pick" && G.phase !== "form") { const st = Ph.state(G.ball); ch.push([`${Ph.SIZE[G.ball.size].name} · ${Ph.SNOW[G.ball.type].name}`, st === "eis" ? "ice" : st === "locker" ? "warn" : ""]); }
+    ch.push([isComp() ? `${isZiel() ? "Zielwurf" : "Weitwurf"} ${Math.min(G.n + 1, TRIES)}/${TRIES}` : "Training", "dark"]);
+    if (isZiel()) { ch.push([nb(`${C.DIST[G.n]} m`), ""]); ch.push([nb(`${G.pts} Punkte`), G.pts ? "good" : ""]); }
+    else { ch.push([nb(`${String(G.cond.temp).replace(".", ",").replace("-", "−")} °C · ${Ph.TODS[G.cond.tod]}`), ""]); if (G.best) ch.push([nb(`Beste ${m1(G.best)} m`), "good"]); }
+    if (G.ball && G.phase !== "pick" && G.phase !== "form" && G.phase !== "rack") { const st = Ph.state(G.ball); ch.push([`${Ph.SIZE[G.ball.size].name} · ${Ph.SNOW[G.ball.type].name}`, st === "eis" ? "ice" : st === "locker" ? "warn" : ""]); }
     $("chips").innerHTML = ch.map(([t, c]) => `<span class="chip ${c}">${esc(t)}</span>`).join("");
   }
   function updWind() {
     if (!G) return;
-    const w = Ph.windAt(G.cond, (G.phase === "fly" ? G.fl.inp.t0 + (now - G.fl.t0) : now - (G.run ? G.run.t0 : 0) + G.n * 7));
-    R.drawWind($("windCv").getContext("2d"), 96, 40, w);
-    const a = Math.abs(w.x);
+    const tt = G.fl && G.fl.inp && G.fl.inp.t0 != null && (G.phase === "fly" || G.phase === "zfly") ? G.fl.inp.t0 + (now - G.fl.t0) : now + G.n * 7;
+    const w = Ph.windAt(G.cond, tt);
+    // Zielwurf: von hinten gesehen zählt der Seitenwind (Pfeil nach links oder rechts)
+    const ww = isZiel() ? { x: -w.z, z: 0 } : w;
+    R.drawWind($("windCv").getContext("2d"), 96, 40, ww);
+    const a = Math.abs(ww.x);
     $("windTxt").textContent = a < 0.3 ? "still" : nb(`${m1(a)} m/s`);
   }
 
   // ------------------------------------------------------------------ Zeichnen
   function view() {
-    if (!G) {
-      // Menü: der Platz mit der Figur, die wartet
-      return { cam: { cx: 4, ppm: 34 }, thrower: { x: -1.5, z: 0, pose: F.idle(R.POSE.hold, now, 1), look: myLook(), kit: R.kit(S.glove) }, judge: { flag: null } };
-    }
-    const th = G.th;
+    if (!G) return { cam: { cx: 4, ppm: 34 }, thrower: { x: -1.5, z: 0, pose: F.idle(R.POSE.hold, now, 1), look: myLook(), kit: R.kit(S.glove) }, judge: { flag: null } };
+    const th = G.th, ball = G.ball;
+    const held = ball && (G.phase === "ready" || G.phase === "run" || G.phase === "check" || G.phase === "checkOk" || G.phase === "walk" && G.walk.then !== "scoop" || G.phase === "fly" && now < G.fl.t0) ? { d: Ph.SIZE[ball.size].d, f: ball.f, ice: Ph.iceAt(ball), type: ball.type } : null;
     return {
-      cam, focus: G.focus, marks: G.marks, trail: G.trail, judge: G.judge, tape: G.tape, crumbs: G.crumbs, ball: G.flyBall || null,
-      patches: G.phase === "pick" || G.phase === "walk" || G.phase === "scoop" || G.phase === "form" ? G.patches : null,
-      thrower: { x: th.x, z: th.z, dir: th.dir, pose: th.pose, lift: th.lift || 0, mood: th.mood, look: myLook(), kit: R.kit(S.glove),
-        held: G.ball && (G.phase === "ready" || G.phase === "run" || G.phase === "walk" && G.walk.then === "ready" || G.phase === "fly" && now - G.thr.t0 < 0.21) ? { d: Ph.SIZE[G.ball.size].d, f: G.ball.f, ice: Ph.iceAt(G.ball), type: G.ball.type } : null },
+      cam, focus: G.focus, marks: G.marks, judge: G.judge, tape: G.tape, crumbs: G.crumbs, ball: G.flyBall || null, trail: G.trail,
+      patches: ["pick", "walk", "scoop", "form"].includes(G.phase) && G.patches ? G.patches : null,
+      thrower: { x: th.x, z: th.z, dir: th.dir, pose: th.pose, lift: th.lift || 0, mood: th.mood, look: myLook(), kit: R.kit(S.glove), held },
     };
+  }
+  function aimView() {
+    const L = myLook(), ball = G.ball;
+    const held = ball && (G.phase === "aim" || G.phase === "check" || G.phase === "checkOk" || G.phase === "zfly" && now < G.fl.t0) ? { d: Ph.SIZE[ball.size].d, f: ball.f, ice: Ph.iceAt(ball), type: ball.type } : null;
+    return { D: C.DIST[Math.min(G.n, TRIES - 1)], ball: G.zball, hit: G.hit, splats: G.splats, crumbs: G.crumbs, glove: S.glove, suit: typeof L.suit === "string" ? L.suit : F.SUIT[L.suit], skin: F.SKIN[L.skin] || "#E2B48F",
+      hand: { u: G.phase === "zfly" ? G.handU || 0 : 0, held } };
   }
   let lastT = 0;
   function frame(ts) {
@@ -7213,7 +7477,8 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
     render();
   }
   function render() {
-    R.draw(ctx, view(), now);
+    if (isZiel()) R.drawAim(ctx, aimView(), now);
+    else R.draw(ctx, view(), now);
     if (G) { placePatchButtons(); updWind(); }
   }
 
@@ -7221,7 +7486,7 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
   stage.addEventListener("pointerdown", onDown);
   stage.addEventListener("pointermove", onMove);
   stage.addEventListener("pointerup", onUp);
-  stage.addEventListener("pointercancel", (e) => { if (ptr && e.pointerId === ptr.id) { ptr = null; if (G && G.phase === "run") { if (G.th.x > -0.12) foul(); else { G.phase = "walk"; G.walk = { to: START_X, toZ: 0, then: "ready", sp: 3 }; } } } });
+  stage.addEventListener("pointercancel", (e) => { if (ptr && e.pointerId === ptr.id) { ptr = null; if (G && G.phase === "run") { if (G.th.x > -0.12) foul(); else { G.phase = "walk"; G.walk = { to: START_X, toZ: 0, then: "ready", sp: 6 }; } } } });
   stage.addEventListener("contextmenu", (e) => e.preventDefault());
   window.addEventListener("keydown", (e) => {
     if (e.code === "Space" && G && G.phase === "form") { e.preventDefault(); formPress(); }
@@ -7240,27 +7505,34 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
     $("ifPriv").textContent = `Das Spiel speichert Bestweiten, Medaillen und deine Figur nur auf diesem Gerät (Browser-Speicher). ${hoster ? `Die Seite liegt bei ${hoster}; beim Aufruf` : "Beim Aufruf der Seite"} verarbeitet der Webserver technisch nötige Daten wie deine IP-Adresse (berechtigtes Interesse, Art. 6 Abs. 1 lit. f DSGVO).${third}`;
     show("scrInfo");
   }
+
   if (SITE.web && "serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) navigator.serviceWorker.register("sw.js").catch(() => {});
 
   // ------------------------------------------------------------------ Testzugang
   window.__sw = {
-    VERSION, get S() { return S; }, get G() { return G; }, get cam() { return cam; }, sanitize, Ph, C,
+    VERSION, get S() { return S; }, get G() { return G; }, get cam() { return cam; }, sanitize, Ph, C, HELPERS,
     test(on) { testMode = !!on; },
     step(sec) { const n = Math.ceil(sec / 0.02); for (let i = 0; i < n; i++) update(sec / n); render(); },
     open(mode, seed) { G = newGame(mode, seed); rpMode = mode; fillReport(); show("scrReport"); },
     go() { $("rpGo").click(); },
-    pick(id) { if (G.phase === "rack") beginPick(); pickPatch(id); }, size: chooseSize, done: formDone, take: takeRack, self: beginPick, HELPERS,
-    // Drücken genau im Takt (off = Versatz in Sekunden)
+    pick(id) { if (G.phase === "rack") beginPick(); pickPatch(id); }, size: chooseSize, done: formDone, take: takeRack, self: beginPick,
     pressBeats(n, off) { for (let i = 0; i < n; i++) { const ph = ((now - G.form.t0) / BEAT) % 1; this.step((1 - ph) * BEAT + (off || 0) + 0.0001); formPress(); this.step(0.05); } },
-    // Wurf per Wischen: hold = Sekunden Anlauf, dann Wischen mit Winkel und Tempo (Bühnen-px/s)
-    throwFlick(hold, ang, speed) {
+    // Weitwurf per Wischen: hold = Sekunden Anlauf, dann Wischen mit Steilheit (Grad) und Tempo (Bühnen-px/s)
+    throwFlick(hold, el, speed) {
       G.phase = "run"; G.run = { t0: now }; hint(null);
       this.step(hold);
       if (G.phase !== "run") return G.phase;
-      const r = ang * Math.PI / 180, L = speed * 0.1, x0 = 300, y0 = 300;
+      const r = el * Math.PI / 180, L = speed * 0.1, x0 = 300, y0 = 300;
       release(flick([[now - 0.1, x0, y0], [now - 0.05, x0 + L / 2 * Math.cos(r), y0 - L / 2 * Math.sin(r)], [now, x0 + L * Math.cos(r), y0 - L * Math.sin(r)]]));
       return G.phase;
     },
+    // Zielwurf: dx seitlich (px), Tempo (px/s)
+    aimFlick(dx, speed) {
+      const L = speed * 0.1, up = Math.sqrt(Math.max(1, L * L - dx * dx));
+      aimRelease(flick([[now - 0.1, 400, 300], [now, 400 + dx, 300 - up]]));
+      return G.phase;
+    },
+    // für die KI-Kalibrierung: welches Wischtempo trifft den Kopf genau
     screen() { return SCREENS.find((s) => !$(s).hidden) || (G ? G.phase : ""); },
     view, release, flick, passUi,
   };
