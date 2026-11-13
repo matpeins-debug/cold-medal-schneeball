@@ -6324,7 +6324,35 @@ table.mini tr.me td { background: var(--gold); }
         ctx.fillStyle = `rgba(60,80,110,${clamp(0.28 - b.y * 0.012, 0.06, 0.28)})`; ellipse(ctx, X(b.x, b.z), Y(0, b.z), rr * 1.3, rr * 0.4);
         snowball(ctx, X(b.x, b.z), Y(b.y, b.z), rr, b);
       }
+      if (V.arc) angleArc(ctx, M, V.arc, t);
       if (V.after) V.after(ctx, M);
+    }
+
+    // Winkelanzeige wie bei Track & Field: Viertelkreis an der Schulter, grüner Bereich 36–44°, Zeiger steigt beim Halten
+    // a = { x, deg (oder null), speed 0 … 1, zone } in Weltkoordinaten der Schulter
+    function angleArc(c, M, a, t) {
+      const { X, Y, S } = M, cx = X(a.x, 0), cy = Y(1.55, 0), R0 = Math.max(46, 2.4 * S(0));
+      c.save();
+      c.fillStyle = "rgba(241,231,210,0.82)"; c.strokeStyle = INK; c.lineWidth = 2;
+      c.beginPath(); c.moveTo(cx, cy); c.arc(cx, cy, R0, -Math.PI / 2, 0); c.closePath(); c.fill(); c.stroke();
+      c.fillStyle = "rgba(63,107,85,0.75)";
+      c.beginPath(); c.moveTo(cx, cy); c.arc(cx, cy, R0 - 2, -44 * Math.PI / 180, -36 * Math.PI / 180); c.closePath(); c.fill();
+      c.strokeStyle = "rgba(20,27,37,0.35)"; c.lineWidth = 1;
+      for (let d = 15; d < 90; d += 15) { const r = d * Math.PI / 180; c.beginPath(); c.moveTo(cx + Math.cos(r) * (R0 - 7), cy - Math.sin(r) * (R0 - 7)); c.lineTo(cx + Math.cos(r) * R0, cy - Math.sin(r) * R0); c.stroke(); }
+      if (a.deg != null) {
+        const r = a.deg * Math.PI / 180;
+        c.strokeStyle = "#C23B2A"; c.lineWidth = 4; c.lineCap = "round";
+        c.beginPath(); c.moveTo(cx, cy); c.lineTo(cx + Math.cos(r) * (R0 + 8), cy - Math.sin(r) * (R0 + 8)); c.stroke();
+        c.font = "700 16px Futura, 'Avenir Next Condensed', 'Roboto Condensed', sans-serif"; c.fillStyle = INK; c.textAlign = "left";
+        c.fillText(`${Math.round(a.deg)}°`, cx + R0 * 0.32, cy - R0 - 8);
+      }
+      // Tempo des Anlaufs
+      if (a.speed != null) {
+        const bw = R0 * 1.2, bx = cx - bw * 0.1, by = cy + 16;
+        c.fillStyle = "rgba(241,231,210,0.85)"; c.fillRect(bx, by, bw, 9); c.strokeStyle = INK; c.lineWidth = 1.5; c.strokeRect(bx, by, bw, 9);
+        c.fillStyle = a.speed > 0.92 ? "#3F6B55" : "#D9682B"; c.fillRect(bx + 1, by + 1, (bw - 2) * clamp(a.speed, 0, 1), 7);
+      }
+      c.restore();
     }
 
     // ---------------------------------------------------------------- Teile des Platzes
@@ -6529,8 +6557,28 @@ table.mini tr.me td { background: var(--gold); }
         snowball(ctx, px, py, rr, b);
       }
       if (V.crumbs) for (const c of V.crumbs) { const [px, py, k] = aimProj(c.x, c.y, c.z); ctx.globalAlpha = clamp(c.a, 0, 1); ctx.fillStyle = c.col || "#FBF8F1"; const rr = Math.max(1, c.r * k); ctx.fillRect(px - rr / 2, py - rr / 2, rr, rr); ctx.globalAlpha = 1; }
+      if (V.reticle) {
+        // Fadenkreuz: am Schneemann, oder im Schnee, wenn der Ball zu kurz ist
+        const r = V.reticle, [px, py, k] = aimProj(r.x, r.y, r.z), rr = Math.max(9, 0.16 * k);
+        ctx.strokeStyle = r.short ? "rgba(194,59,42,0.95)" : "rgba(20,27,37,0.9)"; ctx.lineWidth = 2.2;
+        ctx.beginPath(); ctx.arc(px, py, rr, 0, TAU); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(px - rr * 1.5, py); ctx.lineTo(px - rr * 0.45, py); ctx.moveTo(px + rr * 0.45, py); ctx.lineTo(px + rr * 1.5, py);
+        ctx.moveTo(px, py - rr * 1.5); ctx.lineTo(px, py - rr * 0.45); ctx.moveTo(px, py + rr * 0.45); ctx.lineTo(px, py + rr * 1.5); ctx.stroke();
+      }
+      if (V.pull) {
+        // Zug wie bei der Steinschleuder: vom Ansatzpunkt zum Finger
+        const p = V.pull;
+        ctx.strokeStyle = "rgba(20,27,37,0.55)"; ctx.lineWidth = 3; ctx.setLineDash([6, 6]);
+        ctx.beginPath(); ctx.moveTo(p.x0, p.y0); ctx.lineTo(p.x1, p.y1); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle = "rgba(241,231,210,0.9)"; ctx.strokeStyle = INK; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(p.x0, p.y0, 7, 0, TAU); ctx.fill(); ctx.stroke();
+        const bw = 120, bx = p.x0 - bw / 2, by = p.y0 + 16;
+        ctx.fillStyle = "rgba(241,231,210,0.9)"; ctx.fillRect(bx, by, bw, 10); ctx.strokeRect(bx, by, bw, 10);
+        ctx.fillStyle = p.k > 1 ? "#C23B2A" : "#3F6B55"; ctx.fillRect(bx + 1, by + 1, (bw - 2) * clamp(p.k / 1.3, 0, 1), 8);
+      }
       hands(ctx, V, t);
     }
+    function c2dot(c, x, y, r, a) { c.fillStyle = `rgba(255,255,255,${a})`; c.strokeStyle = `rgba(20,27,37,${a * 0.6})`; c.lineWidth = 1.2; c.beginPath(); c.arc(x, y, r, 0, TAU); c.fill(); c.stroke(); }
     function snowmanFront(ctx, D, V, t) {
       const M = P.MAN, hit = V.hit, P0 = (y, z) => aimProj(D, y, z || 0);
       const ball = (y, r) => { const [px, py, k] = P0(y); const gr = ctx.createRadialGradient(px - r * k * 0.35, py - r * k * 0.4, 1, px, py, r * k);
@@ -6736,7 +6784,7 @@ table.mini tr.me td { background: var(--gold); }
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.2";
+  const VERSION = "0.3";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender;
@@ -7113,17 +7161,20 @@ table.mini tr.me td { background: var(--gold); }
   function ready() {
     if (isZiel()) {
       G.phase = "aim"; G.D = C.DIST[G.n]; G.vNeed = Ph.aimSpeed(G.D, G.cond, G.ball);
-      hint(S.tips.ziel < 3 ? "Nach oben wischen · seitlich zielen · das Tempo bestimmt die Weite" : null, "top");
+      hint(S.tips.ziel < 3 ? "Finger auflegen, nach unten ziehen wie eine Steinschleuder, Fadenkreuz aufs Ziel · loslassen" : null, "top");
       updChips(); return;
     }
     G.phase = "ready"; G.th.dir = 1; G.th.x = START_X; G.th.vx = 0;
     setCam(-1.2, 44);
-    hint(S.tips.throw < 3 ? "Finger halten: Anlauf · vor dem Balken nach oben wischen: Wurf" : null, "top");
+    hint(S.tips.throw < 3 ? "Tippen: Anlauf · vor dem Balken Finger halten: Winkel steigt · loslassen: Wurf" : null, "top");
     updChips();
   }
 
   // ------------------------------------------------------------------ Eingabe: Finger auflegen und wischen
   let ptr = null;
+  // Weitwurf wie Track & Field (ohne Hämmern): tippen = Anlauf, vor dem Balken halten = Winkel steigt, loslassen = Wurf.
+  // Zielwurf wie eine Steinschleuder: Finger auflegen, nach unten ziehen (Länge = Kraft, seitlich = Richtung), loslassen.
+  const ANG_RATE = 70;   // Grad je Sekunde beim Halten
   function onDown(e) {
     if (!G || e.button > 0) return;
     if (e.target.closest && e.target.closest("button, .card, #form, #rack")) {
@@ -7132,49 +7183,48 @@ table.mini tr.me td { background: var(--gold); }
     }
     AU.unlock();
     if (G.phase === "form") { e.preventDefault(); formPress(); return; }
-    if (G.phase !== "ready" && G.phase !== "aim") return;
-    e.preventDefault();
     const [x, y] = stagePoint(e.clientX, e.clientY);
-    ptr = { id: e.pointerId, s: [[now, x, y]], t0: now };
-    if (G.phase === "ready") { G.phase = "run"; G.run = { t0: now }; hint(null); }
-    try { stage.setPointerCapture(e.pointerId); } catch (er) { /* egal */ }
+    if (G.phase === "ready") { e.preventDefault(); G.phase = "run"; G.run = { t0: now }; hint(null); return; }
+    if (G.phase === "run" || G.phase === "angle") { e.preventDefault(); G.phase = "angle"; G.ang = { t0: now }; ptr = { id: e.pointerId }; capture(e); return; }
+    if (G.phase === "aim") { e.preventDefault(); ptr = { id: e.pointerId, x0: x, y0: y, x, y }; G.pull = { x0: x, y0: y, x1: x, y1: y, k: 0 }; capture(e); hint(null); return; }
   }
+  function capture(e) { try { stage.setPointerCapture(e.pointerId); } catch (er) { /* egal */ } }
   function onMove(e) {
-    if (!ptr || e.pointerId !== ptr.id) return;
-    const [x, y] = stagePoint(e.clientX, e.clientY);
-    ptr.s.push([now, x, y]);
-    if (ptr.s.length > 60) ptr.s.shift();
+    if (!ptr || e.pointerId !== ptr.id || !G) return;
+    if (G.phase === "aim" && G.pull) { const [x, y] = stagePoint(e.clientX, e.clientY); setPull(x, y); }
   }
   function onUp(e) {
     if (!ptr || e.pointerId !== ptr.id) return;
-    const [x, y] = stagePoint(e.clientX, e.clientY);
-    ptr.s.push([now, x, y]);
-    const smp = ptr.s; ptr = null;
+    ptr = null;
     if (!G) return;
-    if (G.phase === "run") release(flick(smp));
-    else if (G.phase === "aim") aimRelease(flick(smp));
+    if (G.phase === "angle") throwAngle();
+    else if (G.phase === "aim" && G.pull) aimRelease();
   }
-  // Wischen auswerten: Richtung und Tempo der letzten 0,12 s
-  function flick(smp) {
-    const end = smp[smp.length - 1];
-    let i = smp.length - 1;
-    while (i > 0 && end[0] - smp[i - 1][0] <= 0.12) i--;
-    const a = smp[Math.max(0, i - 1)], dt = Math.max(1 / 120, end[0] - a[0]);
-    const dx = end[1] - a[1], dy = a[2] - end[2], dist = Math.hypot(dx, dy);
-    // Weitwurf: Steilheit → Abwurfwinkel (gerade hoch = hoher Bogen, leicht schräg = am weitesten)
-    const el = Math.atan2(dy, Math.max(1, Math.abs(dx))) * 180 / Math.PI;
-    return { ang: 40 + (el - 65) * 0.6, el, speed: dist / dt, dist, up: dy, dx };
-  }
-  const FLICK_FULL = 1500;   // Bühnen-Pixel je Sekunde für volle Kraft
-  function release(fk) {
-    if (fk.dist < 30 || fk.up < 12) {
-      if (G.th.x > -0.12) return foul();
-      G.phase = "walk"; G.walk = { to: START_X, toZ: 0, then: "ready", sp: 6 };
-      hint("Schneller nach oben wischen!", "top");
-      return;
-    }
+  const curAngle = () => clamp((now - G.ang.t0) * ANG_RATE, 0, 89);
+  function throwAngle() {
     if (G.th.x > -0.12) return foul();
-    doThrow({ ang: clamp(fk.ang, 5, 75), pow: fk.speed / FLICK_FULL, run: G.th.vx, xr: G.th.x + 0.6 });
+    // Kraft aus dem Anlauftempo: wer zu früh loslässt, ist noch langsam
+    doThrow({ ang: curAngle(), pow: 0.78 + 0.22 * clamp(G.th.vx / 6.2, 0, 1), run: G.th.vx, xr: G.th.x + 0.6 });
+  }
+  // Steinschleuder: Zug in Bühnen-Pixeln → Kraft k (1 = so weit wie nötig für den Kopf) und Richtung
+  const PULL_FULL = 150;
+  function pullToInp(dx, dy) {
+    const L = Math.hypot(dx, dy), k = clamp(L / PULL_FULL, 0, 1.6);
+    const lat = -Math.atan2(dx, Math.max(10, dy)) * 180 / Math.PI * 0.3;
+    return { v: G.vNeed * (0.45 + 0.55 * k), lat, k };
+  }
+  // leichtes Zittern der Hand: wandert das Fadenkreuz, wandert auch der Wurf
+  const wobble = () => ({ lat: Math.sin(now * 2.3) * 0.3 + Math.sin(now * 5.1) * 0.12, v: Math.sin(now * 1.7) * 0.01 });
+  function setPull(x, y) {
+    const p = G.pull; p.x1 = x; p.y1 = y; aimPreview();
+  }
+  // Fadenkreuz: wo der Ball ohne Wind ankommt (am Schneemann oder davor im Schnee)
+  function aimPreview() {
+    const p = G.pull; if (!p) { G.reticle = null; return; }
+    const q = pullToInp(p.x1 - p.x0, p.y1 - p.y0), wb = wobble(); p.k = q.k;
+    if (q.k < 0.08) { G.reticle = null; return; }
+    const r = Ph.target(G.ball, { v: q.v * (1 + wb.v), lat: q.lat + wb.lat, t0: 0 }, Object.assign({}, G.cond, { wind: { x: 0, z: 0, gust: 0 } }), 1, G.D, true);
+    G.reticle = { x: r.x, y: r.y, z: r.z, short: r.x < G.D - 1e-6, pts: r.pts };
   }
   function doThrow(inp) {
     inp.t0 = now - G.run.t0 + G.n * 7;
@@ -7191,18 +7241,16 @@ table.mini tr.me td { background: var(--gold); }
     G.judge = { flag: "r", at: now + 0.5 };
     setTimeout(() => AU.whistle(), testMode ? 0 : 450);
   }
-  // Zielwurf: Tempo → Weite (um das nötige Tempo herum, mit Gefühl), seitliche Richtung → Zielen
-  function aimRelease(fk) {
-    if (fk.dist < 30 || fk.up < 12) { hint("Schneller nach oben wischen!", "top"); return; }
-    const p = clamp(fk.speed / FLICK_FULL, 0.3, 1.9);
-    const v = G.vNeed * (1 + (p - 1) * 0.25), lat = Math.atan2(fk.dx, fk.up) * 180 / Math.PI * 0.22;
-    const inp = { v, lat, t0: now + G.n * 9, p };
+  function aimRelease() {
+    const p = G.pull; G.pull = null; G.reticle = null;
+    if (!p || p.k < 0.12 || p.y1 - p.y0 < 8) { hint("Weiter nach unten ziehen, dann loslassen", "top"); return; }
+    const q = pullToInp(p.x1 - p.x0, p.y1 - p.y0), wb = wobble();
+    const inp = { v: q.v * (1 + wb.v), lat: q.lat + wb.lat, t0: now + G.n * 9, p: q.k };
     const res = Ph.target(G.ball, inp, G.cond, Ph.hash(G.seed, "mez", G.n), G.D);
     G.fl = { res, inp, t0: now + 0.14, i: 0 };
     G.phase = "zfly"; G.thr = { t0: now };
     if (S.tips.ziel < 3) { S.tips.ziel++; save(); }
-    hint(null);
-    AU.whoosh(p);
+    AU.whoosh(q.k);
   }
 
   // ------------------------------------------------------------------ Ablauf je Bild
@@ -7247,7 +7295,7 @@ table.mini tr.me td { background: var(--gold); }
       drawForm();
     }
     if (G.phase === "ready") th.pose = F.ease(th.pose, F.idle(R.POSE.hold, now, 1), dt);
-    if (G.phase === "run") {
+    if (G.phase === "run" || G.phase === "angle") {
       // Anlauf bis 6 m/s; vor dem Balken Impulsschritte mit langem Arm
       th.vx = Math.min(6.2, th.vx + 4.6 * dt);
       th.x += th.vx * dt;
@@ -7256,9 +7304,11 @@ table.mini tr.me td { background: var(--gold); }
       if (Math.floor(u * 2) !== th.lastStep) { th.lastStep = Math.floor(u * 2); AU.step(); }
       setCam(Math.max(-1.2, th.x + 5.5), 44);
       if (th.x >= 0.05) { ptr = null; foul(); }
+      if (G.phase === "run" && th.x > -0.6 && !G.run.warned) { G.run.warned = true; }
     }
     if (G.phase === "fly") updFly(dt);
     if (G.phase === "zfly") updZiel(dt);
+    if (G.phase === "aim" && G.pull) aimPreview();
     if (G.phase === "foul") {
       const u = now - G.thr.t0;
       th.x += Math.max(0, 1.6 - u * 3) * dt;
@@ -7387,11 +7437,11 @@ table.mini tr.me td { background: var(--gold); }
     $("rWhy").textContent = nb(why);
     const facts = [];
     if (L.ball) { const st = Ph.state(L.ball); facts.push([`${Ph.SIZE[L.ball.size].name} · ${Ph.SNOW[L.ball.type].name}`, ""]); if (st !== "gut") facts.push([STATE_TXT[st], "w"]); }
-    if (ziel) facts.push([`Tempo ${Math.round(inp.p * 100)} %`, Math.abs(inp.p - 1.1) < 0.15 ? "g" : ""]);
+    if (ziel) facts.push([`Zug ${Math.round(inp.p * 100)} %`, ""]);
     else if (res.why !== "foul") {
       const p = inp.pow;
-      facts.push([`Kraft ${Math.round(p * 100)} %` + (p > 1.15 ? " · verrissen" : ""), p >= 0.9 && p <= 1.15 ? "g" : "w"]);
-      facts.push([`Winkel ${Math.round(inp.ang)}°`, inp.ang >= 33 && inp.ang <= 45 ? "g" : ""]);
+      facts.push([`Anlauf ${m1(inp.run)} m/s`, inp.run > 5.6 ? "g" : "w"]);
+      facts.push([`Winkel ${Math.round(inp.ang)}°`, inp.ang >= 35 && inp.ang <= 45 ? "g" : "w"]);
       facts.push([`Abwurf ${m1(Math.max(0, -inp.xr))} m vor dem Balken`, -inp.xr < 0.8 ? "g" : ""]);
     }
     $("rFacts").innerHTML = facts.map(([t, c]) => `<span class="${c}">${esc(nb(t))}</span>`).join("");
@@ -7455,8 +7505,9 @@ table.mini tr.me td { background: var(--gold); }
   function view() {
     if (!G) return { cam: { cx: 4, ppm: 34 }, thrower: { x: -1.5, z: 0, pose: F.idle(R.POSE.hold, now, 1), look: myLook(), kit: R.kit(S.glove) }, judge: { flag: null } };
     const th = G.th, ball = G.ball;
-    const held = ball && (G.phase === "ready" || G.phase === "run" || G.phase === "check" || G.phase === "checkOk" || G.phase === "walk" && G.walk.then !== "scoop" || G.phase === "fly" && now < G.fl.t0) ? { d: Ph.SIZE[ball.size].d, f: ball.f, ice: Ph.iceAt(ball), type: ball.type } : null;
+    const held = ball && (G.phase === "ready" || G.phase === "run" || G.phase === "angle" || G.phase === "check" || G.phase === "checkOk" || G.phase === "walk" && G.walk.then !== "scoop" || G.phase === "fly" && now < G.fl.t0) ? { d: Ph.SIZE[ball.size].d, f: ball.f, ice: Ph.iceAt(ball), type: ball.type } : null;
     return {
+      arc: ["ready", "run", "angle"].includes(G.phase) ? { x: th.x + 0.25, deg: G.phase === "angle" ? curAngle() : null, speed: G.phase === "ready" ? null : th.vx / 6.2 } : null,
       cam, focus: G.focus, marks: G.marks, judge: G.judge, tape: G.tape, crumbs: G.crumbs, ball: G.flyBall || null, trail: G.trail,
       patches: ["pick", "walk", "scoop", "form"].includes(G.phase) && G.patches ? G.patches : null,
       thrower: { x: th.x, z: th.z, dir: th.dir, pose: th.pose, lift: th.lift || 0, mood: th.mood, look: myLook(), kit: R.kit(S.glove), held },
@@ -7466,7 +7517,7 @@ table.mini tr.me td { background: var(--gold); }
     const L = myLook(), ball = G.ball;
     const held = ball && (G.phase === "aim" || G.phase === "check" || G.phase === "checkOk" || G.phase === "zfly" && now < G.fl.t0) ? { d: Ph.SIZE[ball.size].d, f: ball.f, ice: Ph.iceAt(ball), type: ball.type } : null;
     return { D: C.DIST[Math.min(G.n, TRIES - 1)], ball: G.zball, hit: G.hit, splats: G.splats, crumbs: G.crumbs, glove: S.glove, suit: typeof L.suit === "string" ? L.suit : F.SUIT[L.suit], skin: F.SKIN[L.skin] || "#E2B48F",
-      hand: { u: G.phase === "zfly" ? G.handU || 0 : 0, held } };
+      hand: { u: G.phase === "zfly" ? G.handU || 0 : 0, held }, reticle: G.reticle, pull: G.pull };
   }
   let lastT = 0;
   function frame(ts) {
@@ -7486,13 +7537,13 @@ table.mini tr.me td { background: var(--gold); }
   stage.addEventListener("pointerdown", onDown);
   stage.addEventListener("pointermove", onMove);
   stage.addEventListener("pointerup", onUp);
-  stage.addEventListener("pointercancel", (e) => { if (ptr && e.pointerId === ptr.id) { ptr = null; if (G && G.phase === "run") { if (G.th.x > -0.12) foul(); else { G.phase = "walk"; G.walk = { to: START_X, toZ: 0, then: "ready", sp: 6 }; } } } });
+  stage.addEventListener("pointercancel", (e) => { if (ptr && e.pointerId === ptr.id) { ptr = null; if (G && G.phase === "angle") throwAngle(); if (G && G.phase === "aim") { G.pull = null; G.reticle = null; } } });
   stage.addEventListener("contextmenu", (e) => e.preventDefault());
   window.addEventListener("keydown", (e) => {
     if (e.code === "Space" && G && G.phase === "form") { e.preventDefault(); formPress(); }
     if (e.code === "Enter" && G && G.phase === "form" && G.ball) { e.preventDefault(); formDone(); }
   });
-  document.addEventListener("visibilitychange", () => { if (document.hidden && G && G.phase === "run") { ptr = null; foul(); } });
+  document.addEventListener("visibilitychange", () => { if (document.hidden && G && (G.phase === "run" || G.phase === "angle")) { ptr = null; foul(); } });
 
   // ------------------------------------------------------------------ Info
   function openInfo() {
@@ -7517,24 +7568,25 @@ table.mini tr.me td { background: var(--gold); }
     go() { $("rpGo").click(); },
     pick(id) { if (G.phase === "rack") beginPick(); pickPatch(id); }, size: chooseSize, done: formDone, take: takeRack, self: beginPick,
     pressBeats(n, off) { for (let i = 0; i < n; i++) { const ph = ((now - G.form.t0) / BEAT) % 1; this.step((1 - ph) * BEAT + (off || 0) + 0.0001); formPress(); this.step(0.05); } },
-    // Weitwurf per Wischen: hold = Sekunden Anlauf, dann Wischen mit Steilheit (Grad) und Tempo (Bühnen-px/s)
-    throwFlick(hold, el, speed) {
+    // Weitwurf: Anlauf (Sekunden), dann Winkel halten bis deg
+    throwTap(run, deg) {
       G.phase = "run"; G.run = { t0: now }; hint(null);
-      this.step(hold);
+      this.step(run);
       if (G.phase !== "run") return G.phase;
-      const r = el * Math.PI / 180, L = speed * 0.1, x0 = 300, y0 = 300;
-      release(flick([[now - 0.1, x0, y0], [now - 0.05, x0 + L / 2 * Math.cos(r), y0 - L / 2 * Math.sin(r)], [now, x0 + L * Math.cos(r), y0 - L * Math.sin(r)]]));
+      G.phase = "angle"; G.ang = { t0: now };
+      this.step(deg / ANG_RATE);
+      if (G.phase !== "angle") return G.phase;
+      throwAngle();
       return G.phase;
     },
-    // Zielwurf: dx seitlich (px), Tempo (px/s)
-    aimFlick(dx, speed) {
-      const L = speed * 0.1, up = Math.sqrt(Math.max(1, L * L - dx * dx));
-      aimRelease(flick([[now - 0.1, 400, 300], [now, 400 + dx, 300 - up]]));
+    // Zielwurf: Zug dx, dy (Bühnen-px, dy nach unten positiv)
+    aimDrag(dx, dy) {
+      G.pull = { x0: 420, y0: 250, x1: 420, y1: 250, k: 0 }; setPull(420 + dx, 250 + dy); aimRelease();
       return G.phase;
     },
     // für die KI-Kalibrierung: welches Wischtempo trifft den Kopf genau
     screen() { return SCREENS.find((s) => !$(s).hidden) || (G ? G.phase : ""); },
-    view, release, flick, passUi,
+    view, passUi, pullToInp,
   };
 
   fillMenu(); show("scrMenu");
