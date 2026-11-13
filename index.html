@@ -6644,8 +6644,11 @@ table.mini tr.me td { background: var(--gold); }
     return { head: "cap", feet: "shoes", torso: "sweater", legs: "knickers", glove: glove === "ohne" ? false : glove === "leder" ? true : "suit",
       bootC: "#4A2F1F", pants: ["#4D4237", "#3A3129"] };
   }
-  const JUDGE_KIT = { head: "cap", feet: "shoes", torso: "plain", legs: "knickers", glove: true, bootC: "#2A1F17", pants: ["#3A3F4A", "#2C3039"] };
-  const JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, suit: "#2B3442", accent: "#C23B2A", cap: "#2B3442", pom: "#2B3442" };
+  const JUDGE_KIT = { head: "hair", feet: "shoes", torso: "plain", legs: "knickers", glove: true, bootC: "#2A1F17", pants: ["#3A3F4A", "#2C3039"] };
+  const HELPER_LOOK = { hair: 1, hairC: 2, skin: 1, suit: "#8C5A3C", accent: "#E9E2D2", cap: "#2F5D8A", pom: "#E9E2D2" };
+  const HELPER_KIT = { head: "cap", feet: "shoes", torso: "sweater", legs: "knickers", glove: "suit", bootC: "#4A2F1F", pants: ["#5A4A3A", "#463A2E"] };
+  // Kampfrichter: Lodenmantel, Filzhut, Armbinde (Mantel und Hut zeichnet render.js über die Figur, Ärmel = Anzugfarbe)
+const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, suit: LODEN, accent: "#3E4636", cap: "#3B2E24", pom: "#3B2E24" };
 
   // ------------------------------------------------------------------ Projektion
   // Boden: z > 0 hinten (bis zum Zaun bei ZB), z < 0 vorn (Rand unten bei ZF); s = Maßstab nach Tiefe
@@ -6677,11 +6680,11 @@ table.mini tr.me td { background: var(--gold); }
 
   // ------------------------------------------------------------------ Zeichnen
   function create(dpr0) {
-    let pano = null, panoKey = "", dpr = dpr0 || 1, world = buildWorld(1, "SUI"), tod = "afternoon";
+    let pano = null, panoKey = "", dpr = dpr0 || 1, world = buildWorld(1, "SUI"), tod = "afternoon", skyK = "klar";
     const R = {
       POSE, RUN, IMP, THROW, T_REL, kit, use3d: false, W, H, GY, BACK, HOR, ZB, KF, make,
       setDpr(v) { if (Math.abs(v - dpr) > 0.01) { dpr = v; panoKey = ""; } },
-      setScene(seed, theme) { tod = theme; world = buildWorld(seed, "SUI"); panoKey = ""; },
+      setScene(seed, theme, sky) { tod = theme; skyK = sky || "klar"; world = buildWorld(seed, "SUI"); panoKey = ""; },
       get tod() { return tod; },
       draw,
       drawFig,
@@ -6762,8 +6765,10 @@ table.mini tr.me td { background: var(--gold); }
       // Weg quer über den Platz, Anlaufbahn, Sektor mit Kreidelinien und Bögen alle 10 m
       track(ctx, M, cam);
       // Requisiten hinten: Hütte, Schneemann, Kampfrichter
-      hut(ctx, M, night);
+      fireBasket(ctx, M, 9.5, ZB - 1.2, t, night);
+      hut(ctx, M, night, t);
       snowman(ctx, M);
+      if (V.board) chalkboard(ctx, M, V.board, night);
       fir(ctx, X(-11.6, 3.2), Y(0, 3.2), 7.5 * S(3.2), night, true);
       // Schatten unter dem Baum (der Fleck „Unterm Baum“)
       ctx.fillStyle = "rgba(90,120,160,0.18)"; ellipse(ctx, X(-11.2, 1.4), Y(0, 1.4), 2.6 * S(1.4), 0.55 * S(1.4));
@@ -6775,6 +6780,8 @@ table.mini tr.me td { background: var(--gold); }
       if (V.judge) judge(ctx, M, V.judge, t);
       // Maßband
       if (V.tape) tape(ctx, M, V.tape);
+      // Messhelfer: läuft zum Aufschlag und steckt einen Holzpflock
+      if (V.helper) helperFig(ctx, M, V.helper, t);
       // Werfer
       if (V.thrower) {
         const th = V.thrower, s = S(th.z || 0) * KF;
@@ -6803,6 +6810,9 @@ table.mini tr.me td { background: var(--gold); }
         snowball(ctx, X(b.x, b.z), Y(b.y, b.z), rr, b);
       }
       if (V.arc) angleArc(ctx, M, V.arc, t);
+      if (V.thrower) breath(ctx, M, V.thrower, t);
+      weather(ctx, t, cam.cx);
+      grade(ctx, night);
       if (V.after) V.after(ctx, M);
     }
 
@@ -6912,9 +6922,23 @@ table.mini tr.me td { background: var(--gold); }
       c.fillStyle = "#C23B2A";
       c.beginPath(); c.moveTo(X(-bw, -1.3), Y(bh, -1.3)); c.lineTo(X(bw, -1.3), Y(bh, -1.3)); c.lineTo(X(bw, -1.3), Y(0, -1.3)); c.lineTo(X(-bw, -1.3), Y(0, -1.3)); c.fill();
     }
-    function hut(c, M, night) {
+    function hut(c, M, night, t) {
       const { X, Y, S } = M, z = 5, s = S(z), x0 = -9.6, x1 = -5.2;
-      if (X(x1, z) < -10 || X(x0, z) > W + 10) return;
+      if (X(x1 + 2.5, z) < -10 || X(x0 - 1, z) > W + 10) return;
+      // Kamin mit Rauch (hinter dem Dach)
+      c.fillStyle = "#6E5A4C"; c.fillRect(X(-6.4, z), Y(4.1, z), 0.45 * s, 1.2 * s);
+      c.fillStyle = night ? "#E7D8D6" : "#FBF8F1"; c.fillRect(X(-6.45, z), Y(4.15, z), 0.55 * s, 0.12 * s);
+      smoke(c, X(-6.2, z), Y(4.3, z), s * 0.7, t || 0, 0.3);
+      // Holzstoß rechts neben der Hütte: Scheiter mit hellen Schnittflächen, Schnee obendrauf
+      for (let r = 0; r < 4; r++) for (let k = 0; k < 6 - (r > 2 ? 1 : 0); k++) {
+        const cx2 = X(x1 + 0.45 + k * 0.32 + (r % 2) * 0.16, z - 0.2), cy2 = Y(0.18 + r * 0.3, z - 0.2), rr = 0.15 * s;
+        c.fillStyle = "#C9A27A"; c.strokeStyle = "#6B4A2E"; c.lineWidth = Math.max(0.5, 0.03 * s); c.beginPath(); c.arc(cx2, cy2, rr, 0, TAU); c.fill(); c.stroke();
+      }
+      c.fillStyle = night ? "#E7DCDA" : "#FBF8F1"; c.beginPath(); c.ellipse(X(x1 + 1.3, z - 0.2), Y(1.28, z - 0.2), 1.0 * s, 0.14 * s, 0, 0, TAU); c.fill();
+      // Hörnerschlitten an die Wand gelehnt
+      { const sx = X(x0 + 0.6, z - 0.1), sy = Y(0, z - 0.1); c.strokeStyle = "#7A5636"; c.lineWidth = Math.max(1, 0.07 * s);
+        c.beginPath(); c.moveTo(sx, sy); c.lineTo(sx + 0.5 * s, sy - 1.5 * s); c.quadraticCurveTo(sx + 0.7 * s, sy - 1.9 * s, sx + 0.45 * s, sy - 1.95 * s); c.moveTo(sx + 0.5 * s, sy); c.lineTo(sx + 1.0 * s, sy - 1.5 * s); c.quadraticCurveTo(sx + 1.2 * s, sy - 1.9 * s, sx + 0.95 * s, sy - 1.95 * s);
+        for (let k = 1; k < 5; k++) { const u = k / 5; c.moveTo(sx + 0.5 * s * u * 3 / 3, sy - 1.5 * s * u); c.lineTo(sx + 0.5 * s + 0.5 * s * u, sy - 1.5 * s * u); } c.stroke(); }
       const wall = night ? "#7B5A43" : "#8C6447", dark = night ? "#5C4232" : "#6B4A35";
       c.fillStyle = wall; c.fillRect(X(x0, z), Y(2.5, z), X(x1, z) - X(x0, z), 2.5 * s);
       c.strokeStyle = dark; c.lineWidth = Math.max(0.6, 0.05 * s);
@@ -6926,8 +6950,11 @@ table.mini tr.me td { background: var(--gold); }
       // Fenster (abends warm)
       c.fillStyle = night ? "#F2C46B" : "#3B4A5C"; c.fillRect(X(-8.9, z), Y(1.9, z), 0.8 * s, 0.6 * s);
       c.strokeStyle = PAPER; c.lineWidth = Math.max(0.5, 0.05 * s); c.strokeRect(X(-8.9, z), Y(1.9, z), 0.8 * s, 0.6 * s);
-      // Tür
+      // Tür, Laterne daneben (abends warm), Eiszapfen an der Dachkante
       c.fillStyle = dark; c.fillRect(X(-6.6, z), Y(1.9, z), 0.8 * s, 1.9 * s);
+      { const lx = X(-5.6, z), ly = Y(1.95, z); if (night) { const lg = c.createRadialGradient(lx, ly, 1, lx, ly, 1.6 * s); lg.addColorStop(0, "rgba(255,200,110,0.55)"); lg.addColorStop(1, "rgba(255,200,110,0)"); c.fillStyle = lg; c.fillRect(lx - 2 * s, ly - 2 * s, 4 * s, 4 * s); }
+        c.fillStyle = "#2A2420"; c.fillRect(lx - 0.12 * s, ly - 0.32 * s, 0.24 * s, 0.05 * s); c.fillStyle = night ? "#F7C76B" : "#D9C7A4"; c.fillRect(lx - 0.1 * s, ly - 0.27 * s, 0.2 * s, 0.26 * s); c.strokeStyle = "#2A2420"; c.lineWidth = Math.max(0.5, 0.03 * s); c.strokeRect(lx - 0.1 * s, ly - 0.27 * s, 0.2 * s, 0.26 * s); }
+      c.fillStyle = "rgba(225,238,248,0.95)"; for (let k = 0; k < 9; k++) { const ix = X(x0 - 0.3 + k * 0.6 + (k % 3) * 0.1, z), iy = Y(2.32, z), L = (0.15 + ((k * 7) % 5) * 0.06) * s; c.beginPath(); c.moveTo(ix - 0.05 * s, iy); c.lineTo(ix + 0.05 * s, iy); c.lineTo(ix, iy + L); c.fill(); }
       // Tafel „Eisbälle verboten“
       const tx = X(-7.75, z), ty = Y(1.55, z), fs = 0.3 * s;
       const tw = 1.75 * s, th = 0.62 * s;
@@ -6978,7 +7005,28 @@ table.mini tr.me td { background: var(--gold); }
       const raise = J.flag ? clamp((t - J.at) / 0.35, 0, 1) : 0;
       const pose = F.mix(F.idle(F.POSES.stand, t, 0.6), g({ lean: 0, aF: [150, 0], aB: [-6, -8], hd: -4 }), raise);
       const o = { x: X(x, z), y: Y(0, z), s, dir: -1, pose, look: F.cleanLook(JUDGE_LOOK), kit: JUDGE_KIT, three: false };
+      ctx_shadow(c, o.x, o.y, 9 * s);
       drawFig(c, o);
+      // Lodenmantel über Rumpf und Oberschenkeln bis unters Knie, doppelt geknöpft, dunkler Kragen
+      const Jt = F.joints(pose), P = (q) => [o.x + q[0] * s * o.dir, o.y + q[1] * s];
+      const sh = Jt.sh, hip = Jt.hip, kn = [(Jt.knee[0] + Jt.fKn[0]) / 2, (Jt.knee[1] + Jt.fKn[1]) / 2];
+      const hem = [hip[0] + (kn[0] - hip[0]) * 1.25, hip[1] + (kn[1] - hip[1]) * 1.25];
+      const poly = [[sh[0] - 5.5, sh[1] - 1], [sh[0] + 5.5, sh[1] - 1], [hip[0] + 7.4, hip[1]], [hem[0] + 9.5, hem[1]], [hem[0] - 9.5, hem[1]], [hip[0] - 7.4, hip[1]]].map(P);
+      c.fillStyle = LODEN; c.strokeStyle = INK; c.lineWidth = Math.max(0.8, 1.3 * s);
+      c.beginPath(); poly.forEach((q, i) => (i ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1]))); c.closePath(); c.fill(); c.stroke();
+      c.fillStyle = "#3E4636"; { const a = P([sh[0] - 4, sh[1] - 1.5]), b = P([sh[0] + 4, sh[1] - 1.5]), d = P([sh[0], sh[1] + 5]); c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]); c.lineTo(d[0], d[1]); c.closePath(); c.fill(); }
+      c.fillStyle = "#2A2118"; { const a = P([hip[0] - 7.4, hip[1] - 1.2]), b = P([hip[0] + 7.4, hip[1] + 1.2]); c.fillRect(Math.min(a[0], b[0]), a[1], Math.abs(b[0] - a[0]), 2.2 * s); }
+      c.fillStyle = "#C9A65A"; for (const k of [0.25, 0.5, 0.75]) for (const dx of [-2, 2]) { const q = P([sh[0] + (hip[0] - sh[0]) * k + dx, sh[1] + (hip[1] - sh[1]) * k]); c.beginPath(); c.arc(q[0], q[1], Math.max(0.5, 0.75 * s), 0, TAU); c.fill(); }
+      // Armbinde am Arm mit der Fahne
+      { const a = Jt.aF, q = P([(a[0][0] + a[1][0]) / 2, (a[0][1] + a[1][1]) / 2]); c.fillStyle = "#C23B2A"; c.beginPath(); c.arc(q[0], q[1], Math.max(1, 2.3 * s), 0, TAU); c.fill(); }
+      // Filzhut mit Band, Krempe
+      { const lr = (pose.lean - (pose.hd || 0)) * Math.PI / 180, hc = P([Jt.nk[0] + Math.sin(lr) * 10.2, Jt.nk[1] - Math.cos(lr) * 10.2]);
+        c.save(); c.translate(hc[0], hc[1]); c.rotate(-lr * o.dir);
+        c.fillStyle = "#3B2E24"; c.strokeStyle = INK; c.lineWidth = Math.max(0.6, 0.9 * s);
+        c.beginPath(); c.ellipse(0, -2.4 * s, 9.5 * s, 2.0 * s, 0, 0, TAU); c.fill(); c.stroke();
+        c.beginPath(); c.moveTo(-5.4 * s, -2.8 * s); c.quadraticCurveTo(-5.8 * s, -10 * s, 0, -10.6 * s); c.quadraticCurveTo(5.8 * s, -10 * s, 5.4 * s, -2.8 * s); c.closePath(); c.fill(); c.stroke();
+        c.fillStyle = "#1E1814"; c.fillRect(-5.5 * s, -4.6 * s, 11 * s, 1.7 * s);
+        c.restore(); }
       if (J.flag) {
         const h = handAt(o), L = 40 * s;
         c.strokeStyle = "#5A3E26"; c.lineWidth = Math.max(1, 1.2 * s); c.beginPath(); c.moveTo(h[0], h[1] + 4 * s); c.lineTo(h[0], h[1] - L); c.stroke();
@@ -6986,6 +7034,90 @@ table.mini tr.me td { background: var(--gold); }
         c.fillStyle = J.flag === "w" ? "#FBF8F1" : "#C23B2A"; c.strokeStyle = INK; c.lineWidth = Math.max(0.6, 0.6 * s);
         c.beginPath(); c.moveTo(h[0], h[1] - L); c.quadraticCurveTo(h[0] - 12 * s, h[1] - L + wv, h[0] - 26 * s, h[1] - L + 2 * s + wv); c.lineTo(h[0] - 26 * s, h[1] - L + 18 * s + wv); c.quadraticCurveTo(h[0] - 12 * s, h[1] - L + 16 * s - wv, h[0], h[1] - L + 18 * s); c.closePath(); c.fill(); c.stroke();
       }
+    }
+    function ctx_shadow(c, x, y, r) { c.fillStyle = "rgba(60,80,110,0.18)"; ellipse(c, x, y + 1, r, r * 0.25); }
+    // Schiefertafel auf der Staffelei: Weite mit Kreide
+    function chalkboard(c, M, B, night) {
+      const { X, Y, S } = M, z = 8.5, x = 7.6, s = S(z), bx = X(x, z), by = Y(0, z);
+      if (bx < -80 || bx > W + 80) return;
+      c.strokeStyle = "#6B4A2E"; c.lineWidth = Math.max(1.2, 0.08 * s);
+      c.beginPath(); c.moveTo(bx - 0.6 * s, by); c.lineTo(bx - 0.25 * s, by - 2.1 * s); c.moveTo(bx + 0.6 * s, by); c.lineTo(bx + 0.25 * s, by - 2.1 * s); c.moveTo(bx, by - 2.1 * s); c.lineTo(bx + 0.15 * s, by + 0.02 * s); c.stroke();
+      const w = 1.7 * s, h = 1.1 * s, x0 = bx - w / 2, y0 = by - 2.3 * s;
+      c.fillStyle = "#7A5636"; c.fillRect(x0 - 0.08 * s, y0 - 0.08 * s, w + 0.16 * s, h + 0.16 * s);
+      c.fillStyle = night ? "#2B302C" : "#2F3632"; c.fillRect(x0, y0, w, h);
+      c.fillStyle = "rgba(255,255,255,0.08)"; c.fillRect(x0 + 0.1 * s, y0 + 0.1 * s, w * 0.5, h * 0.25);
+      c.fillStyle = "rgba(244,240,230,0.92)"; c.textAlign = "left";
+      const fs = Math.max(6, 0.26 * s);
+      c.font = `600 ${fs}px "Bradley Hand", "Segoe Print", "Comic Neue", cursive`;
+      (B.lines || []).slice(0, 3).forEach((ln, i) => c.fillText(ln, x0 + 0.12 * s, y0 + (0.32 + i * 0.32) * s));
+    }
+    // Feuerkorb am Zaun: Flackern, Funken, Rauch
+    function fireBasket(c, M, x, z, t, night) {
+      const { X, Y, S } = M, s = S(z), bx = X(x, z), by = Y(0, z);
+      if (bx < -60 || bx > W + 60) return;
+      // warmer Schein auf dem Schnee
+      const gl = c.createRadialGradient(bx, by - 0.6 * s, 2, bx, by - 0.6 * s, (night ? 3.2 : 1.8) * s);
+      gl.addColorStop(0, night ? "rgba(255,170,80,0.45)" : "rgba(255,180,90,0.22)"); gl.addColorStop(1, "rgba(255,170,80,0)");
+      c.fillStyle = gl; c.fillRect(bx - 4 * s, by - 4 * s, 8 * s, 6 * s);
+      c.strokeStyle = "#2A2420"; c.lineWidth = Math.max(1, 0.07 * s);
+      c.beginPath(); c.moveTo(bx - 0.35 * s, by); c.lineTo(bx - 0.25 * s, by - 0.6 * s); c.moveTo(bx + 0.35 * s, by); c.lineTo(bx + 0.25 * s, by - 0.6 * s); c.stroke();
+      c.fillStyle = "#2A2420"; c.beginPath(); c.moveTo(bx - 0.5 * s, by - 0.95 * s); c.lineTo(bx + 0.5 * s, by - 0.95 * s); c.lineTo(bx + 0.3 * s, by - 0.55 * s); c.lineTo(bx - 0.3 * s, by - 0.55 * s); c.closePath(); c.fill();
+      for (let i = 0; i < 5; i++) {
+        const fl = Math.sin(t * (7 + i) + i * 2) * 0.5 + 0.5, hh = (0.45 + fl * 0.35) * s, xx = bx + (i - 2) * 0.17 * s;
+        c.fillStyle = i % 2 ? "#F2A03D" : "#E25A2B";
+        c.beginPath(); c.moveTo(xx - 0.12 * s, by - 0.95 * s); c.quadraticCurveTo(xx + Math.sin(t * 5 + i) * 0.1 * s, by - 0.95 * s - hh, xx + 0.12 * s, by - 0.95 * s); c.fill();
+      }
+      for (let i = 0; i < 6; i++) { const a = (t * 0.8 + i / 6) % 1, sx = bx + Math.sin(i * 3 + t * 2) * 0.3 * s + a * 0.4 * s, sy = by - (1.1 + a * 2.4) * s; c.fillStyle = `rgba(255,200,110,${(1 - a) * 0.9})`; c.fillRect(sx, sy, 1.6, 1.6); }
+      smoke(c, bx, by - 1.3 * s, s, t, 0.35);
+    }
+    // Rauch: weiche, wachsende Wolken, treiben nach rechts
+    function smoke(c, x, y, s, t, a0) {
+      for (let i = 0; i < 6; i++) { const a = (t * 0.22 + i / 6) % 1; c.fillStyle = `rgba(210,212,216,${a0 * (1 - a)})`; c.beginPath(); c.arc(x + a * 1.6 * s + Math.sin(t + i) * 0.15 * s, y - a * 3.2 * s, (0.25 + a * 0.7) * s, 0, TAU); c.fill(); }
+    }
+    // Messhelfer: Bub mit Pudelmütze, bückt sich am Aufschlag und steckt einen Holzpflock mit Fähnchen
+    function helperFig(c, M, H, t) {
+      const { X, Y, S } = M, z = H.z + 0.7, s = S(z) * KF * 0.82;
+      const run = H.u < 1, pose = run ? F.seq(RUN, (t * 2.2) % 1, true) : POSE.scoop;
+      const o = { x: X(H.x, z), y: Y(0, z), s, dir: H.dir || 1, pose, look: F.cleanLook(HELPER_LOOK), kit: HELPER_KIT, three: false };
+      ctx_shadow(c, o.x, o.y, 8 * s);
+      drawFig(c, o);
+      if (!run) {
+        const px = X(H.px, H.pz), py = Y(0, H.pz), ss = S(H.pz);
+        c.strokeStyle = "#7A5636"; c.lineWidth = Math.max(1, 0.06 * ss); c.beginPath(); c.moveTo(px, py + 0.05 * ss); c.lineTo(px, py - 0.75 * ss); c.stroke();
+        c.fillStyle = "#C23B2A"; c.beginPath(); c.moveTo(px, py - 0.75 * ss); c.lineTo(px + 0.4 * ss, py - 0.65 * ss); c.lineTo(px, py - 0.55 * ss); c.fill();
+      }
+    }
+    // Atemwolken vor dem Mund, beim Laufen öfter
+    function breath(c, M, th, t) {
+      const { X, Y, S } = M, rate = th.puff || 0.7, s = S(th.z || 0) * KF, dir = th.dir || 1;
+      const Jt = F.joints(th.pose), lr = (th.pose.lean - (th.pose.hd || 0)) * Math.PI / 180;
+      const mx = Jt.nk[0] + Math.sin(lr) * 7.5 + 5.5, my = Jt.nk[1] - Math.cos(lr) * 7.5 + 2;
+      const bx = X(th.x, th.z || 0) + mx * s * dir, by = Y(0, th.z || 0) + my * s - (th.lift || 0) * s;
+      for (let k = 0; k < 2; k++) {
+        const a = ((t * rate) % 1) + k; if (a > 1.6) continue;
+        const r = (2 + a * 6) * s * 1.2, al = 0.42 * Math.max(0, 1 - a / 1.6);
+        c.fillStyle = `rgba(255,255,255,${al})`;
+        c.beginPath(); c.arc(bx + dir * a * 9 * s, by - a * 4 * s, r, 0, TAU); c.arc(bx + dir * (a * 9 + 3) * s, by - (a * 4 + 1.5) * s, r * 0.7, 0, TAU); c.fill();
+      }
+    }
+    // leiser Schneefall bei Neuschnee und grauem Himmel (ohne Zustand, aus der Zeit gerechnet)
+    function weather(c, t, cx) {
+      const n = skyK === "neu" ? 90 : skyK === "grau" ? 55 : skyK === "foehn" ? 0 : 0;
+      if (!n) return;
+      c.fillStyle = "rgba(255,255,255,0.85)";
+      for (let i = 0; i < n; i++) {
+        const h1 = Math.sin(i * 12.9898) * 43758.5453 % 1, h2 = Math.sin(i * 78.233) * 12345.678 % 1, d = 0.4 + Math.abs(h1) * 0.9;
+        const x = ((Math.abs(h2) * W - cx * 6 * d + Math.sin(t * 0.7 + i) * 12 + t * 14 * d) % W + W) % W, y = ((Math.abs(h1) * H + t * 26 * d) % H);
+        c.beginPath(); c.arc(x, y, 0.9 + d * 1.1, 0, TAU); c.fill();
+      }
+    }
+    // Stimmung: Tönung je Tageszeit und weiche Vignette
+    function grade(c, night) {
+      if (tod === "morning") { c.fillStyle = "rgba(255,190,150,0.07)"; c.fillRect(0, 0, W, H); }
+      else if (night) { c.fillStyle = "rgba(40,50,110,0.10)"; c.fillRect(0, 0, W, H); }
+      const v = c.createRadialGradient(W / 2, H * 0.55, H * 0.45, W / 2, H * 0.55, W * 0.62);
+      v.addColorStop(0, "rgba(20,24,30,0)"); v.addColorStop(1, "rgba(20,24,30,0.28)");
+      c.fillStyle = v; c.fillRect(0, 0, W, H);
     }
     function tape(c, M, T) {
       const { X, Y, S } = M, u = clamp(T.u, 0, 1), x1 = T.x * u, z1 = T.z * u;
@@ -7068,7 +7200,12 @@ table.mini tr.me td { background: var(--gold); }
         ctx.fillStyle = "rgba(241,231,210,0.9)"; ctx.fillRect(bx, by, bw, 10); ctx.strokeRect(bx, by, bw, 10);
         ctx.fillStyle = p.k > 1 ? "#C23B2A" : "#3F6B55"; ctx.fillRect(bx + 1, by + 1, (bw - 2) * clamp(p.k / 1.3, 0, 1), 8);
       }
+      // Feuerkorb rechts am Zaun, Atemwolken vor den Händen, Schneefall, Tönung
+      { const fx = 15, M2 = { X: (x, z) => aimProj(x, 0, z)[0], Y: (y, z) => aimProj(fx, y, z)[1], S: (z) => aimProj(fx, 0, z)[2] }; fireBasket(ctx, M2, fx, -6.2, t, night); }
       hands(ctx, V, t);
+      for (let k = 0; k < 2; k++) { const a = ((t * 0.55) % 1) + k; if (a > 1.5) continue; ctx.fillStyle = `rgba(255,255,255,${0.35 * (1 - a / 1.5)})`; ctx.beginPath(); ctx.arc(W / 2 - 10 + a * 30, H - 150 - a * 50, 8 + a * 22, 0, TAU); ctx.fill(); }
+      weather(ctx, t, 0);
+      grade(ctx, night);
     }
     function c2dot(c, x, y, r, a) { c.fillStyle = `rgba(255,255,255,${a})`; c.strokeStyle = `rgba(20,27,37,${a * 0.6})`; c.lineWidth = 1.2; c.beginPath(); c.arc(x, y, r, 0, TAU); c.fill(); c.stroke(); }
     function snowmanFront(ctx, D, V, t) {
@@ -7225,7 +7362,7 @@ table.mini tr.me td { background: var(--gold); }
 /* COLD MEDAL SCHNEEBALL – Ton per WebAudio: Knirschen beim Drücken, Takt, Wurf, Aufschlag, Zerbröseln, Applaus. Global: SWAudio. */
 (function (root) {
   "use strict";
-  let A = null, out = null, on = true, noiseBuf = null;
+  let A = null, out = null, on = true, noiseBuf = null, amb = null;
   function ctx() {
     if (!on) return null;
     if (!A) {
@@ -7268,6 +7405,16 @@ table.mini tr.me td { background: var(--gold); }
     thud(big) { noise(0.18, 500, 120, 0.9, big ? 0.5 : 0.35, "lowpass"); },
     crumble() { noise(0.4, 2500, 800, 0.6, 0.22); },
     whistle() { tone(1950, 0.35, 0.09, "square"); },
+    // leises Gemurmel des Publikums im Hintergrund (gefiltertes Rauschen, langsam schwankend)
+    ambient(want) {
+      const a = want ? ctx() : A; if (!a) return;
+      if (want && !amb) {
+        const src = a.createBufferSource(), fl = a.createBiquadFilter(), g = a.createGain(), lfo = a.createOscillator(), lg = a.createGain();
+        src.buffer = noiseBuf; src.loop = true; fl.type = "bandpass"; fl.frequency.value = 420; fl.Q.value = 0.9;
+        g.gain.value = 0.035; lfo.frequency.value = 0.13; lg.gain.value = 0.015; lfo.connect(lg); lg.connect(g.gain);
+        src.connect(fl); fl.connect(g); g.connect(out); src.start(); lfo.start(); amb = { src, lfo, g };
+      } else if (!want && amb) { try { amb.src.stop(); amb.lfo.stop(); } catch (e) { /* schon aus */ } amb = null; }
+    },
     applause(k) { for (let i = 0; i < 18 * k; i++) setTimeout(() => noise(0.05, 2000 + Math.random() * 1500, 1500, 2, 0.08 + Math.random() * 0.08), Math.random() * 1400 * k); },
   };
   root.SWAudio = S;
@@ -7276,7 +7423,7 @@ table.mini tr.me td { background: var(--gold); }
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.5";
+  const VERSION = "0.6";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender;
@@ -7349,7 +7496,7 @@ table.mini tr.me td { background: var(--gold); }
 
   // ------------------------------------------------------------------ Bildschirme
   const SCREENS = ["scrMenu", "scrReport", "scrStand", "scrPass", "scrInfo"];
-  function show(id) { for (const s of SCREENS) $(s).hidden = s !== id; $("hud").hidden = !!id; }
+  function show(id) { for (const s of SCREENS) $(s).hidden = s !== id; $("hud").hidden = !!id; AU.ambient(!id || id === "scrStand"); }
 
   // ------------------------------------------------------------------ Zustand eines Durchgangs
   // mode: "comp" = Weitwurf-Wettkampf, "train" = Training Weitwurf, "ziel" = Zielwurf-Wettkampf
@@ -7369,7 +7516,7 @@ table.mini tr.me td { background: var(--gold); }
     } else cond = Ph.conditions(sd);
     const g = { mode, seed: sd, cond, n: 0, best: 0, pts: 0, marks: [], phase: "report", th: { x: START_X, z: 0, dir: 1, pose: F.POSES.stand }, judge: { flag: null, at: 0 }, crumbs: [], tries: [], last: null };
     if (mode !== "train") g.comp = C.create(sd, cond, { name: myName(), nat: myNat() }, 11, mode === "ziel" ? "ziel" : "weit");
-    R.setScene(sd, cond.tod);
+    R.setScene(sd, cond.tod, cond.sky);
     return g;
   }
 
@@ -7842,7 +7989,7 @@ table.mini tr.me td { background: var(--gold); }
     if (G.phase === "measure") {
       G.tape.u = clamp((now - G.tape.t0) / 1.0, 0, 1);
       th.pose = F.ease(th.pose, F.idle(F.POSES.stand, now, 1), dt);
-      if (G.tape.u >= 1 && !G.shown && now - G.tape.t0 > 1.5) afterThrow();
+      if (G.tape.u >= 1 && !G.shown && now - G.tape.t0 > 1.9) afterThrow();
     }
     if ((G.phase === "rack" || G.phase === "dsq") && G.gest) {
       const r = F.gesture(G.gest, now - G.gestT);
@@ -8033,10 +8180,24 @@ table.mini tr.me td { background: var(--gold); }
     return {
       arc: ["ready", "run", "angle"].includes(G.phase) ? { x: th.x + 0.25, deg: G.phase === "angle" ? curAngle() : null, speed: G.phase === "ready" ? null : th.vx / 6.4,
         beat: G.phase === "run" ? (((now - G.run.t0) / STEP) % 1 + 1) % 1 : null, foot: th.x, dots: G.run && G.phase !== "ready" ? G.run.accs.slice(-7) : null, last: G.run && G.run.last && now - G.run.last.at < 0.35 ? G.run.last.acc : null } : null,
+      board: boardLines(), helper: helperView(),
       cam, focus: G.focus, marks: G.marks, judge: G.judge, tape: G.tape, crumbs: G.crumbs, ball: G.flyBall || null, trail: G.trail,
       patches: ["pick", "walk", "scoop", "form"].includes(G.phase) && G.patches ? G.patches : null,
-      thrower: { x: th.x, z: th.z, dir: th.dir, pose: th.pose, lift: th.lift || 0, mood: th.mood, look: myLook(), kit: R.kit(S.glove), glove: S.glove, held },
+      thrower: { x: th.x, z: th.z, dir: th.dir, pose: th.pose, lift: th.lift || 0, mood: th.mood, look: myLook(), kit: R.kit(S.glove), glove: S.glove, held, puff: G.phase === "run" || G.phase === "angle" ? 1.5 : 0.6 },
     };
+  }
+  // Schiefertafel: was der Kampfrichter zuletzt angeschrieben hat
+  function boardLines() {
+    const L = G.last, cur = G.phase === "measure" && G.fl ? G.fl.res : null, res = cur && G.tape && G.tape.u >= 1 ? cur : L ? L.res : null;
+    if (!res) return { lines: [isComp() ? "Weitwurf" : "Training", nb(`${G.cond.temp}°`).replace("-", "−")] };
+    const n = (cur ? G.n : L.n) + 1;
+    return { lines: [`Wurf ${n}`, res.valid ? `${m1(res.dist)} m` : res.why === "foul" ? "übertreten" : "ungültig", G.best ? `beste ${m1(G.best)}` : ""] };
+  }
+  // Messhelfer: läuft während des Messens zum Aufschlag und steckt den Pflock
+  function helperView() {
+    if (G.phase !== "measure" || !G.fl || !G.fl.res.valid || !G.tape) return null;
+    const r = G.fl.res, u = clamp((now - G.tape.t0 + 0.3) / 1.1, 0, 1), x0 = Math.max(3, r.x - 9);
+    return { x: x0 + (r.x + 0.5 - x0) * u, z: 3 + (r.z - 3) * u, u, px: r.x, pz: r.z, dir: 1 };
   }
   function aimView() {
     const L = myLook(), ball = G.ball;
