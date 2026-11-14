@@ -51,7 +51,7 @@ h2 { font-family: var(--font-display); font-size: 21px; line-height: 1.1; text-t
 .row2 > * { flex: 1 1 0; min-width: 0; }
 /* Menü: nichts darf über die Karte hinaus – Texte brechen um, Knöpfe teilen sich die Breite */
 .card.menu .big, .card.menu .mid { white-space: normal; overflow-wrap: anywhere; hyphens: auto; }
-.card.menu .big span { line-height: 1.1; }
+.card.menu .big span { line-height: 1.1; font-size: 18px; }
 .card.menu .big small { line-height: 1.2; }
 .card.menu .mid { padding: 8px 6px; font-size: 12.5px; letter-spacing: 0.03em; text-align: center; line-height: 1.15; }
 .card.menu .big { padding: 6px 10px; }
@@ -219,6 +219,66 @@ table.mini tr.me td { background: var(--gold); }
 
 #hint { white-space: normal; max-width: min(560px, calc(100% - 24px)); }
 
+/* Startbildschirm (Mat 14.11.2026: „lieblos, Menü zu weit links“): Plakat links mit großer Schrift über der Figur, Programm rechts */
+#scrMenu { justify-content: space-between; align-items: center; padding: 16px 24px 16px 26px; background: radial-gradient(ellipse 62% 70% at 18% 18%, rgba(14,22,38,0.62), rgba(14,22,38,0) 72%); }
+#scrMenu .hero { align-self: flex-start; margin-top: 8px; max-width: 380px; pointer-events: none; }
+#scrMenu .heroK { font-family: var(--font-display); font-weight: 700; font-size: 13px; letter-spacing: 0.32em; text-transform: uppercase; color: var(--paper); text-shadow: 0 1px 0 rgba(0,0,0,0.5); }
+#scrMenu .heroT { font-family: var(--font-display); font-weight: 800; font-size: 60px; line-height: 0.92; letter-spacing: 0.01em; text-transform: uppercase; color: var(--paper);
+  text-shadow: 4px 4px 0 var(--ink-deep), 0 0 24px rgba(0,0,0,0.25); margin-top: 4px; }
+#scrMenu .heroT span { color: #F4C9A0; }
+#scrMenu .ribbon { display: inline-block; margin-top: 10px; padding: 4px 14px 4px 12px; background: var(--red); color: var(--paper); font-family: var(--font-display); font-weight: 700;
+  font-size: 13px; letter-spacing: 0.18em; text-transform: uppercase; box-shadow: 3px 3px 0 var(--ink-deep); transform: rotate(-2deg); }
+#scrMenu .heroP { display: inline-block; margin-top: 10px; padding: 3px 8px; background: rgba(14,22,38,0.55); max-width: 300px; font-size: 13px; line-height: 1.3; color: var(--paper); text-shadow: 0 1px 2px rgba(0,0,0,0.7); font-style: italic; }
+#scrMenu .card.menu { width: 318px; gap: 8px; padding: 12px 14px 10px; transform: rotate(0.6deg); }
+#scrMenu .card.menu::before { content: ""; position: absolute; left: 50%; top: -9px; width: 46px; height: 16px; margin-left: -23px; background: rgba(230,214,183,0.85); transform: rotate(-3deg); box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+
+/* Ballkorb kompakt (Mat 14.11.2026, iPhone-Bilder: lief unten und rechts hinaus): links das Ergebnis, rechts die Bälle */
+#rack { width: auto; max-width: calc(100% - 24px); top: 46px; max-height: calc(100% - 56px); padding: 7px 9px 7px; display: flex; gap: 12px; align-items: flex-start; }
+#rack #rkRes { width: 236px; flex: none; position: relative; }
+#rack .rkPick { width: 300px; flex: none; display: flex; flex-direction: column; gap: 5px; }
+#rack .rkHead { display: block; }
+#rack .rkHead b { display: block; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#rack .rkGrid { grid-template-columns: repeat(2, 1fr); gap: 5px; margin: 0; }
+#rack .rkBall { padding: 2px 4px 2px 1px; gap: 3px; }
+#rack .rkBall canvas { width: 36px; height: 36px; }
+#rack .rkBall span { font-size: 11px; }
+#rack .rkBall em { font-size: 9.5px; line-height: 1.15; }
+#rack .rkBall.eis { background: #E3EFF7; }
+#rack .rkLuz { margin: 0; padding: 2px 5px; gap: 6px; font-size: 10px; }
+#rack .rkLuz .luzT { line-height: 1.15; }
+#rack .rkLuz button { padding: 3px 8px; font-size: 11px; }
+#rack .rkFoot { font-size: 10px; gap: 6px; }
+#rack .rkFoot span { flex: 1; }
+#rack .rkFoot .lnk { font-size: 11px; white-space: nowrap; }
+#rack .rDist { font-size: 28px; }
+#rack .rWhy { font-size: 11px; line-height: 1.2; }
+#rack .rSay { font-size: 12px; }
+#rack .rCoach { font-size: 10.5px; line-height: 1.2; }
+#rack .rFacts span { font-size: 9px; padding: 0 4px; }
+#rack table.mini { font-size: 10px; }
+#rack .rTop { flex-direction: column; gap: 2px; }
+#rack .rPhoto { right: auto; left: -170px; top: 0; width: 150px; }
+
+/* Bericht vor dem Start kompakt; im Training zeigen die Wahlknöpfe schon alles, die Kacheln entfallen */
+.card.report { padding: 10px 14px; max-height: calc(100% - 8px); }
+.card.report:has(.rpSet:not(:empty)) .rpGrid { display: none; }
+.card.report .rpSet { gap: 4px; }
+.card.report .rpSay { font-size: 12px; line-height: 1.3; margin: 6px 0 7px; }
+.card.report h2 { margin: 2px 0 6px; }
+
+/* Endstand: Tabelle eng, bei Platzmangel scrollt nur die Tabelle, die Knöpfe bleiben immer sichtbar */
+.card.stand { padding: 10px 14px; max-height: calc(100% - 8px); }
+.card.stand h2 { margin: 1px 0 5px; }
+.card.stand .stScroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
+.card.stand td { padding: 1px 5px; font-size: 12px; }
+.card.stand td.t { font-size: 10.5px; }
+.card.stand .note { font-size: 11.5px; line-height: 1.25; margin: 5px 0 6px; }
+.card.stand .rpBtns { flex: none; }
+
+#scrMenu .card.menu .col { gap: 6px; }
+#scrMenu .card.menu .big { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 7px 12px; }
+#scrMenu .card.menu .big small { text-align: right; }
+
 /* Cold Medal Games · Fenster „Deine Figur“ (pass/pass.css)
    Aussehen wie die Menüs des Skispringens: Papier mit Doppelrahmen, Knöpfe wie Druckmarken, Futura für Titel und Knöpfe,
    Buchschrift für Lesetext. Farben und Schriften kommen aus den Variablen des Spiels (alle Spiele der Reihe haben sie),
@@ -375,10 +435,12 @@ table.mini tr.me td { background: var(--gold); }
         <div class="rWhy" id="rWhy"></div><div class="rSay" id="rSay"></div><div class="rCoach" id="rCoach"></div><figure class="rPhoto" id="rPhoto" hidden><img alt="Foto vom Einschlag"><figcaption></figcaption></figure>
         <div class="rFacts" id="rFacts"></div>
       </div>
-      <div class="rkHead"><div><div class="kicker" id="rkKick"></div><b id="rkWho"></b></div><button class="mid" id="rkSelf">Selbst formen</button></div>
-      <div class="rkGrid" id="rkGrid"></div>
-      <div class="rkLuz"><span class="luzG" id="rkLuzG"></span><span class="luzT" id="rkLuzT"></span><button class="pill" id="rkLuz">Kafi Luz trinken</button></div>
-      <div class="rkFoot"><span id="rkFoot"></span><button class="lnk" id="rkWeather" hidden>Wetter ändern</button></div>
+      <div class="rkPick">
+        <div class="rkHead"><div class="kicker" id="rkKick"></div><b id="rkWho"></b></div>
+        <div class="rkGrid" id="rkGrid"></div>
+        <div class="rkLuz"><span class="luzG" id="rkLuzG"></span><span class="luzT" id="rkLuzT"></span><button class="pill" id="rkLuz">Kafi Luz</button></div>
+        <div class="rkFoot"><span id="rkFoot"></span><button class="lnk" id="rkSelf">Selbst formen</button><button class="lnk" id="rkWeather" hidden>Wetter</button></div>
+      </div>
     </div>
     <div id="form" hidden>
       <div class="fSizes" id="fSizes"></div>
@@ -394,15 +456,17 @@ table.mini tr.me td { background: var(--gold); }
   </div>
 
   <section class="scr" id="scrMenu">
+    <div class="hero">
+      <div class="heroK">Cold Medal Games</div>
+      <div class="heroT">Schnee<span>ball</span></div>
+      <div class="ribbon">St. Moritz · 1856 m</div>
+      <p class="heroP">Schnee lesen, im Takt anlaufen, so weit werfen wie keiner im Dorf.</p>
+    </div>
     <div class="card menu">
-      <div class="kicker">COLD MEDAL GAMES</div>
-      <h1>Schneeball</h1>
-      <div class="place"><b>St. Moritz · 1856 m</b><span>Schnee lesen, Ball formen, so weit wie möglich werfen.</span></div>
+      <div class="kicker">Wettkampf-Programm</div>
       <div class="col">
-        <div class="row2">
-          <button class="big red" id="bComp"><span>Weitwurf</span><small id="mComp"></small></button>
-          <button class="big red" id="bZiel"><span>Zielwurf</span><small id="mZiel"></small></button>
-        </div>
+        <button class="big red" id="bComp"><span>Weitwurf</span><small id="mComp"></small></button>
+        <button class="big red" id="bZiel"><span>Zielwurf</span><small id="mZiel"></small></button>
         <button class="big" id="bTrain"><span>Training Weitwurf</span><small id="mTrain"></small></button>
         <div class="row2">
           <button class="mid" id="bFig">Deine Figur</button>
@@ -429,7 +493,7 @@ table.mini tr.me td { background: var(--gold); }
     <div class="card stand">
       <div class="kicker" id="stKick"></div>
       <h2 id="stTitle"></h2>
-      <table class="board" id="stTab"></table>
+      <div class="stScroll"><table class="board" id="stTab"></table></div>
       <p class="note" id="stNote"></p>
       <div class="rpBtns"><button class="mid" id="stMenu">Menü</button><button class="mid red" id="stGo">Weiter</button></div>
     </div>
@@ -7806,7 +7870,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.9.4";
+  const VERSION = "0.9.5";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender;
@@ -8049,16 +8113,18 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     const h = helper(), nx = HELPERS[HELPERS.indexOf(h) + 1];
     G.rack = makeRack();
     $("rkKick").textContent = G.last ? "NÄCHSTER BALL" : "WÄHL DEINEN BALL";
-    $("rkWho").textContent = `${h.name}s Korb · ${h.say}`;
-    $("rkFoot").textContent = nx ? nb(`${nx.name} (${nx.say}) hilft dir ${nx.lock}.`) : "Gian formt die besten Bälle im Tal.";
+    $("rkWho").textContent = `${h.name}s Korb · ${Ph.SNOW[G.rack[0].ball.type].name}`;
+    $("rkFoot").textContent = nx ? nb(`${nx.name} hilft dir ${nx.lock}.`) : "";
     $("rkWeather").hidden = G.mode !== "train";
     $("rkSelf").hidden = isZiel();
     const grid = $("rkGrid"); grid.innerHTML = "";
     G.rack.forEach((it, i) => {
       const b = it.ball, st = Ph.state(b), el = document.createElement("button");
       el.className = "rkBall"; el.dataset.i = i;
-      const use = st === "eis" ? "fliegt weit – verboten, wird kontrolliert" : Ph.SIZE[b.size].use;
-      el.innerHTML = `<canvas width="92" height="92"></canvas><span>${esc(Ph.SIZE[b.size].name)} <i class="${st}">${STATE_TXT[st]}</i><small>${esc(Ph.SNOW[b.type].name)}</small><em>${esc(use)}</em></span>`;
+      const use = st === "eis" ? "verboten – wird kontrolliert" : Ph.SIZE[b.size].use;
+      const nm = st === "eis" ? "Eisball" : Ph.SIZE[b.size].name;
+      el.className = "rkBall" + (st === "eis" ? " eis" : "");
+      el.innerHTML = `<canvas width="92" height="92"></canvas><span>${esc(nm)}<em>${esc(use)}</em></span>`;
       const c = el.firstChild.getContext("2d"); c.translate(46, 46); c.scale(1.05, 1.05); c.translate(-100, -106);
       R.drawBallClose(c, 200, 200, { ball: b, hands: false }, 0);
       el.onclick = (e) => { e.stopPropagation(); takeRack(i); };
@@ -8720,7 +8786,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   // Ergebnis des letzten Wurfs oben im Ballkorb, mit kleinem Zwischenstand
   function fillLast() {
     const L = G.last, box = $("rkRes");
-    box.hidden = !L;
+    box.hidden = !L; $("rack").classList.toggle("res", !!L);
     if (!L) return;
     const res = L.res, inp = L.inp, ziel = isZiel(), comp = isComp();
     $("rKick").textContent = comp ? `WURF ${L.n + 1} VON ${TRIES}` : `TRAINING · WURF ${G.tries.length}`;
@@ -8808,7 +8874,8 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 
   // ------------------------------------------------------------------ Zeichnen
   function view() {
-    if (!G) return { cam: { cx: 4, ppm: 34 }, thrower: { x: -1.5, z: 0, pose: F.idle(R.POSE.hold, now, 1), look: myLook(), kit: R.kit(S.glove), glove: S.glove }, judge: { flag: null } };
+    // Startbild: der eigene Werfer groß links unter dem Titel, Ball in der Hand, dahinter Hütte und Holzstoß
+    if (!G) return { cam: { cx: -2.9, ppm: 74 }, thrower: { x: -6, z: 0, dir: 1, pose: F.idle(R.POSE.hold, now, 1), look: myLook(), kit: R.kit(S.glove), glove: S.glove, held: { d: 0.064, f: 0.7, ice: 0.9, type: "papp" }, puff: 0.6 }, judge: { flag: null } };
     const th = G.th, ball = G.ball;
     const held = ball && (G.phase === "ready" || G.phase === "run" || G.phase === "angle" || G.phase === "check" || G.phase === "checkOk" || G.phase === "walk" && G.walk.then !== "scoop" || G.phase === "fly" && now < G.fl.t0) ? { d: Ph.SIZE[ball.size].d, f: ball.f, ice: Ph.iceAt(ball), type: ball.type } : null;
     return {
