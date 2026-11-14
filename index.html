@@ -7050,7 +7050,7 @@ table.mini tr.me td { background: var(--gold); }
   const TAN = Math.tan(P.SECTOR * Math.PI / 180);
   const KF = 0.0225;
   const BALLK = 2.4;   // Ball größer gezeichnet als echt, damit man ihn auf dem Handy sieht
-  const FIRE = { x: -2.3, z: 7.8 }, CHOP = { x: -5.6, z: 13.5 }, SAW = { x: 5.0, z: 11.5 };   // Feuerschale (Gegner stehen darum), Holzhacker, Zugsäge
+  const FIRE = { x: -1.5, z: 15.5 }, CHOP = { x: 36, z: 19.5 }, SAW = { x: 23.5, z: 17 }, BENCH = { x: 11.5, z: 14.5 }, SNOWMAN = { x: 16.5, z: 10.5 }, BASKET = { x: 50, z: 22.5 };   // Feuerschale (Gegner stehen darum), Holzhacker, Zugsäge
   function c2(ctx, tr, X, Y) {
     ctx.lineCap = "round";
     for (let i = 1; i < tr.length; i++) {
@@ -7254,7 +7254,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       // Weg quer über den Platz, Anlaufbahn, Sektor mit Kreidelinien und Bögen alle 10 m
       track(ctx, M, cam);
       // Requisiten hinten: Hütte, Schneemann, Kampfrichter
-      fireBasket(ctx, M, 9.5, ZB - 1.2, t, night);
+      fireBasket(ctx, M, BASKET.x, BASKET.z, t, night);
       flagPole(ctx, M, -4.4, 10.5, t, night);
       sawyers(ctx, M, t, night);
       chopper(ctx, M, t, night);
@@ -7589,7 +7589,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       c.fillStyle = sc; for (const u of [0.18, 0.47, 0.81]) { const xx = A[0] + (B[0] - A[0]) * u, yy = edge(u) - 1; c.beginPath(); c.ellipse(xx, yy + h * 0.18, h * 0.12, h * 0.26, 0, 0, TAU); c.fill(); }
     }
     function snowman(c, M) {
-      const { X, Y, S } = M, z = 6, x = -19.5, s = S(z);
+      const { X, Y, S } = M, z = SNOWMAN.z, x = SNOWMAN.x, s = S(z);
       if (X(x, z) < -60 || X(x, z) > W + 60) return;
       const cx = X(x, z), by = Y(0, z);
       c.fillStyle = "#FBF8F1"; c.strokeStyle = "rgba(30,39,52,0.45)"; c.lineWidth = Math.max(0.6, 0.05 * s);
@@ -7910,9 +7910,9 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       smoke(c, cx, fy - 1.3 * s, s * 0.9, t, 0.28);
     }
     function benches(c, M, t, night) {
-      const { X, Y, S } = M, x0 = -0.6, x1 = 2.0;
-      if (X(x1, 9) < -80 || X(x0, 9) > W + 80) return;
-      const P = (x, y, z) => [X(x, z), Y(y, z)];
+      const { X, Y, S } = M, x0 = BENCH.x - 1.3, x1 = BENCH.x + 1.3, dz = BENCH.z - 9.35;
+      if (X(x1, 9 + dz) < -80 || X(x0, 9 + dz) > W + 80) return;
+      const P = (x, y, z) => [X(x, z + dz), Y(y, z + dz)];
       const poly = (pts, fill) => { c.beginPath(); pts.forEach((q, i) => (i ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1]))); c.closePath(); c.fillStyle = fill; c.fill(); };
       const wood = night ? "#6E5040" : "#9A7250", woodD = night ? "#4E382C" : "#6E4E36", woodL = night ? "#8A6A54" : "#B88E66";
       // Kasten: Deckfläche, Vorderkante, Seitenkante zur Kamera hin
@@ -7929,15 +7929,15 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       trestle(0.74, BZ[1][0], BZ[1][1]); box(x0, x1, 0.72, 0.76, BZ[1][0], BZ[1][1]);
       // Schnee auf der Tischkante hinten, Krüge, Laterne
       { const zb = BZ[1][1]; c.fillStyle = night ? "#EEE4E2" : "#FFFFFF"; c.beginPath(); const a = P(x0, 0.77, zb - 0.12), b = P(x1, 0.77, zb - 0.12), d = P(x1, 0.79, zb), e = P(x0, 0.79, zb); c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]); c.lineTo(d[0], d[1]); c.lineTo(e[0], e[1]); c.closePath(); c.fill(); }
-      for (const [mx, mz] of [[-0.1, 9.3], [0.3, 9.45], [1.2, 9.25], [1.6, 9.5]]) { const sz = S(mz), bx = X(mx, mz), by = Y(0.76, mz), w = 0.09 * sz, h = 0.17 * sz;
+      for (const [mx0, mz0] of [[-0.6, 9.3], [-0.2, 9.45], [0.7, 9.25], [1.1, 9.5]]) { const mx = BENCH.x + mx0, mz = mz0 + dz, sz = S(mz), bx = X(mx, mz), by = Y(0.76, mz), w = 0.09 * sz, h = 0.17 * sz;
         c.fillStyle = "rgba(230,180,70,0.85)"; c.fillRect(bx - w, by - h, w * 2, h); c.fillStyle = "#FBF8F1"; c.fillRect(bx - w, by - h - 0.035 * sz, w * 2, 0.045 * sz);
         c.strokeStyle = "rgba(255,255,255,0.7)"; c.lineWidth = 1; c.strokeRect(bx - w, by - h, w * 2, h); c.beginPath(); c.arc(bx + w * 1.3, by - h * 0.55, h * 0.28, -1.3, 1.3); c.stroke(); }
-      { const lz = 9.35, sz = S(lz), lx = X(0.75, lz), ly = Y(0.76, lz), fl = 0.85 + 0.15 * Math.sin(t * 13) * Math.sin(t * 5.3);
+      { const lz = 9.35 + dz, sz = S(lz), lx = X(BENCH.x + 0.25, lz), ly = Y(0.76, lz), fl = 0.85 + 0.15 * Math.sin(t * 13) * Math.sin(t * 5.3);
         const lg = c.createRadialGradient(lx, ly - 0.12 * sz, 1, lx, ly - 0.12 * sz, (night ? 1.6 : 0.8) * sz); lg.addColorStop(0, `rgba(255,200,110,${(night ? 0.55 : 0.3) * fl})`); lg.addColorStop(1, "rgba(255,200,110,0)"); c.fillStyle = lg; c.fillRect(lx - 2 * sz, ly - 2 * sz, 4 * sz, 4 * sz);
         c.fillStyle = "#2A2420"; c.fillRect(lx - 0.07 * sz, ly - 0.28 * sz, 0.14 * sz, 0.04 * sz); c.fillStyle = `rgba(255,${190 + 40 * fl | 0},110,0.95)`; c.fillRect(lx - 0.06 * sz, ly - 0.24 * sz, 0.12 * sz, 0.2 * sz); c.strokeStyle = "#2A2420"; c.lineWidth = 1; c.strokeRect(lx - 0.06 * sz, ly - 0.24 * sz, 0.12 * sz, 0.2 * sz); }
       trestle(0.44, BZ[2][0], BZ[2][1]); box(x0, x1, 0.42, 0.46, BZ[2][0], BZ[2][1]);
       // Schaffelle auf den Bänken
-      for (const [fx, fz] of [[0, BZ[2][0] + 0.13], [1.3, BZ[2][0] + 0.13], [0.6, BZ[0][0] + 0.13]]) { const sz = S(fz), px = X(fx, fz), py = Y(0.47, fz);
+      for (const [fx0, fz0] of [[-0.5, BZ[2][0] + 0.13], [0.8, BZ[2][0] + 0.13], [0.1, BZ[0][0] + 0.13]]) { const fx = BENCH.x + fx0, fz = fz0 + dz, sz = S(fz), px = X(fx, fz), py = Y(0.47, fz);
         c.fillStyle = night ? "#D9CFC6" : "#EFE6D6"; c.beginPath(); for (let i = 0; i < 9; i++) { const a = i / 9 * TAU, r = (0.3 + 0.04 * Math.sin(i * 3.1)) * sz; c.ellipse(px + Math.cos(a) * r * 0.6, py + Math.sin(a) * r * 0.12, r * 0.45, r * 0.16, 0, 0, TAU); } c.fill(); }
     }
     // Sprechblase über einem Kopf: springt kurz auf (Federn), bleibt 2,8 s, nie über den Bildrand
@@ -8869,7 +8869,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.16.0";
+  const VERSION = "0.16.1";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender, WXN = window.CMKulisse.wetter;
@@ -9138,7 +9138,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   // Die drei, um die es geht (direkt vor dir, direkt hinter dir, der Führende), stehen rechts neben der Hütte. Sie necken vor dem
   // Wurf, spotten bei Fehlwürfen, klatschen widerwillig bei guten. Einmal je Wettkampf wirft der Schummler im Anlauf einen
   // Schneeball: wer den Schritt genau trifft, duckt sich weg; sonst wackelt der Takt zwei Schritte. Gelb und sein nächster Wurf zählt nicht.
-  const RIV_POS = [[-4.5, 7.0], [-0.3, 7.2], [-2.2, 9.8]];   // links und rechts der Feuerschale, einer dahinter   // rechts neben der Hütte, hinter der Anlaufbahn
+  const RIV_POS = [[-3.6, 14.6], [0.6, 14.9], [-1.4, 17.6]];   // links und rechts der Feuerschale, einer dahinter   // rechts neben der Hütte, hinter der Anlaufbahn
   const SAY_RIV = {
     tease: ["Hopp, zeig emol, was chasch!", "Mal luege, ob s langet …", "Nöd z fescht verchrampfe!", "Bisch nervös?", "Hüt gwünn ich!", "Lauf nöd über de Balke!", "Gäll, s isch chalt i de Finger?"],
     spott: ["Hesch Gfrörni i de Finger?", "Das isch jo es Schneeflöckli gsi!", "Mini Grossmueter wirft wiiter!", "Gang lieber go schlittle!", "Hesch Chäsfondue i de Arm?", "Das isch kei Wurf, das isch es Gschänkli!", "Zielwasser vergässe?", "Nomal üebe, gäll!", "Do chunnt jo nöd emol de Hund naa!"],
