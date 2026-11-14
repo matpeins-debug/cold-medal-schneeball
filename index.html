@@ -7500,6 +7500,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       for (let row = 2; row >= 0; row--) for (const p of P) {
         if (p.row !== row || p.x < xMin - 2 || p.x > xMax + 2) continue;
         const hh = (p.ph * 1000) % 1, mode = Math.floor(hh * 6), sc = SCARF[Math.floor(p.ph * 37) % SCARF.length];
+        const fem = (p.ph * 7919) % 1 < 0.45, hcol = ["#3A2A1E", "#6B4A2E", "#C9A35A", "#8A3A22"][Math.floor(p.ph * 13) % 4], scarf = fem && (p.ph * 31) % 1 < 0.35;
         const cheer = focus && focus.landed && p.ch < 0.55 && Math.abs(p.x - focus.x) < 26;
         // Bewegung: Atmen, Gewicht verlagern, vor Kälte trippeln, Jubelsprünge
         const shift = Math.sin(t * (0.7 + hh * 0.5) + p.ph * 3);
@@ -7510,7 +7511,9 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
         // Beine mit Stiefeln: trippeln vor Kälte, sonst Gewicht von einem Bein aufs andere
         { const tr = mode === 4 || (cold && mode === 0) || cheer, lw = bw * 0.36;
           for (const sd of [-1, 1]) { const up = tr ? Math.max(0, Math.sin(t * 6 + p.ph + (sd > 0 ? Math.PI : 0))) * 0.06 * ppm : 0, lx = sd * bw * 0.2 + shift * 0.02 * ppm;
-            c.fillStyle = "#3B3A40"; c.fillRect(lx - lw / 2, -legH - up, lw, legH * 0.85); c.fillStyle = "#4A2F1F"; c.fillRect(lx - lw / 2 - 0.02 * ppm, -legH * 0.18 - up, lw + 0.06 * ppm, legH * 0.18); } }
+            c.fillStyle = fem ? "#E9E2D2" : "#3B3A40"; c.fillRect(lx - lw / 2, -legH - up, lw, legH * 0.85); c.fillStyle = "#4A2F1F"; c.fillRect(lx - lw / 2 - 0.02 * ppm, -legH * 0.18 - up, lw + 0.06 * ppm, legH * 0.18); }
+          if (fem) { c.fillStyle = ["#7A2E3A", "#2F4A6B", "#3F5A3A", "#5A3A6A"][Math.floor(p.ph * 17) % 4]; c.beginPath(); c.moveTo(-bw * 0.48, -legH * 1.0); c.lineTo(bw * 0.48, -legH * 1.0); c.lineTo(bw * 0.62, -legH * 0.42); c.lineTo(-bw * 0.62, -legH * 0.42); c.closePath(); c.fill();
+            c.fillStyle = "rgba(255,255,255,0.25)"; c.fillRect(-bw * 0.6, -legH * 0.5, bw * 1.2, legH * 0.05); } }
         c.translate(0, -legH * 0.92); c.rotate(lean);
         // Körper: Jacke mit Schulterrundung, Lichtkante, Reissverschluss
         c.fillStyle = p.body; c.beginPath(); c.moveTo(-bw / 2, 0); c.lineTo(-bw / 2, -sh + bw * 0.38); c.quadraticCurveTo(-bw / 2, -sh, 0, -sh); c.quadraticCurveTo(bw / 2, -sh, bw / 2, -sh + bw * 0.38); c.lineTo(bw / 2, 0); c.closePath(); c.fill();
@@ -7519,11 +7522,18 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
         // Kopf: dreht leicht zum Ball
         const look = lookX == null ? Math.sin(t * 0.3 + p.ph * 5) * 0.6 : clamp((lookX - p.x) / 12, -1, 1);
         const hr = 0.13 * k * ppm, hx = look * hr * 0.25, hy = -sh - hr * 0.9 + (storm ? hr * 0.35 : 0);
+        // Frauen: Zöpfe in Haarfarbe, manche mit Kopftuch statt Mütze (Mat 14.11.2026)
+        if (fem) { const sw2 = Math.sin(t * 2 + p.ph) * hr * 0.12 + w.d * w.g * hr * 0.3; c.strokeStyle = hcol; c.lineWidth = Math.max(1.4, hr * 0.55);
+          for (const sd of [-1, 1]) { c.beginPath(); c.moveTo(hx + sd * hr * 0.8, hy); c.quadraticCurveTo(hx + sd * hr * 1.05 + sw2, hy + hr * 1.3, hx + sd * hr * 0.9 + sw2, hy + hr * 2.3); c.stroke(); }
+          c.fillStyle = sc; for (const sd of [-1, 1]) { c.beginPath(); c.arc(hx + sd * hr * 0.9 + sw2, hy + hr * 2.3, hr * 0.2, 0, TAU); c.fill(); } }
         c.fillStyle = p.skin; c.beginPath(); c.arc(hx, hy, hr, 0, TAU); c.fill();
+        if (fem) { c.fillStyle = hcol; c.beginPath(); c.arc(hx, hy - hr * 0.15, hr * 1.02, Math.PI * 1.05, Math.PI * 1.95); c.fill(); }
         if (ppm > 12) { c.fillStyle = "#2A2420"; const ex = hx + look * hr * 0.45; c.fillRect(ex - hr * 0.42, hy - hr * 0.1, Math.max(1, hr * 0.16), Math.max(1, hr * 0.16)); c.fillRect(ex + hr * 0.22, hy - hr * 0.1, Math.max(1, hr * 0.16), Math.max(1, hr * 0.16));
           c.fillStyle = "rgba(220,90,80,0.35)"; c.beginPath(); c.arc(ex - hr * 0.45, hy + hr * 0.3, hr * 0.18, 0, TAU); c.arc(ex + hr * 0.45, hy + hr * 0.3, hr * 0.18, 0, TAU); c.fill(); }
         // Mütze mit Bommel, der beim Wippen und im Wind schwingt
-        if (p.hat) { c.fillStyle = p.hat; c.beginPath(); c.arc(hx, hy - hr * 0.1, hr * 1.06, Math.PI, TAU); c.closePath(); c.fill();
+        if (scarf) { c.fillStyle = p.hat || "#B8283E"; c.beginPath(); c.moveTo(hx - hr * 1.15, hy + hr * 0.5); c.quadraticCurveTo(hx - hr * 1.2, hy - hr * 1.3, hx, hy - hr * 1.15); c.quadraticCurveTo(hx + hr * 1.2, hy - hr * 1.3, hx + hr * 1.15, hy + hr * 0.5); c.lineTo(hx + hr * 0.8, hy + hr * 0.1); c.quadraticCurveTo(hx, hy - hr * 0.9, hx - hr * 0.8, hy + hr * 0.1); c.closePath(); c.fill();
+          c.fillStyle = "rgba(255,255,255,0.7)"; for (let d = -2; d <= 2; d++) { c.beginPath(); c.arc(hx + d * hr * 0.42, hy - hr * 0.75 + Math.abs(d) * hr * 0.1, hr * 0.08, 0, TAU); c.fill(); } }
+        else if (p.hat) { c.fillStyle = p.hat; c.beginPath(); c.arc(hx, hy - hr * 0.1, hr * 1.06, Math.PI, TAU); c.closePath(); c.fill();
           c.fillStyle = "rgba(255,255,255,0.35)"; c.fillRect(hx - hr * 1.06, hy - hr * 0.22, hr * 2.12, hr * 0.22);
           if (p.ht === 2) { const bx = hx + w.d * w.g * hr * 0.6 + Math.sin(t * 6 + p.ph) * hr * 0.12 * (hop > 0.01 ? 2 : 0.6); c.fillStyle = p.hat; c.beginPath(); c.arc(bx, hy - hr * 1.2, hr * 0.42, 0, TAU); c.fill(); } }
         // Schal: Wickel am Hals, Ende flattert in Windrichtung
@@ -7587,6 +7597,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     // kämpfen, stehen mit Namen und Fahne neben der Hütte, schauen zu, spotten, klatschen widerwillig, verschränken die Arme;
     // der Schummler wirft auch mal einen Schneeball. Sprechblase über dem Kopf, nie über den Bildrand.
     const NAT_COL = { SUI: "#C23B2A", NOR: "#1F3563", AUT: "#B5262E", GER: "#3A3A3A", ITA: "#2E6B3A", POL: "#B8283E", FRA: "#24438C", CZE: "#1E4F86" };
+    const RIVAL_KIT_F = { head: "hair", feet: "shoes", torso: "sweater", legs: "knickers", glove: "suit", bootC: "#3A2A1E", pants: ["#5A3A4A", "#4A2E3C"] };
     const RIVAL_KIT = { head: "cap", feet: "shoes", torso: "sweater", legs: "knickers", glove: "suit", bootC: "#3A2A1E", pants: ["#4A4038", "#3A322C"] };
     function rivals(c, M, RV, t) {
       const { X, Y, S } = M;
@@ -7600,7 +7611,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
         else if (r.mood === "arme") pose = g({ lean: -2, aF: [24, 118], aB: [30, 112], hd: -8 });
         else if (r.mood === "wurf") pose = F.seq(THROW, clamp(u / 0.7, 0, 1));
         else pose = F.idle(F.POSES.stand, t + r.ph * 3, 0.8);
-        const o = { x, y, s, dir: r.dir || -1, pose, look: F.cleanLook(r.look), kit: RIVAL_KIT, three: false, mood: r.mood === "spott" ? "froh" : r.mood === "arme" ? "traurig" : null };
+        const o = { x, y, s, dir: r.dir || -1, pose, look: F.cleanLook(r.look), kit: r.fem ? RIVAL_KIT_F : RIVAL_KIT, three: false, mood: r.mood === "spott" ? "froh" : r.mood === "arme" ? "traurig" : null };
         ctx_shadow(c, o.x, o.y, 8 * s);
         drawFig(c, o);
         // Namensschild mit Fahne
@@ -8253,6 +8264,84 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
         o.start(t); jit.start(t); nz.start(t); o.stop(t + 0.3 + L); jit.stop(t + 0.3 + L); nz.stop(t + 0.3 + L);
       }
     },
+    // ------------------------------------------------------------------ Rufe und Lärm aus dem Alpenbrauch (Mat 14.11.2026: „mindestens 10,
+    // nicht bei jedem Wurf, nur wenn es weit oder besonders kurz geht“). Stimmen aus Formanten, Instrumente und Geräusche synthetisch.
+    // weit: Juchzer, Jodelruf, Juchizer-Chor (Bayern), Fingerpfiff, Treicheln (Kuhglocken, CH), Goaßlschnalzen (Peitschen, Bayern/Salzburg),
+    //       „Hopp! Hopp! Hopp!“ (CH), Tusch vom Örgeli (Bierzelt), Klatschmarsch (A), Rätsche (Holzratsche), „Allez!“ (Savoyen), „Juhej!“ (Slowenien)
+    // Rekord: Böllerschuss (Böllerschützen, Bayern/Tirol) mit Echo, dazu Treicheln und Juchzer
+    // kurz:  „Oje!“, enttäuschtes „Uuuh“ der Menge, Gelächter
+    voice(o) {
+      const a = ctx(); if (!a) return;
+      if (!S._glot) { const N = 40, re = new Float32Array(N), im = new Float32Array(N); for (let k = 1; k < N; k++) im[k] = Math.pow(k, -1.25) * (k % 2 ? 1 : 0.8); S._glot = a.createPeriodicWave(re, im); }
+      const V = { a: [730, 1090, 2440], e: [530, 1840, 2480], i: [300, 2200, 2950], o: [570, 840, 2410], u: [320, 800, 2240], oe: [400, 1500, 2350] };
+      const t = a.currentTime + (o.delay || 0), fk = o.fem ? 1.15 : 1, L = o.f[o.f.length - 1][0];
+      const src = a.createOscillator(), jit = a.createOscillator(), jg = a.createGain(), mix = a.createGain(), e = a.createGain();
+      src.setPeriodicWave(S._glot); jit.type = "triangle"; jit.frequency.value = 6 + Math.random() * 3; jg.gain.value = o.f[0][1] * 0.012; jit.connect(jg); jg.connect(src.frequency);
+      src.frequency.setValueAtTime(o.f[0][1], t); for (const [dt, f] of o.f.slice(1)) src.frequency.linearRampToValueAtTime(f, t + dt);
+      [1, 0.55, 0.2].forEach((gn, k) => { const bp = a.createBiquadFilter(), fg = a.createGain(); bp.type = "bandpass"; bp.Q.value = 4 + k;
+        bp.frequency.setValueAtTime(V[o.v[0][1]][k] * fk, t); for (const [dt, v] of o.v.slice(1)) bp.frequency.linearRampToValueAtTime(V[v][k] * fk, t + dt);
+        fg.gain.value = gn * 2.2; src.connect(bp); bp.connect(fg); fg.connect(mix); });
+      if (o.h) { const nz = a.createBufferSource(), nf = a.createBiquadFilter(), ng = a.createGain(); nz.buffer = noiseBuf; nf.type = "bandpass"; nf.frequency.value = 1300; nf.Q.value = 0.7;
+        ng.gain.value = 0.0001; for (const dt of o.h) { ng.gain.setValueAtTime(0.0001, t + dt); ng.gain.linearRampToValueAtTime(0.12, t + dt + 0.02); ng.gain.linearRampToValueAtTime(0.0001, t + dt + 0.07); }
+        nz.connect(nf); nf.connect(ng); ng.connect(mix); nz.start(t); nz.stop(t + L + 0.1); }
+      const vol = (o.vol || 0.35) * (0.7 + Math.random() * 0.4);
+      e.gain.setValueAtTime(0.0001, t); for (const [dt, g] of o.amp) e.gain.linearRampToValueAtTime(Math.max(0.0001, g * vol), t + dt);
+      const lp = a.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = o.far ? 2200 : 3600; mix.connect(lp); lp.connect(e);
+      const pn = a.createStereoPanner ? a.createStereoPanner() : null; if (pn) { pn.pan.value = o.pan != null ? o.pan : Math.random() * 1.6 - 0.8; e.connect(pn); pn.connect(out); } else e.connect(out);
+      if (rev) { const sd = a.createGain(); sd.gain.value = 0.45; e.connect(sd); sd.connect(rev); }
+      if (o.echo && echo) { const sd = a.createGain(); sd.gain.value = 0.3; e.connect(sd); sd.connect(echo); }
+      src.start(t); jit.start(t); src.stop(t + L + 0.15); jit.stop(t + L + 0.15);
+    },
+    // kurzer Schlag (Glocke, Peitsche, Klatschen, Ratsche): gefiltertes Rauschen
+    hit(t, f, q, vol, dur, type, dest) {
+      const a = A; const n = a.createBufferSource(), fl = a.createBiquadFilter(), g = a.createGain(); n.buffer = noiseBuf; n.playbackRate.value = 0.5 + Math.random();
+      fl.type = type || "bandpass"; fl.frequency.value = f; fl.Q.value = q; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      n.connect(fl); fl.connect(g); g.connect(dest || out); n.start(t, Math.random() * 0.5); n.stop(t + dur + 0.02);
+    },
+    cheer(kind) {
+      const a = ctx(); if (!a) return null;
+      const T = a.currentTime + 0.05, rnd = (x, y) => x + Math.random() * (y - x), fem = () => Math.random() < 0.45;
+      const fx = {
+        juchzer: () => S.juchzer(1 + Math.floor(Math.random() * 2)),
+        jodel: () => { const f = fem(), b = f ? 300 : 190, P = [[0, b], [0.16, b * 1.5], [0.3, b * 1.25], [0.44, b * 1.5], [0.6, b * 2], [0.95, b * 1.9], [1.15, b * 1.7]];
+          S.voice({ fem: f, f: P, v: [[0, "o"], [0.15, "i"], [0.3, "i"], [0.44, "i"], [0.6, "oe"], [1.15, "oe"]], h: [0], amp: [[0.03, 0.8], [0.14, 0.5], [0.17, 0.9], [0.29, 0.6], [0.31, 0.9], [0.43, 0.6], [0.46, 0.9], [0.95, 0.85], [1.15, 0.0001]], echo: true, vol: 0.27 }); },
+        chor: () => { for (let i = 0; i < 4; i++) { const b = rnd(170, 230); S.voice({ delay: i * rnd(0.12, 0.3), f: [[0, b], [0.12, b * 1.05], [0.15, b * 1.6], [0.6, b * 1.75], [0.9, b * 1.2]], v: [[0, "u"], [0.14, "e"], [0.9, "e"]], h: [0.13], amp: [[0.03, 0.7], [0.13, 0.4], [0.18, 0.9], [0.7, 0.8], [0.9, 0.0001]], far: true, vol: 0.25 }); } },
+        pfiff: () => { const o = a.createOscillator(), g = a.createGain(); o.type = "sine";
+          o.frequency.setValueAtTime(1900, T); o.frequency.exponentialRampToValueAtTime(3200, T + 0.18); o.frequency.setValueAtTime(3200, T + 0.22); o.frequency.exponentialRampToValueAtTime(2300, T + 0.55);
+          g.gain.setValueAtTime(0.0001, T); g.gain.linearRampToValueAtTime(0.18, T + 0.04); g.gain.setValueAtTime(0.18, T + 0.45); g.gain.exponentialRampToValueAtTime(0.0001, T + 0.6);
+          o.connect(g); g.connect(out); if (rev) g.connect(rev); o.start(T); o.stop(T + 0.65); S.hit(T, 2600, 2, 0.04, 0.5); },
+        treicheln: () => { for (const f0 of [rnd(380, 450), rnd(520, 600), rnd(660, 760)]) for (let k = 0; k < 7; k++) { const t = T + k * rnd(0.17, 0.26) + rnd(0, 0.1);
+            for (const [m, gv, d] of [[1, 0.06, 0.9], [2.42, 0.04, 0.6], [3.9, 0.025, 0.4], [5.4, 0.015, 0.3]]) { const o = a.createOscillator(), g = a.createGain(); o.type = "sine"; o.frequency.value = f0 * m;
+              g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(gv, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + d); o.connect(g); g.connect(out); if (rev) g.connect(rev); o.start(t); o.stop(t + d + 0.05); }
+            S.hit(t, 3000, 3, 0.05, 0.03); } },
+        goassl: () => { for (let w = 0; w < 3; w++) for (let k = 0; k < 8; k++) { const t = T + w * 0.06 + k * 0.32 + rnd(-0.01, 0.01); S.hit(t, 2500, 0.6, 0.5, 0.025, "highpass"); if (echo) S.hit(t, 1800, 0.8, 0.15, 0.03, "bandpass", echo); } },
+        hopp: () => { for (let k = 0; k < 3; k++) for (let i = 0; i < 7; i++) { const b = rnd(150, 260) * (Math.random() < 0.4 ? 1.5 : 1);
+            S.voice({ delay: k * 0.48 + rnd(0, 0.04), f: [[0, b * 1.05], [0.16, b * 0.95]], v: [[0, "o"], [0.16, "o"]], h: [0], amp: [[0.03, 0.9], [0.12, 0.7], [0.18, 0.0001]], far: true, vol: 0.2 }); }
+          for (let k = 0; k < 3; k++) for (let i = 0; i < 10; i++) S.hit(T + k * 0.48 + 0.2 + rnd(0, 0.04), 1500, 1.2, 0.12, 0.05); },
+        tusch: () => { for (const n of [55, 62, 67, 71, 74, 79]) { const f = 440 * Math.pow(2, (n - 69) / 12), bp = a.createBiquadFilter(), g = a.createGain(); bp.type = "bandpass"; bp.frequency.value = Math.min(3200, f * 2.2); bp.Q.value = 0.7;
+            g.gain.setValueAtTime(0.0001, T); g.gain.linearRampToValueAtTime(0.09, T + 0.03); g.gain.setValueAtTime(0.09, T + 0.9); g.gain.exponentialRampToValueAtTime(0.0001, T + 1.3);
+            for (const det of [-10, 10]) { const o = a.createOscillator(); o.type = "sawtooth"; o.frequency.value = f; o.detune.value = det; o.connect(bp); o.start(T); o.stop(T + 1.35); }
+            const pn = a.createStereoPanner ? a.createStereoPanner() : null; bp.connect(g); if (pn) { pn.pan.value = -0.4; g.connect(pn); pn.connect(out); } else g.connect(out); if (rev) g.connect(rev); } },
+        klatsch: () => { for (let k = 0; k < 10; k++) { const t = T + k * (0.42 - k * 0.012); for (let i = 0; i < 14; i++) S.hit(t + rnd(0, 0.035), rnd(1200, 2200), 1.3, 0.24, 0.05); } },
+        ratsche: () => { for (let k = 0; k < 34; k++) S.hit(T + k * 0.038, 2400, 3, 0.32 * Math.sin(Math.PI * k / 34) + 0.05, 0.025); },
+        allez: () => { for (let i = 0; i < 3; i++) { const b = rnd(180, 250); S.voice({ delay: i * rnd(0.05, 0.2), f: [[0, b], [0.18, b * 1.12], [0.5, b * 1.3], [0.7, b * 1.1]], v: [[0, "a"], [0.18, "a"], [0.26, "e"], [0.7, "e"]], amp: [[0.03, 0.8], [0.18, 0.6], [0.24, 0.95], [0.55, 0.8], [0.7, 0.0001]], far: true, vol: 0.28 }); } },
+        juhej: () => { const f = fem(), b = f ? 320 : 200; S.voice({ fem: f, f: [[0, b], [0.14, b * 1.1], [0.18, b * 1.8], [0.55, b * 1.9], [0.75, b * 1.4]], v: [[0, "u"], [0.15, "u"], [0.2, "e"], [0.75, "e"]], h: [0.15], amp: [[0.03, 0.8], [0.14, 0.4], [0.2, 1], [0.55, 0.85], [0.75, 0.0001]], echo: true }); },
+        boeller: () => { const o = a.createOscillator(), g = a.createGain(); o.type = "sine"; o.frequency.setValueAtTime(90, T); o.frequency.exponentialRampToValueAtTime(32, T + 0.6);
+          g.gain.setValueAtTime(0.9, T); g.gain.exponentialRampToValueAtTime(0.0001, T + 1.2); o.connect(g); g.connect(out); if (echo) g.connect(echo); o.start(T); o.stop(T + 1.25);
+          S.hit(T, 300, 0.5, 0.9, 0.8, "lowpass"); if (echo) S.hit(T, 600, 0.6, 0.6, 0.6, "lowpass", echo); },
+        oje: () => { for (let i = 0; i < 3; i++) { const b = rnd(170, 260); S.voice({ delay: i * rnd(0.05, 0.25), f: [[0, b * 1.15], [0.3, b], [0.7, b * 0.75]], v: [[0, "o"], [0.28, "o"], [0.36, "e"], [0.7, "e"]], amp: [[0.04, 0.8], [0.3, 0.6], [0.38, 0.8], [0.7, 0.0001]], far: true, vol: 0.27 }); } },
+        uuuh: () => { for (let i = 0; i < 8; i++) { const b = rnd(140, 280); S.voice({ delay: rnd(0, 0.15), f: [[0, b * 1.1], [1.1, b * 0.78]], v: [[0, "u"], [1.1, "u"]], amp: [[0.15, 0.7], [0.8, 0.5], [1.1, 0.0001]], far: true, vol: 0.16 }); } },
+        lachen: () => { for (let i = 0; i < 3; i++) { const b = rnd(160, 300), d = i * rnd(0.05, 0.3), n = 4 + Math.floor(Math.random() * 3), F = [], V2 = [], Am = []; for (let k = 0; k < n; k++) { const tk = k * 0.16; F.push([tk, b * (1.3 - k * 0.06)], [tk + 0.1, b * (1.2 - k * 0.06)]); V2.push([tk, "a"]); Am.push([tk + 0.02, 0.9], [tk + 0.1, 0.3], [tk + 0.15, 0.05]); }
+            S.voice({ delay: d, f: F, v: V2, h: F.filter((_, j) => j % 2 === 0).map((q) => q[0]), amp: Am, far: true, vol: 0.24 }); } },
+      };
+      if (kind === "list") return Object.keys(fx);
+      if (fx[kind]) { fx[kind](); return kind; }
+      // Auswahl nach Anlass, nie zweimal dasselbe hintereinander
+      const POOL = { rekord: ["boeller"], weit: ["juchzer", "jodel", "chor", "pfiff", "treicheln", "goassl", "hopp", "tusch", "klatsch", "ratsche", "allez", "juhej"], kurz: ["oje", "uuuh", "lachen"] };
+      const L = (POOL[kind] || POOL.weit).filter((k) => k !== S._lastCheer); const k = L[Math.floor(Math.random() * L.length)] || "juchzer"; S._lastCheer = k; fx[k]();
+      if (kind === "rekord") { setTimeout(() => fx.treicheln(), 600); setTimeout(() => S.juchzer(2), 900); }
+      return k;
+    },
     // Alphorn während des Flugs (Naturtöne über Fis, wie ein echtes Alphorn): u = Höhe des Balls 0 … 1 wählt den Naturton,
     // gleitend gebunden; mit Echo von den Bergen. Gibt { set(u), stop() } zurück.
     alphorn() {
@@ -8433,7 +8522,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.14.0";
+  const VERSION = "0.14.1";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender;
@@ -8720,6 +8809,8 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     G.rivals = null; if (!G.comp || G.mode !== "comp") return;
     const L = C.ranked(G.comp).filter((a) => !a.dsq), mi = L.findIndex((a) => a.me), out = [];
     for (const k of [mi - 1, mi + 1, 0, ...L.map((_, j) => j).sort((x, y) => Math.abs(x - mi) - Math.abs(y - mi))]) { const a = L[k]; if (a && !a.me && !out.includes(a)) out.push(a); if (out.length === 3) break; }
+    // mindestens eine Frau an der Seite (Mat 14.11.2026)
+    if (!out.some((a) => FEM.test(a.name))) { const w = L.filter((a) => !a.me && FEM.test(a.name)).sort((x, y) => Math.abs(L.indexOf(x) - mi) - Math.abs(L.indexOf(y) - mi))[0]; if (w) out[out.length > 2 ? 1 : out.length] = w; }
     if (G.snipeAt === G.n && G.sniper && !G.sniper.dsq && !out.includes(G.sniper)) out[2] = G.sniper;
     G.rivals = out.map((a, i) => ({ a, i, mood: "idle", at: 0, say: null }));
   }
@@ -8748,7 +8839,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     if (!["ready", "run", "angle", "spin", "fly", "measure", "foul", "check", "checkOk", "rack", "show"].includes(G.phase)) return null;
     return G.rivals.map((r) => { const [x, z] = RIV_POS[r.i];
       if (r.mood !== "idle" && r.mood !== "arme" && now - r.at > 3) r.mood = "idle";
-      return { name: shortName(r.a.name), nat: r.a.nat, x, z, dir: G.th.x < x ? -1 : 1, mood: r.mood, at: r.at, ph: r.i * 1.7, say: r.say && now - r.at < 2.8 ? r.say : null, look: rivalLook(r.a) }; });
+      return { name: shortName(r.a.name), nat: r.a.nat, x, z, dir: G.th.x < x ? -1 : 1, mood: r.mood, at: r.at, ph: r.i * 1.7, say: r.say && now - r.at < 2.8 ? r.say : null, look: rivalLook(r.a), fem: FEM.test(r.a.name) }; });
   }
   // Störwurf: geplant beim Start des Wettkampfs (Versuch 2 … 4), nur im Anlauf, nie im Trülli
   function planSnipe() {
@@ -9650,7 +9741,12 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       R0.landed = true; AU.thud(true);
       if (R0.ok) AU.applause(R0.rec ? 1.2 : R0.pb ? 0.8 : R0.val >= (R0.ziel ? 5 : 45) ? 0.5 : 0.25);
       // Juchzer aus dem Publikum bei guten Würfen
-      if (R0.ok && AU.juchzer) { const n = R0.rec ? 3 : R0.pb ? 2 : R0.val >= (R0.ziel ? 7 : 50) ? 1 : 0; if (n) setTimeout(() => AU.juchzer(n), testMode ? 0 : 250); }
+      // Rufe aus dem Alpenbrauch, nur ab und zu: Rekord immer (Böller), Bestweite meist, sehr weit oft, sehr kurz oder ungültig manchmal
+      if (AU.cheer) {
+        const far = R0.ziel ? R0.val >= 8 : R0.val >= 52, short = !R0.ok || (R0.ziel ? R0.val <= 1 : R0.val < 30);
+        const k = R0.rec ? "rekord" : R0.pb && Math.random() < 0.8 ? "weit" : far && Math.random() < 0.6 ? "weit" : short && Math.random() < 0.35 ? "kurz" : null;
+        if (k) setTimeout(() => { G && (G.lastCheer = AU.cheer(k)); }, testMode ? 0 : 250);
+      }
       G.gestT = now;
     }
     // Kamera: erst beim Aufschlag, nach dem Hochzählen zurück zum Werfer, der jubelt oder abwinkt
