@@ -6946,12 +6946,15 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       if (a.drill) return;
       const { X, Y, S } = M, cx = X(a.x, 0), cy = Y(1.55, 0), R0 = Math.max(46, 2.4 * S(0));
       c.save();
-      c.fillStyle = "rgba(241,231,210,0.82)"; c.strokeStyle = INK; c.lineWidth = 2;
-      c.beginPath(); c.moveTo(cx, cy); c.arc(cx, cy, R0, -Math.PI / 2, 0); c.closePath(); c.fill(); c.stroke();
-      c.fillStyle = "rgba(63,107,85,0.75)";
-      c.beginPath(); c.moveTo(cx, cy); c.arc(cx, cy, R0 - 2, -44 * Math.PI / 180, -36 * Math.PI / 180); c.closePath(); c.fill();
-      c.strokeStyle = "rgba(20,27,37,0.35)"; c.lineWidth = 1;
-      for (let d = 15; d < 90; d += 15) { const r = d * Math.PI / 180; c.beginPath(); c.moveTo(cx + Math.cos(r) * (R0 - 7), cy - Math.sin(r) * (R0 - 7)); c.lineTo(cx + Math.cos(r) * R0, cy - Math.sin(r) * R0); c.stroke(); }
+      // Viertelkreis nur beim Halten, im Anlauf sieht man die Figur frei laufen
+      if (a.deg != null) {
+        c.fillStyle = "rgba(241,231,210,0.82)"; c.strokeStyle = INK; c.lineWidth = 2;
+        c.beginPath(); c.moveTo(cx, cy); c.arc(cx, cy, R0, -Math.PI / 2, 0); c.closePath(); c.fill(); c.stroke();
+        c.fillStyle = "rgba(63,107,85,0.75)";
+        c.beginPath(); c.moveTo(cx, cy); c.arc(cx, cy, R0 - 2, -44 * Math.PI / 180, -36 * Math.PI / 180); c.closePath(); c.fill();
+        c.strokeStyle = "rgba(20,27,37,0.35)"; c.lineWidth = 1;
+        for (let d = 15; d < 90; d += 15) { const r = d * Math.PI / 180; c.beginPath(); c.moveTo(cx + Math.cos(r) * (R0 - 7), cy - Math.sin(r) * (R0 - 7)); c.lineTo(cx + Math.cos(r) * R0, cy - Math.sin(r) * R0); c.stroke(); }
+      }
       if (a.deg != null) {
         const r = a.deg * Math.PI / 180;
         c.strokeStyle = "#C23B2A"; c.lineWidth = 4; c.lineCap = "round";
@@ -7803,7 +7806,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.9.2";
+  const VERSION = "0.9.3";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender;
@@ -8217,7 +8220,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       updChips(); return;
     }
     G.phase = "ready"; G.th.dir = 1; G.th.x = START_X; G.th.vx = 0;
-    setCam(START_X + 6.5, 44);
+    setCam(START_X + 5, 58);
     if (G.mode === "train" && !G.drilled) { G.drilled = true; return drillIntro(); }
     hint(null);
     updChips();
@@ -8308,7 +8311,8 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     // der erste Schritt ist zum Reinkommen, verpassen kostet nichts
     for (let f = 2; footT(f) + 0.2 < now; f++) if (!R0.tapped[f]) { R0.tapped[f] = 1; R0.accs.push(0); R0.last = { acc: 0, at: now, miss: true }; (R0.log = R0.log || []).push({ f, acc: 0, miss: true }); }
   }
-  const rhythm = () => { const a = G.run.accs.slice(-4); return a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0.3; };
+  // Tempo kommt nur vom Tippen (Mat 14.11.2026): Schnitt der letzten drei Schritte; vor dem ersten Tipp ein halber Schwung vom Antritt
+  const rhythm = () => { const a = G.run.accs.slice(-3); return a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0.45; };
   const angRate = () => ANG_RATE * (1 + 0.12 * (G.luz || 0));
   const curAngle = () => clamp((now - G.ang.t0) * angRate(), 0, 89);
   function throwAngle() {
@@ -8407,10 +8411,14 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     }
     if (G.phase === "ready") th.pose = F.ease(th.pose, F.idle(R.POSE.hold, now, 1), dt);
     if (G.phase === "run" || G.phase === "angle") {
-      // Tempo aus dem Rhythmus: gut im Takt bis 6,4 m/s, daneben um 3 m/s
+      // Tempo nur aus dem Tippen: im Takt bis 6,4 m/s; wer nicht tippt, läuft aus und bleibt stehen
       if (G.phase === "run") stepMiss();
-      const vT = 2.6 + 3.8 * rhythm();
-      th.vx += (vT - th.vx) * Math.min(1, dt * (th.vx < vT ? 2.2 : 1.2));
+      const vT = 6.4 * rhythm();
+      th.vx += (vT - th.vx) * Math.min(1, dt * (th.vx < vT ? 2.2 : 1.6));
+      if (G.phase === "run" && th.vx < 0.35 && vT < 0.35 && !ptr) {
+        G.phase = "ready"; G.run = null; th.vx = 0; th.pose = R.POSE.hold; th.swap = false;
+        hint("Stehen geblieben – tippe im Takt, dann läuft er", "top"); return;
+      }
       th.x += th.vx * dt;
       // halten wird zum Winkel
       if (G.phase === "run" && ptr && ptr.press && now - ptr.t0 >= HOLD) { G.phase = "angle"; G.ang = { t0: ptr.t0 }; ptr.press = false; }
@@ -8418,7 +8426,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       const imp = th.x > -2.8, u = (((now - G.run.t0) / (2 * STEP)) % 1 + 1) % 1;
       const rp = R.runPose(u, imp); th.swap = rp.swap; th.pose = th.vx < 1 ? F.ease(th.pose, rp.pose, dt, true) : rp.pose;
       footTick(G.phase === "run");
-      setCam(Math.min(-1.2, th.x + 6.5), 44);
+      setCam(Math.min(-1.2, th.x + 5), 58);
       if (th.x >= 0.05) { ptr = null; foul(); }
     }
     if (G.phase === "drill") {
