@@ -58,7 +58,7 @@ h2 { font-family: var(--font-display); font-size: 21px; line-height: 1.1; text-t
 html, body, body * { -webkit-hyphens: manual; hyphens: manual; }
 .ps-lbl.ps-lbl { -webkit-hyphens: manual; hyphens: manual; overflow-wrap: normal; }
 .card.menu .mid, .card.menu .big > span, .pill { white-space: nowrap; }
-.card.menu .big > span { display: block; overflow: hidden; }
+.card.menu .big > span { display: block; overflow: hidden; align-self: stretch; width: 100%; max-width: 100%; }
 .card.menu .big span { line-height: 1.1; font-size: 18px; }
 .card.menu .big small { line-height: 1.2; }
 .card.menu .mid { padding: 8px 6px; font-size: 12.5px; letter-spacing: 0.03em; text-align: center; line-height: 1.15; }
@@ -300,6 +300,15 @@ table.mini tr.me td { background: var(--gold); }
 
 /* Steuerung der Reihe: Hinweis unter der Kopfzeile, nicht über den Chips */
 #hud .cs-hint.cs-oben { top: 50px; }
+
+/* Weitwurf als drei Wettkämpfe (0.15): Überchopf, Trülli, Schiferli nebeneinander */
+.mWeit { display: flex; flex-direction: column; gap: 3px; }
+.mWeitK { font-family: var(--font-display); font-weight: 700; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.row3 { display: flex; gap: 6px; }
+.row3 > * { flex: 1 1 0; min-width: 0; }
+.card.menu .row3 .big { padding: 5px 4px; text-align: center; }
+.card.menu .row3 .big > span { font-size: 14px; letter-spacing: 0.01em; line-height: 1.3; overflow: visible; text-align: center; }
+.card.menu .row3 .big small { display: block; font-size: 11px; white-space: nowrap; overflow: visible; align-self: stretch; width: 100%; max-width: 100%; text-align: center; }
 
 /* Cold Medal Games · Fenster „Deine Figur“ (pass/pass.css)
    Aussehen wie die Menüs des Skispringens: Papier mit Doppelrahmen, Knöpfe wie Druckmarken, Futura für Titel und Knöpfe,
@@ -557,7 +566,12 @@ table.mini tr.me td { background: var(--gold); }
     <div class="card menu">
       <div class="kicker">Wettkampf-Programm</div>
       <div class="col">
-        <button class="big red" id="bComp"><span>Weitwurf</span><small id="mComp"></small></button>
+        <div class="mWeit"><div class="mWeitK">Weitwurf</div>
+          <div class="row3">
+            <button class="big red" id="bComp"><span>Überchopf</span><small id="mComp"></small></button>
+            <button class="big red" id="bTrue"><span>Trülli</span><small id="mTrue"></small></button>
+            <button class="big red" id="bSchi"><span>Schiferli</span><small id="mSchi"></small></button>
+          </div></div>
         <button class="big red" id="bZiel"><span>Zielwurf</span><small id="mZiel"></small></button>
         <button class="big" id="bTrain"><span>Training Weitwurf</span><small id="mTrain"></small></button>
         <div class="row2">
@@ -600,7 +614,7 @@ table.mini tr.me td { background: var(--gold); }
         <h3>Spiel</h3>
         <p>Inoffizielles Fanspiel der Reihe Cold Medal Games. Alle Werferinnen und Werfer sind erfunden; St. Moritz ist frei nachempfunden (Plakatstil der 1920er).</p>
         <h3>So geht’s</h3>
-        <p>Ball wählen: Walnuss verzeiht einen schiefen Takt, Mandarine passt immer, Orange fliegt mit sauberem Takt am weitesten; dazu ein verbotener Eisball. Dein Helfer hat sie fertig im Korb, oder du formst selbst (Fleck wählen, Größe wählen, im Takt drücken, wenn sich der Ring schließt). Weitwurf: Tippen startet den Anlauf; tippe bei jedem Schritt, wenn der Fuß aufsetzt (Leiste oben: tippen, wenn ein Punkt die Linie trifft; der erste Schritt ist frei) – im Takt wirst du schneller. Vor dem Balken den Finger liegen lassen: der Winkel steigt; bei etwa 40° loslassen, und zwar wenn der Kreis den Wurf-Knopf berührt (Stemmschritt: bis 8 % weiter, daneben bis 15 % weniger). Drei Techniken: Überchopf (so, der Allrounder), Trülli (Drehwurf am Balken wie beim Diskus: im Takt tippen dreht schneller, „Wurf“ wenn der Pfeil grün ins Feld zeigt; am weitesten, aber schnell im Aus) und Schiferli (flach seitlich, um 26°: zieht unter dem Wind durch, bei Gegenwind und Sturm vorn). Nicht über den Balken treten. Im Wettkampf stehen deine drei direkten Gegner neben der Hütte und kommentieren jeden Wurf. Einmal pro Wettkampf wirft einer im Anlauf einen Schneeball nach dir: Tippst du den nächsten Schritt genau, duckst du dich weg, sonst kommst du kurz aus dem Takt. Der Kampfrichter zeigt Gelb, sein Wurf zählt nicht. Zielwurf wie beim Basketball: gerade nach oben wischen, Richtung Schneemann. Die Länge des Wischens füllt die Kraftleiste links; trifft sie die Marke „Perfekt Kraft“, sitzt der Wurf. Die Marke wandert mit dem Abstand.</p>
+        <p>Ball wählen: Walnuss verzeiht einen schiefen Takt, Mandarine passt immer, Orange fliegt mit sauberem Takt am weitesten; dazu ein verbotener Eisball. Dein Helfer hat sie fertig im Korb, oder du formst selbst (Fleck wählen, Größe wählen, im Takt drücken, wenn sich der Ring schließt). Weitwurf: Tippen startet den Anlauf; tippe bei jedem Schritt, wenn der Fuß aufsetzt (Leiste oben: tippen, wenn ein Punkt die Linie trifft; der erste Schritt ist frei) – im Takt wirst du schneller. Vor dem Balken den Finger liegen lassen: der Winkel steigt; bei etwa 40° loslassen, und zwar wenn der Kreis den Wurf-Knopf berührt (Stemmschritt: bis 8 % weiter, daneben bis 15 % weniger). Weitwurf gibt es als drei Wettkämpfe, in denen alle dieselbe Technik werfen (im Training wählst du sie im Korb): Überchopf (so, der Allrounder), Trülli (Drehwurf am Balken wie beim Diskus: im Takt tippen dreht schneller, „Wurf“ wenn der Pfeil grün ins Feld zeigt; am weitesten, aber schnell im Aus) und Schiferli (flach seitlich, um 26°: zieht unter dem Wind durch, bei Gegenwind und Sturm vorn). Nicht über den Balken treten. Im Wettkampf stehen deine drei direkten Gegner neben der Hütte und kommentieren jeden Wurf. Einmal pro Wettkampf wirft einer im Anlauf einen Schneeball nach dir: Tippst du den nächsten Schritt genau, duckst du dich weg, sonst kommst du kurz aus dem Takt. Der Kampfrichter zeigt Gelb, sein Wurf zählt nicht. Zielwurf wie beim Basketball: gerade nach oben wischen, Richtung Schneemann. Die Länge des Wischens füllt die Kraftleiste links; trifft sie die Marke „Perfekt Kraft“, sitzt der Wurf. Die Marke wandert mit dem Abstand.</p>
         <h3>Kafi Luz</h3>
         <p>Der Hüttenwirt schenkt vor jedem Wurf ein Kafi Luz aus (Kaffee mit Träsch), ein Glas je Wurf, höchstens vier im Blut. Es wärmt und macht Mut: der Wurf hat mehr Kraft, bei Frost und im Sturm noch etwas mehr. Dafür kommt der Takt aus dem Tritt (die Schritte werden unregelmäßig), der Winkel steigt schneller und das Bild schwankt. Beim Zielwurf beruhigt ein Glas die Hand, mehr lässt sie zittern. Nach jedem Wurf baut sich ein halbes Glas ab.</p>
         <h3>Schnee</h3>
@@ -919,7 +933,7 @@ table.mini tr.me td { background: var(--gold); }
     b.n = 6; b.accSum = 6 * clamp(0.55 + sk * 0.45 + gauss(r) * 0.08, 0, 1);
     return { b, type: sn.type, size };
   }
-  function aiThrow(a, n, c, seed, best) {
+  function aiThrow(a, n, c, seed, best, force) {
     const r = rng(hash("ai", seed, a.name, n)), sk = a.sk, { b, type, size } = aiBall(a, n, c, seed, best, r);
     if (P.state(b) === "eis" && P.checked(seed, a.name, n)) return { dist: 0, valid: false, why: "dsq", type, size };
     const inp = {
@@ -928,7 +942,7 @@ table.mini tr.me td { background: var(--gold); }
     };
     // Technik je nach Wetter und Können: bei Gegenwind und Sturm Schiferli, Könner wagen bei ruhigem Wetter den Trülli
     const head = -((c.wind && c.wind.x) || 0), q = r();
-    inp.tech = (head > 2.5 || c.sky === "sturm") && q < 0.7 ? "schifer" : head < 1.5 && sk > 0.78 && q < 0.3 ? "truelli" : "chopf";
+    inp.tech = force || ((head > 2.5 || c.sky === "sturm") && q < 0.7 ? "schifer" : head < 1.5 && sk > 0.78 && q < 0.3 ? "truelli" : "chopf");
     if (inp.tech === "schifer") inp.ang = 26 + gauss(r) * (1.5 + (1 - sk) * 5);
     if (inp.tech === "truelli") { inp.ang = P.TECH.truelli.ang + gauss(r) * 2; inp.run = 0; inp.lat = gauss(r) * (8 + (1 - sk) * 18); inp.rh = clamp(0.45 + sk * 0.4 + gauss(r) * 0.1, 0, 1); inp.kraft *= 0.9; inp.pow = Math.min(inp.pow, 1); }
     inp.foul = inp.tech !== "truelli" && r() < 0.03 + (1 - sk) * 0.03;
@@ -946,14 +960,14 @@ table.mini tr.me td { background: var(--gold); }
   }
 
   // Neuer Wettkampf: Feld (ohne den Spieler) und Bedingungen. ev = "weit" oder "ziel"
-  function create(seed, c, me, nAI, ev) {
+  function create(seed, c, me, nAI, ev, tech) {
     const r = rng(hash("feld", seed));
     const pool = FIELD.slice().sort(() => r() - 0.5).slice(0, nAI || 11).map((f) => ({ name: f[0], nat: f[1], sk: clamp(f[2] + (r() - 0.5) * 0.08, 0.2, 1), me: false }));
     // zwei im Feld schummeln gern mit Eisbällen
     for (let i = 0; i < pool.length; i++) pool[i].cheat = i % 5 === 2 ? 0.45 : 0.02;
     const all = [...pool, { name: me.name, nat: me.nat, sk: 1, me: true, cheat: 0 }];
     for (const a of all) { a.tries = []; a.dsq = false; }
-    return { seed, c, all, ev: ev || "weit", round: 0, best: P.bestChoice(c), done: false };
+    return { seed, c, all, ev: ev || "weit", tech: tech || null, round: 0, best: P.bestChoice(c), done: false };
   }
   // Wertung: Weitwurf = weitester Wurf, Zielwurf = Summe der Punkte; ausgeschlossen = 0 und ganz unten
   const score = (C, a) => (a.dsq ? -1 : C.ev === "ziel" ? a.tries.reduce((s, t) => s + (t && t.valid ? t.pts : 0), 0) : bestOf(a));
@@ -971,7 +985,7 @@ table.mini tr.me td { background: var(--gold); }
   function aiRound(C, n) {
     for (const a of C.all) {
       if (a.me || a.dsq) continue;
-      const t = C.ev === "ziel" ? aiAim(a, n, C.c, C.seed, C.best) : aiThrow(a, n, C.c, C.seed, C.best);
+      const t = C.ev === "ziel" ? aiAim(a, n, C.c, C.seed, C.best) : aiThrow(a, n, C.c, C.seed, C.best, C.tech);
       if (a.penal && t.why !== "dsq") { t.valid = false; t.why = "gelb"; t.pts = 0; a.penal = false; }   // Gelb nach dem Störwurf
       a.tries[n] = t;
       if (t.why === "dsq") a.dsq = true;
@@ -7211,6 +7225,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       const zP = ZB + 1.4, sP = S(zP), Xp = (x) => X(x, zP), Yp = (y) => Y(y, zP);
       const xl = cam.cx - W / 2 / sP - 2, xr = cam.cx + W / 2 / sP + 2;
       crowd(ctx, world, Xp, Yp, sP, t, xl, xr, V);
+      if (V.shouts) for (const sh of V.shouts) { const u = t - sh.at; if (u >= 0 && u < 2.8) bubble(ctx, Xp(sh.x), Yp(2.25), sh.text, u); }
       // Schneewall mit Holzzaun (Pfosten alle 2 m), Tafel mit dem Ortsnamen
       const zF = ZB;
       ctx.fillStyle = night ? "#D7CCD0" : "#E9EDF0";
@@ -7241,6 +7256,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       fireBasket(ctx, M, 9.5, ZB - 1.2, t, night);
       flagPole(ctx, M, -4.4, 10.5, t, night);
       benches(ctx, M, t, night);
+      if (V.rivals) rivals(ctx, M, V.rivals.filter((r) => r.z > FIRE.z), t);   // wer hinter dem Feuer steht, zuerst
       fireBowl(ctx, M, FIRE.x, FIRE.z, t, night);
       hut(ctx, M, night, t);
       snowman(ctx, M);
@@ -7259,7 +7275,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       // Fotograf weit draußen, Messhelfer im Feld
       if (V.photo) photographer(ctx, M, V.photo, t);
       if (V.helper) helperFig(ctx, M, V.helper, t);
-      if (V.rivals) rivals(ctx, M, V.rivals, t);
+      if (V.rivals) rivals(ctx, M, V.rivals.filter((r) => r.z <= FIRE.z), t);
       // Werfer
       if (V.thrower) {
         const th = V.thrower, s = S(th.z || 0) * KF;
@@ -7847,6 +7863,17 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       for (const [fx, fz] of [[0, BZ[2][0] + 0.13], [1.3, BZ[2][0] + 0.13], [0.6, BZ[0][0] + 0.13]]) { const sz = S(fz), px = X(fx, fz), py = Y(0.47, fz);
         c.fillStyle = night ? "#D9CFC6" : "#EFE6D6"; c.beginPath(); for (let i = 0; i < 9; i++) { const a = i / 9 * TAU, r = (0.3 + 0.04 * Math.sin(i * 3.1)) * sz; c.ellipse(px + Math.cos(a) * r * 0.6, py + Math.sin(a) * r * 0.12, r * 0.45, r * 0.16, 0, 0, TAU); } c.fill(); }
     }
+    // Sprechblase über einem Kopf: springt kurz auf (Federn), bleibt 2,8 s, nie über den Bildrand
+    function bubble(c, x, top, text, u) {
+      const bf = 13, pop = u < 0.25 ? 1 + 0.25 * Math.sin(u / 0.25 * Math.PI) : 1, a = clamp(Math.min(u / 0.12, (2.8 - u) / 0.3), 0, 1);
+      c.save(); c.font = `italic 600 ${bf}px 'Iowan Old Style', Georgia, serif`;
+      const sw = c.measureText(text).width, pw = sw + 16, ph = bf + 12, px = clamp(x - pw / 2, 4, W - pw - 4), py = top - 8 - ph;
+      c.translate(x, top); c.scale(pop, pop); c.translate(-x, -top);
+      c.globalAlpha = a; c.fillStyle = "#FBF8F1"; c.strokeStyle = INK; c.lineWidth = 1.5;
+      c.beginPath(); c.moveTo(px + 6, py); c.lineTo(px + pw - 6, py); c.quadraticCurveTo(px + pw, py, px + pw, py + 6); c.lineTo(px + pw, py + ph - 6); c.quadraticCurveTo(px + pw, py + ph, px + pw - 6, py + ph);
+      const tx = clamp(x, px + 12, px + pw - 12); c.lineTo(tx + 6, py + ph); c.lineTo(tx, py + ph + 8); c.lineTo(tx - 6, py + ph); c.lineTo(px + 6, py + ph); c.quadraticCurveTo(px, py + ph, px, py + ph - 6); c.lineTo(px, py + 6); c.quadraticCurveTo(px, py, px + 6, py); c.closePath(); c.fill(); c.stroke();
+      c.fillStyle = INK; c.textAlign = "left"; c.textBaseline = "alphabetic"; c.fillText(text, px + 8, py + ph - 8); c.restore();
+    }
     // Gegner an der Hütte (Mat 14.11.2026: „man hat überhaupt keinen Bezug zu den Gegnern“): die drei, die um deinen Platz
     // kämpfen, stehen mit Namen und Fahne neben der Hütte, schauen zu, spotten, klatschen widerwillig, verschränken die Arme;
     // der Schummler wirft auch mal einen Schneeball. Sprechblase über dem Kopf, nie über den Bildrand.
@@ -7864,10 +7891,16 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
         else if (r.mood === "klatsch") pose = Math.sin(t * 11 + r.ph) > 0 ? g({ lean: 4, aF: [64, 52], aB: [64, 52], hd: 2 }) : g({ lean: 4, aF: [56, 18], aB: [56, 18], hd: 2 });
         else if (r.mood === "arme") pose = g({ lean: -2, aF: [24, 118], aB: [30, 112], hd: -8 });
         else if (r.mood === "wurf") pose = F.seq(THROW, clamp(u / 0.7, 0, 1));
+        else if (r.idle === "warm") { const rub = Math.sin(t * 7 + r.ph) * 10; pose = g({ lean: 12, sL: [4, 6], fL: [-4, 6], aF: [78, 34 + rub], aB: [74, 34 - rub], hd: 8 }); }
+        else if (r.idle === "krug") { const sip = Math.max(0, Math.sin(t * 0.6 + r.ph * 2) - 0.7) / 0.3; pose = g({ lean: 2 - sip * 6, aF: [54 + sip * 40, 96 + sip * 30], aB: [-6, -8], hd: -sip * 16 }); }
         else pose = F.idle(F.POSES.stand, t + r.ph * 3, 0.8);
-        const o = { x, y, s, dir: r.dir || -1, pose, look: F.cleanLook(r.look), kit: r.fem ? RIVAL_KIT_F : RIVAL_KIT, three: false, mood: r.mood === "spott" ? "froh" : r.mood === "arme" ? "traurig" : null };
+        const lift = r.idle === "tripp" && (!r.mood || r.mood === "idle") ? Math.abs(Math.sin(t * 5 + r.ph)) * 0.035 : 0;
+        const o = { x, y, s, lift, dir: r.dir || -1, pose, look: F.cleanLook(r.look), kit: r.fem ? RIVAL_KIT_F : RIVAL_KIT, three: false, mood: r.mood === "spott" ? "froh" : r.mood === "arme" ? "traurig" : null };
         ctx_shadow(c, o.x, o.y, 8 * s);
         drawFig(c, o);
+        // Glühweinkrug mit Dampf in der Hand
+        if (r.idle === "krug" && (!r.mood || r.mood === "idle")) { const h = handAt(o), k2 = Math.max(1.5, 0.11 * S(z)); c.fillStyle = "#B8342A"; c.fillRect(h[0] - k2 * 0.6, h[1] - k2 * 1.4, k2 * 1.2, k2 * 1.4); c.fillStyle = "#FBF8F1"; c.fillRect(h[0] - k2 * 0.6, h[1] - k2 * 1.05, k2 * 1.2, k2 * 0.3);
+          for (let k = 0; k < 3; k++) { const a = (t * 0.5 + k / 3 + r.ph) % 1; c.fillStyle = `rgba(255,255,255,${0.5 * (1 - a)})`; c.beginPath(); c.arc(h[0] + Math.sin(t * 2 + k) * k2 * 0.3, h[1] - k2 * (1.6 + a * 3), k2 * (0.3 + a * 0.5), 0, TAU); c.fill(); } }
         // Namensschild mit Fahne
         const top = y - 92 * s, fs = Math.max(9, Math.min(12, 0.24 * S(z)));
         c.font = `700 ${fs}px Futura, 'Avenir Next Condensed', sans-serif`;
@@ -7875,16 +7908,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
         c.fillStyle = "rgba(251,248,241,0.92)"; c.fillRect(bx, top - fs - 4, bw, fs + 7); c.strokeStyle = INK; c.lineWidth = 1; c.strokeRect(bx, top - fs - 4, bw, fs + 7);
         c.save(); c.translate(bx + 3, top - fs - 1); ST.drawFlag(c, r.nat, fw, fs); c.restore();
         c.fillStyle = INK; c.textAlign = "left"; c.textBaseline = "alphabetic"; c.fillText(r.name, bx + fw + 7, top);
-        // Sprechblase
-        if (r.say && u < 2.8) {
-          const a = clamp(Math.min(u / 0.15, (2.8 - u) / 0.3), 0, 1), bf = 13;
-          c.font = `italic 600 ${bf}px 'Iowan Old Style', Georgia, serif`;
-          const sw = c.measureText(r.say).width, pw = sw + 16, ph = bf + 12, px = clamp(x - pw / 2, 4, W - pw - 4), py = top - fs - 12 - ph;
-          c.globalAlpha = a; c.fillStyle = "#FBF8F1"; c.strokeStyle = INK; c.lineWidth = 1.5;
-          c.beginPath(); c.moveTo(px + 6, py); c.lineTo(px + pw - 6, py); c.quadraticCurveTo(px + pw, py, px + pw, py + 6); c.lineTo(px + pw, py + ph - 6); c.quadraticCurveTo(px + pw, py + ph, px + pw - 6, py + ph);
-          const tx = clamp(x, px + 12, px + pw - 12); c.lineTo(tx + 6, py + ph); c.lineTo(tx, py + ph + 8); c.lineTo(tx - 6, py + ph); c.lineTo(px + 6, py + ph); c.quadraticCurveTo(px, py + ph, px, py + ph - 6); c.lineTo(px, py + 6); c.quadraticCurveTo(px, py, px + 6, py); c.closePath(); c.fill(); c.stroke();
-          c.fillStyle = INK; c.fillText(r.say, px + 8, py + ph - 8); c.globalAlpha = 1;
-        }
+        if (r.say && u < 2.8) bubble(c, x, top - fs - 4, r.say, u);
       }
     }
     // Messhelfer: Bub mit Pudelmütze, bückt sich am Aufschlag und steckt einen Holzpflock mit Fähnchen
@@ -8372,50 +8396,42 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
         src.connect(fl); fl.connect(g); g.connect(out); src.start(); lfo.start(); amb = { src, lfo, g };
       } else if (!want && amb) { try { amb.src.stop(); amb.lfo.stop(); } catch (e) { /* schon aus */ } amb = null; }
     },
-    // Ländler im Dreivierteltakt, gespielt von einem Musikanten neben der Hütte (Mat 14.11.2026: „rustikaler, als würde jemand
-    // neben dem Haus musizieren“): Schwyzerörgeli mit zwei leicht verstimmten Stimmzungen (Schwebung), Bass-Knöpfe und
-    // „um-pa-pa“, dazu ein Bassgeiger. Dumpf durch die Luft (Tiefpass), etwas links, mit Hall; Timing und Lautstärke wie von Hand,
-    // ab und zu ein Vorschlag. Teil A in G-Dur, Teil B in D-Dur, je 8 Takte, dann wieder von vorn.
+    // Ländler auf der Zither (0.15, Mat: „das mit der Musik klingt total falsch“): gezupfte Saiten nach Karplus-Strong statt
+    // verstimmter Sägezähne. Bass auf 1, Akkord auf 2 und 3 (Begleitsaiten), Melodie auf dem Griffbrett, ruhig und gleichmäßig.
+    // Klingt von der Seite der Hütte (leicht links, etwas dumpf, mit Hall). Teil A G-Dur, Teil B D-Dur, je 8 Takte.
+    pluck(n) {
+      const a = A; S._ks = S._ks || {}; if (S._ks[n]) return S._ks[n];
+      const sr = a.sampleRate, f = 440 * Math.pow(2, (n - 69) / 12), len = Math.floor(sr * (n < 50 ? 1.8 : 1.3)), N = Math.max(2, Math.floor(sr / f - 0.5));
+      const buf = a.createBuffer(1, len, sr), y = buf.getChannelData(0), damp = n < 50 ? 0.4985 : 0.4975;
+      let prev = 0; for (let i = 0; i < N; i++) { const r = Math.random() * 2 - 1; prev = prev * 0.5 + r * 0.5; y[i] = prev; }   // Anriss, leicht weich
+      for (let i = N; i < len; i++) y[i] = damp * (y[i - N] + y[i - N + 1]);
+      let mx = 0; for (let i = 0; i < len; i++) mx = Math.max(mx, Math.abs(y[i])); for (let i = 0; i < len; i++) y[i] /= mx || 1;
+      buf.rate = f * (N + 0.5) / sr;   // Feinstimmung: die Saite klingt bei sr / (N + ½), Abspielrate gleicht auf die genaue Tonhöhe aus
+      return (S._ks[n] = buf);
+    },
     music(want) {
       if (!want) { if (mus) { clearInterval(mus.iv); mus.g.gain.setTargetAtTime(0.0001, A.currentTime, 0.4); mus = null; } return; }
       const a = ctx(); if (!a || mus) return;
-      const g = a.createGain(); g.gain.value = 0.0001; g.gain.setTargetAtTime(0.2, a.currentTime, 0.6);
-      const lp = a.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 2300; lp.Q.value = 0.5;
-      const pan = a.createStereoPanner ? a.createStereoPanner() : null; if (pan) pan.pan.value = -0.4;
-      g.connect(lp); (pan ? (lp.connect(pan), pan) : lp).connect(out); if (rev) { const sd = a.createGain(); sd.gain.value = 0.55; lp.connect(sd); sd.connect(rev); }
-      const hz = (n) => 440 * Math.pow(2, (n - 69) / 12), hum = (x) => x + (Math.random() - 0.5) * x;
-      // Takte: [Bass, Akkord, Melodie als [Ton, Dauer in Vierteln]]
-      const G = [55, [62, 67, 71]], D = [50, [62, 66, 69]], C = [48, [64, 67, 72]], A7 = [57, [61, 64, 67]];
+      const g = a.createGain(); g.gain.value = 0.0001; g.gain.setTargetAtTime(0.32, a.currentTime, 0.6);
+      const lp = a.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 3800;
+      const pan = a.createStereoPanner ? a.createStereoPanner() : null; if (pan) pan.pan.value = -0.35;
+      g.connect(lp); (pan ? (lp.connect(pan), pan) : lp).connect(out); if (rev) { const sd = a.createGain(); sd.gain.value = 0.4; lp.connect(sd); sd.connect(rev); }
+      const play = (n, t, vol) => { const src = a.createBufferSource(), e = a.createGain(); src.buffer = S.pluck(n); src.playbackRate.value = src.buffer.rate || 1; e.gain.value = vol; src.connect(e); e.connect(g); src.start(t); };
+      const Gd = [43, [59, 62, 67]], Dd = [38, [57, 62, 66]], Cd = [36, [60, 64, 67]], A7 = [45, [57, 61, 67]];
       const BARS = [
-        [G, [[74, 1], [79, 1], [83, 1]]], [D, [[81, 1], [78, 1], [74, 1]]], [G, [[79, 1.5], [81, 0.5], [83, 1]]], [C, [[84, 1], [83, 1], [81, 1]]],
-        [G, [[79, 1], [83, 1], [86, 1]]], [D, [[84, 1], [81, 1], [78, 1]]], [D, [[76, 1], [78, 1], [81, 1]]], [G, [[79, 2], [0, 1]]],
-        [D, [[78, 1], [81, 1], [86, 1]]], [A7, [[85, 1], [81, 1], [76, 1]]], [A7, [[79, 1.5], [78, 0.5], [76, 1]]], [D, [[74, 1], [78, 1], [81, 1]]],
-        [G, [[83, 1], [79, 1], [74, 1]]], [C, [[76, 1], [79, 1], [84, 1]]], [D, [[83, 1], [81, 1], [78, 1]]], [G, [[79, 2], [0, 1]]],
+        [Gd, [[74, 1], [79, 1], [83, 1]]], [Dd, [[81, 1], [78, 1], [74, 1]]], [Gd, [[79, 1.5], [81, 0.5], [83, 1]]], [Cd, [[84, 1], [83, 1], [81, 1]]],
+        [Gd, [[79, 1], [83, 1], [86, 1]]], [Dd, [[84, 1], [81, 1], [78, 1]]], [Dd, [[76, 1], [78, 1], [81, 1]]], [Gd, [[79, 2], [0, 1]]],
+        [Dd, [[78, 1], [81, 1], [86, 1]]], [A7, [[85, 1], [81, 1], [76, 1]]], [A7, [[79, 1.5], [78, 0.5], [76, 1]]], [Dd, [[74, 1], [78, 1], [81, 1]]],
+        [Gd, [[83, 1], [79, 1], [74, 1]]], [Cd, [[76, 1], [79, 1], [84, 1]]], [Dd, [[83, 1], [81, 1], [78, 1]]], [Gd, [[79, 2], [0, 1]]],
       ];
-      // Örgeli-Ton: zwei Sägezahn-Stimmzungen ±9 Cent über einen Bandpass (Holzkasten), weicher Balg-Einsatz
-      const reed = (f, t, d, vol) => {
-        const bp = a.createBiquadFilter(), e = a.createGain(); bp.type = "bandpass"; bp.frequency.value = Math.min(3200, f * 2.2); bp.Q.value = 0.7;
-        e.gain.setValueAtTime(0.0001, t); e.gain.linearRampToValueAtTime(vol, t + 0.035); e.gain.setTargetAtTime(vol * 0.7, t + 0.05, 0.15); e.gain.setTargetAtTime(0.0001, t + d, 0.04);
-        for (const det of [-9, 9]) { const o = a.createOscillator(); o.type = "sawtooth"; o.frequency.value = f; o.detune.value = det; o.connect(bp); o.start(t); o.stop(t + d + 0.3); }
-        bp.connect(e); e.connect(g);
-      };
-      // Bassgeige: gezupft, kurzer Holzton
-      const bass = (f, t, vol) => { const o = a.createOscillator(), e = a.createGain(), l = a.createBiquadFilter(); o.type = "triangle"; o.frequency.value = f; l.type = "lowpass"; l.frequency.value = 600;
-        e.gain.setValueAtTime(0.0001, t); e.gain.exponentialRampToValueAtTime(vol, t + 0.01); e.gain.exponentialRampToValueAtTime(0.0001, t + 0.45); o.connect(l); l.connect(e); e.connect(g); o.start(t); o.stop(t + 0.5); };
-      let bar = 0, next = a.currentTime + 0.15, beat = 0.25;
+      const beat = 0.27;
+      let bar = 0, next = a.currentTime + 0.15;
       const sched = () => {
-        while (next < a.currentTime + 0.7) {
+        while (next < a.currentTime + (S._horizon || 0.8)) {
           const [[b0, ch], mel] = BARS[bar % BARS.length];
-          beat = 0.245 + Math.sin(bar * 0.7) * 0.008;                 // der Musikant drückt und zieht etwas
-          const v = 0.8 + Math.random() * 0.25;
-          bass(hz(b0 - 12), hum(next) , 0.55 * v); reed(hz(b0), next + 0.005, beat * 0.8, 0.07 * v);
-          for (const k of [1, 2]) for (const c of ch) reed(hz(c), next + k * beat + Math.random() * 0.012, beat * 0.45, 0.03 * v);
-          let tt = next;
-          for (const [m, du] of mel) {
-            if (m) { if (Math.random() < 0.18) reed(hz(m + 2), tt - 0.045, 0.04, 0.05 * v);   // Vorschlag
-              reed(hz(m), tt + Math.random() * 0.015, beat * du * 0.92, 0.075 * v); }
-            tt += beat * du;
-          }
+          play(b0, next, 0.55);
+          for (const k of [1, 2]) ch.forEach((c, i) => play(c, next + k * beat + i * 0.012, 0.18));   // Akkord leicht gestrichen
+          let tt = next; for (const [m, du] of mel) { if (m) { play(m, tt, 0.5); if (du >= 1.5) play(m, tt + beat * 0.75, 0.22); } tt += beat * du; }
           next += 3 * beat; bar++;
         }
       };
@@ -8763,7 +8779,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.14.2";
+  const VERSION = "0.15.0";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender, WXN = window.CMKulisse.wetter;
@@ -8778,14 +8794,14 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 
   // ------------------------------------------------------------------ Spielstand (nur auf diesem Gerät; Name, Land und Figur im Pass)
   const KEY = "coldmedal-schneeball";
-  const DEF = { v: 1, glove: "wolle", sound: 1, fig3d: 1, rec: { comp: 0, train: 0, ziel: 0 }, medals: [0, 0, 0], tips: { form: 0, throw: 0, ziel: 0, stemm: 0, truelli: 0, schifer: 0 }, tech: "chopf", train: { temp: -1, tod: "morning", sky: "klar", wind: "mild" }, comps: 0 };
+  const DEF = { v: 1, glove: "wolle", sound: 1, fig3d: 1, rec: { comp: 0, comp_truelli: 0, comp_schifer: 0, train: 0, ziel: 0 }, medals: [0, 0, 0], tips: { form: 0, throw: 0, ziel: 0, stemm: 0, truelli: 0, schifer: 0 }, tech: "chopf", train: { temp: -1, tod: "morning", sky: "klar", wind: "mild" }, comps: 0 };
   function sanitize(o) {
     const S = JSON.parse(JSON.stringify(DEF));
     if (!o || typeof o !== "object") return S;
     if (Ph.GLOVES[o.glove]) S.glove = o.glove;
     S.sound = o.sound === 0 ? 0 : 1;
     S.fig3d = o.fig3d === 0 ? 0 : 1;
-    if (o.rec) for (const k of ["comp", "train", "ziel"]) if (Number.isFinite(o.rec[k]) && o.rec[k] >= 0 && o.rec[k] < 200) S.rec[k] = +o.rec[k];
+    if (o.rec) for (const k of ["comp", "comp_truelli", "comp_schifer", "train", "ziel"]) if (Number.isFinite(o.rec[k]) && o.rec[k] >= 0 && o.rec[k] < 200) S.rec[k] = +o.rec[k];
     if (Array.isArray(o.medals)) S.medals = [0, 1, 2].map((i) => (Number.isInteger(o.medals[i]) && o.medals[i] >= 0 ? o.medals[i] : 0));
     if (Ph.TECH[o.tech]) S.tech = o.tech;
     if (o.tips) for (const k of Object.keys(S.tips)) if (Number.isInteger(o.tips[k])) S.tips[k] = clamp(o.tips[k], 0, 99);
@@ -8848,7 +8864,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   const SCREENS = ["scrMenu", "scrReport", "scrStand", "scrPass", "scrInfo"];
   // Schrift verkleinern, bis der Text in sein Feld passt (iPhone-Schriften laufen breiter)
   function fitText(root) {
-    for (const el of root.querySelectorAll(".rpGrid b, .rpGrid i, .card.menu .mid, .card.menu .big > span, .pill")) {
+    for (const el of root.querySelectorAll(".rpGrid b, .rpGrid i, .card.menu .mid, .card.menu .big > span, .card.menu .row3 .big small, .pill")) {
       el.style.fontSize = ""; let fs = parseFloat(getComputedStyle(el).fontSize), n = 0;
       while (el.scrollWidth > el.clientWidth + 1 && fs > 9 && n++ < 20) { fs -= 1; el.style.fontSize = fs + "px"; }
     }
@@ -8864,8 +8880,9 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   const cam = { cx: -2, ppm: 40 }, camT = { cx: -2, ppm: 40 };
   const isZiel = () => G && G.mode === "ziel";
   const isComp = () => G && (G.mode === "comp" || G.mode === "ziel");
+  const recKey = () => (!G.ctech || G.ctech === "chopf" ? "comp" : "comp_" + G.ctech);
 
-  function newGame(mode, seed) {
+  function newGame(mode, seed, tk) {
     const sd = seed != null ? seed >>> 0 : (Date.now() ^ (Math.random() * 1e9)) >>> 0;
     let cond;
     if (mode === "train") {
@@ -8874,14 +8891,16 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       if (t.sky === "sturm") cond.wind = { x: -4.5, z: 2.2, gust: 2.2 };   // im Sturm gibt es keinen stillen Tag
     } else cond = Ph.conditions(sd);
     const g = { mode, seed: sd, cond, drilled: testMode, n: 0, best: 0, pts: 0, marks: [], helper: { x: 44, z: 5 }, phase: "report", th: { x: START_X, z: 0, dir: 1, pose: F.POSES.stand }, judge: { flag: null, at: 0 }, crumbs: [], tries: [], last: null };
-    if (mode !== "train") g.comp = C.create(sd, cond, { name: myName(), nat: myNat() }, 11, mode === "ziel" ? "ziel" : "weit");
+    g.ctech = mode === "comp" ? (Ph.TECH[tk] ? tk : "chopf") : null;   // Weitwurf-Wettkampf: alle werfen dieselbe Technik
+    if (mode !== "train") g.comp = C.create(sd, cond, { name: myName(), nat: myNat() }, 11, mode === "ziel" ? "ziel" : "weit", g.ctech);
     R.setScene(sd, cond.tod, cond.sky, cond.wind.x);
     return g;
   }
 
   // ------------------------------------------------------------------ Menü
   function fillMenu() {
-    $("mComp").textContent = nb(S.rec.comp ? `Bestweite ${m1(S.rec.comp)} m` : "Wer wirft am weitesten?");
+    const recTxt = (k, alt) => nb(S.rec[k] ? `Beste ${m1(S.rec[k])} m` : alt);
+    $("mComp").textContent = recTxt("comp", "mit Anlauf"); $("mTrue").textContent = recTxt("comp_truelli", "Drehwurf"); $("mSchi").textContent = recTxt("comp_schifer", "flach");
     $("mZiel").textContent = nb(S.rec.ziel ? `Bestwert ${S.rec.ziel} Punkte` : "Triff den Zylinder");
     $("mTrain").textContent = nb((S.rec.train ? `Bestweite ${m1(S.rec.train)} m · ` : "") + "Schnee und Wetter wählen" + (S.medals.some((x) => x) ? ` · ${medalText()}` : ""));
     $("bSound").textContent = S.sound ? "Ton an" : "Ton aus";
@@ -8890,7 +8909,9 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   }
   const medalText = () => [["Gold", 0], ["Silber", 1], ["Bronze", 2]].filter(([, i]) => S.medals[i]).map(([n, i]) => `${S.medals[i]}× ${n}`).join(", ");
   function needName(then) { if (PS.get().name) return then(); pending = then; passUi.open({ ask: true, title: "Wie heißt du?" }); show("scrPass"); }
-  $("bComp").onclick = () => { AU.unlock(); needName(() => openReport("comp")); };
+  $("bComp").onclick = () => { AU.unlock(); needName(() => openReport("comp", "chopf")); };
+  $("bTrue").onclick = () => { AU.unlock(); needName(() => openReport("comp", "truelli")); };
+  $("bSchi").onclick = () => { AU.unlock(); needName(() => openReport("comp", "schifer")); };
   $("bZiel").onclick = () => { AU.unlock(); needName(() => openReport("ziel")); };
   $("bTrain").onclick = () => { AU.unlock(); openReport("train"); };
   $("bFig").onclick = () => { pending = null; passUi.open({ title: "Deine Figur" }); show("scrPass"); };
@@ -8945,11 +8966,11 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     return parts.join(" ");
   }
   let rpMode = "comp";
-  function openReport(mode) { rpMode = mode; G = newGame(mode); fillReport(); show("scrReport"); }
+  function openReport(mode, tk) { rpMode = mode; G = newGame(mode, null, tk); fillReport(); show("scrReport"); }
   function fillReport() {
     const c = G.cond, train = rpMode === "train", ziel = rpMode === "ziel";
     $("rpKick").textContent = train ? "TRAINING · SCHNEE UND WETTER" : "SCHNEEBERICHT";
-    $("rpTitle").textContent = train ? "Wie soll es heute sein?" : ziel ? "Zielwurf in St. Moritz" : "Weitwurf in St. Moritz";
+    $("rpTitle").textContent = train ? "Wie soll es heute sein?" : ziel ? "Zielwurf in St. Moritz" : `${Ph.TECH[G.ctech || "chopf"].name} in St. Moritz`;
     const [ww, wd] = windWord(c.wind);
     $("rpGrid").innerHTML = [
       ["Temperatur", nb(`${String(c.temp).replace(".", ",").replace("-", "−")} °C`), c.temp <= -5 ? "Frost" : c.temp > 1 ? "Tauwetter" : "um null Grad"],
@@ -9027,7 +9048,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   // Die drei, um die es geht (direkt vor dir, direkt hinter dir, der Führende), stehen rechts neben der Hütte. Sie necken vor dem
   // Wurf, spotten bei Fehlwürfen, klatschen widerwillig bei guten. Einmal je Wettkampf wirft der Schummler im Anlauf einen
   // Schneeball: wer den Schritt genau trifft, duckt sich weg; sonst wackelt der Takt zwei Schritte. Gelb und sein nächster Wurf zählt nicht.
-  const RIV_POS = [[-4.1, 6.9], [-0.9, 7.0], [-3.4, 9.4]];   // rechts neben der Hütte, hinter der Anlaufbahn
+  const RIV_POS = [[-4.5, 7.0], [-0.3, 7.2], [-2.2, 9.8]];   // links und rechts der Feuerschale, einer dahinter   // rechts neben der Hütte, hinter der Anlaufbahn
   const SAY_RIV = {
     tease: ["Hopp, zeig emol, was chasch!", "Mal luege, ob s langet …", "Nöd z fescht verchrampfe!", "Bisch nervös?", "Hüt gwünn ich!", "Lauf nöd über de Balke!", "Gäll, s isch chalt i de Finger?"],
     spott: ["Hesch Gfrörni i de Finger?", "Das isch jo es Schneeflöckli gsi!", "Mini Grossmueter wirft wiiter!", "Gang lieber go schlittle!", "Hesch Chäsfondue i de Arm?", "Das isch kei Wurf, das isch es Gschänkli!", "Zielwasser vergässe?", "Nomal üebe, gäll!", "Do chunnt jo nöd emol de Hund naa!"],
@@ -9040,6 +9061,11 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     duck: ["Chabis! Verfehlt.", "Gopferdeckel!", "De hät sich duckt!"],
   };
   const FEM = /^(Hedwig|Resi|Sigrid|Marta|Anni|Vera)/;
+  // Ausrufe aus Schweiz, Österreich, Bayern, Südtirol, Savoyen, Slowenien
+  const EXCL = {
+    weit: ["Juhuii!", "Hopp Schwiiz!", "Holdrio!", "Juchhee!", "Bravo!", "Sapperlot!", "Heieiei, wiit!", "Allez, allez!", "Juhej!", "Jessesmaria!", "Leck, is des weit!", "Uiii, de flüügt!", "Grüezi Mond!", "Da legst di nieder!"],
+    kurz: ["Oje!", "Ojemine!", "Uiuiui …", "Hoppla!", "Ach herrje!", "Herrgott!", "Jesses …", "Mon Dieu!", "Joj!"],
+  };
   function rivalLook(a) {
     const r = Ph.rng(Ph.hash("look", a.name)), fem = FEM.test(a.name);
     return { hair: fem ? [2, 5, 0][Math.floor(r() * 3)] : [1, 6, 7][Math.floor(r() * 3)], hairC: Math.floor(r() * 4), beard: fem ? 0 : [0, 1, 2][Math.floor(r() * 3)], skin: Math.floor(r() * 3),
@@ -9080,7 +9106,8 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     if (!["ready", "run", "angle", "spin", "fly", "measure", "foul", "check", "checkOk", "rack", "show"].includes(G.phase)) return null;
     return G.rivals.map((r) => { const [x, z] = RIV_POS[r.i];
       if (r.mood !== "idle" && r.mood !== "arme" && now - r.at > 3) r.mood = "idle";
-      return { name: shortName(r.a.name), nat: r.a.nat, x, z, dir: G.th.x < x ? -1 : 1, mood: r.mood, at: r.at, ph: r.i * 1.7, say: r.say && now - r.at < 2.8 ? r.say : null, look: rivalLook(r.a), fem: FEM.test(r.a.name) }; });
+      const idle = ["warm", "krug", "tripp"][r.i], calm = r.mood === "idle", fx = R.FIRE.x;
+      return { name: shortName(r.a.name), nat: r.a.nat, x, z, idle, dir: calm && idle === "warm" ? (fx < x ? -1 : 1) : G.th.x < x ? -1 : 1, mood: r.mood, at: r.at, ph: r.i * 1.7, say: r.say && now - r.at < 2.8 ? r.say : null, look: rivalLook(r.a), fem: FEM.test(r.a.name) }; });
   }
   // Störwurf: geplant beim Start des Wettkampfs (Versuch 2 … 4), nur im Anlauf, nie im Trülli
   function planSnipe() {
@@ -9139,7 +9166,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     const h = helper(), nx = HELPERS[HELPERS.indexOf(h) + 1];
     G.rack = makeRack();
     if (G.snipeAt === undefined) planSnipe();
-    G.snipe = null; G.wob = null; G.duck = null; pickRivals();
+    G.snipe = null; G.wob = null; G.duck = null; G.shouts = null; pickRivals();
     $("rkKick").textContent = G.last ? "NÄCHSTER BALL" : "WÄHL DEINEN BALL";
     $("rkWho").textContent = `${h.name}s Korb · ${Ph.SNOW[G.rack[0].ball.type].name}`;
     $("rkFoot").textContent = nx ? nb(`${nx.name} hilft dir ${nx.lock}.`) : "";
@@ -9165,10 +9192,10 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     updChips();
   }
   // Wurftechnik (Mat 14.11.2026): Überchopf, Trülli, Schiferli; gilt für den Weitwurf, gemerkt für den nächsten Wurf
-  const tech = () => (isZiel() ? "chopf" : Ph.TECH[S.tech] ? S.tech : "chopf");
+  const tech = () => (isZiel() ? "chopf" : G.ctech ? G.ctech : Ph.TECH[S.tech] ? S.tech : "chopf");
   const TECH_IDS = ["chopf", "truelli", "schifer"];
   function fillTech() {
-    const box = $("rkTech"); box.hidden = isZiel(); if (box.hidden) return;
+    const box = $("rkTech"); box.hidden = G.mode !== "train"; if (box.hidden) return;   // im Wettkampf ist die Technik der Modus
     box.innerHTML = `<span class="tk">Technik</span>` + TECH_IDS.map((id) => `<button class="pill${tech() === id ? " on" : ""}" data-t="${id}">${esc(Ph.TECH[id].name)}</button>`).join("") + `<em>${esc(Ph.TECH[tech()].use)}</em>`;
     fitText(box);
     box.querySelectorAll("button").forEach((b) => (b.onclick = (e) => { e.stopPropagation(); S.tech = b.dataset.t; save(); AU.press(1, false); fillTech(); }));
@@ -9888,7 +9915,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     let k;
     if (isZiel()) k = res.part || "nix";
     else if (!res.valid) k = res.why === "foul" ? "foul" : "aus";
-    else k = res.dist >= 45 && res.dist > S.rec[isComp() ? "comp" : "train"] ? "rekord" : res.dist >= 50 ? "super" : res.dist >= 40 ? "guet" : "mau";
+    else k = res.dist >= 45 && res.dist > S.rec[isComp() ? recKey() : "train"] ? "rekord" : res.dist >= 50 ? "super" : res.dist >= 40 ? "guet" : "mau";
     // immer bei Rekord, weiten Würfen, Zylinder; sonst etwa jedes zweite Mal
     const must = k === "rekord" || k === "super" || k === "hut", p = { guet: 0.35, mau: 0.45, foul: 0.6, aus: 0.6 }[k] || 0.4;
     if (!must && !testMode && Math.random() > p) { G.say = null; G.lastSay = null; return; }
@@ -9956,7 +9983,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       if (comp) C.me(G.comp).tries[G.n] = { dist: res.dist, valid: res.valid, why: res.why };
       pb = res.valid && res.dist > G.best;
       if (res.valid) G.best = Math.max(G.best, res.dist);
-      const recK = comp ? "comp" : "train"; rec = res.valid && res.dist > S.rec[recK];
+      const recK = comp ? recKey() : "train"; rec = res.valid && res.dist > S.rec[recK];
       if (rec) { S.rec[recK] = res.dist; save(); }
     }
     if (comp) C.aiRound(G.comp, G.n);
@@ -9984,6 +10011,12 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       R0.landed = true; AU.thud(true);
       if (R0.ok) AU.applause(R0.rec ? 1.2 : R0.pb ? 0.8 : R0.val >= (R0.ziel ? 5 : 45) ? 0.5 : 0.25);
       // Juchzer aus dem Publikum bei guten Würfen
+      // Ausrufe aus dem Publikum als Sprechblasen (Mat 14.11.2026: „die Sprüche … das dort steht“), nur bei sehr weit oder sehr kurz
+      { const far = R0.ziel ? R0.val >= 8 : R0.val >= 52, short = !R0.ok || (R0.ziel ? R0.val <= 1 : R0.val < 30);
+        const L = R0.rec || R0.pb || far ? EXCL.weit : short ? EXCL.kurz : null;
+        if (L && (R0.rec || R0.pb || Math.random() < 0.7)) { const n = R0.rec ? 3 : R0.pb ? 2 : 1, used = new Set();
+          G.shouts = []; for (let i = 0; i < n; i++) { let tx; do tx = L[Math.floor(Math.random() * L.length)]; while (used.has(tx) && used.size < L.length); used.add(tx);
+            G.shouts.push({ text: tx, x: cam.cx + (i - (n - 1) / 2) * 5 + (Math.random() - 0.5) * 2, at: now + 0.2 + i * 0.5 }); } } }
       // Rufe aus dem Alpenbrauch, nur ab und zu: Rekord immer (Böller), Bestweite meist, sehr weit oft, sehr kurz oder ungültig manchmal
       if (AU.cheer) {
         const far = R0.ziel ? R0.val >= 8 : R0.val >= 52, short = !R0.ok || (R0.ziel ? R0.val <= 1 : R0.val < 30);
@@ -10081,7 +10114,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   function updChips() {
     if (!G) return;
     const ch = [];
-    ch.push([isComp() ? `${isZiel() ? "Zielwurf" : "Weitwurf"} ${Math.min(G.n + 1, TRIES)}/${TRIES}` : "Training", "dark"]);
+    ch.push([isComp() ? `${isZiel() ? "Zielwurf" : Ph.TECH[G.ctech || "chopf"].name} ${Math.min(G.n + 1, TRIES)}/${TRIES}` : "Training", "dark"]);
     if (isZiel()) { ch.push([nb(`${C.DIST[G.n]} m`), ""]); ch.push([nb(`${G.pts} Punkte`), G.pts ? "good" : ""]); }
     else { ch.push([nb(`${String(G.cond.temp).replace(".", ",").replace("-", "−")} °C · ${Ph.TODS[G.cond.tod]}`), ""]); if (G.best) ch.push([nb(`Beste ${m1(G.best)} m`), "good"]); }
     if (G.ball && G.phase !== "pick" && G.phase !== "form" && G.phase !== "rack") { const st = Ph.state(G.ball); ch.push([`${Ph.SIZE[G.ball.size].name} · ${Ph.SNOW[G.ball.type].name}`, st === "eis" ? "ice" : st === "locker" ? "warn" : ""]); }
@@ -10107,7 +10140,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     return {
       arc: G.phase === "drill" ? { x: th.x, drill: true, lane: null } : ["ready", "run", "angle"].includes(G.phase) ? { x: th.x + 0.25, deg: G.phase === "angle" ? curAngle() : null, speed: null, beat: null, foot: th.x, dots: null, last: null, lane: null, zone: G.tech === "truelli" ? null : ZONE, best: Ph.TECH[G.tech || "chopf"].best } : null,
       spin: G.phase === "spin" ? { x: G.th.x, phi: spinPhi(), win: SPIN_WIN, ok: Math.abs(wrapDeg(spinPhi() * 180 / Math.PI)) < SPIN_WIN, left: Math.max(0, Math.ceil((SPIN_LAST - spinFoot()) / 2)) } : null,
-      rivals: rivalsView(), snipe: snipeView(),
+      rivals: rivalsView(), snipe: snipeView(), shouts: G.shouts || null,
       board: boardLines(), helper: helperView(), dust: G.dust, photo: isZiel() ? null : { x: PHOTO.x, z: PHOTO.z, flash: G.flash != null ? G.flash : null },
       say: G.say && now >= G.say.at && now - G.say.at < 2.6 ? G.say : null,
       cam: G.luz >= 1 ? { cx: cam.cx + Math.sin(now * 0.8) * 0.12 * G.luz, ppm: cam.ppm * (1 + Math.sin(now * 0.53) * 0.008 * G.luz) } : cam, focus: G.focus, marks: G.marks, judge: G.judge, tape: G.tape, crumbs: G.crumbs, ball: G.flyBall || null, trail: G.trail,
@@ -10203,7 +10236,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     runTaps(n) { let f0 = (G.th.lastF || 0) + 1; while (footT(f0) <= now + 1e-6) f0++; for (let f = f0; f < f0 + n && G.phase === "run"; f++) { const tf = footT(f); if (tf > now) this.step(tf - now); stepTap(now); } return G.th.vx; },
     drillTaps(n) { for (let f = 2; f <= n + 1 && G.phase === "drill"; f++) { const tf = footT(f); if (tf > now) this.step(tf - now); stepTap(now); if (drillCount() >= DRILL_N) drillDone(); } return G.phase; },
     step(sec) { const n = Math.ceil(sec / 0.02); for (let i = 0; i < n; i++) update(sec / n); render(); },
-    open(mode, seed) { G = newGame(mode, seed); rpMode = mode; fillReport(); show("scrReport"); },
+    open(mode, seed, tk) { G = newGame(mode, seed, tk); rpMode = mode; fillReport(); show("scrReport"); },
     go() { $("rpGo").click(); },
     pick(id) { if (G.phase === "rack") beginPick(); pickPatch(id); }, size: chooseSize, done: formDone, take: takeRack, self: beginPick,
     pressBeats(n, off) { for (let i = 0; i < n; i++) { const ph = ((now - G.form.t0) / BEAT) % 1; this.step((1 - ph) * BEAT + (off || 0) + 0.0001); formPress(); this.step(0.05); } },
