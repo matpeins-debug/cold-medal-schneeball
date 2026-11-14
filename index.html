@@ -6964,7 +6964,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       if (S3) {
         const L = F.cleanLook(o.look), suit = typeof L.suit === "number" ? F.SUIT[L.suit] : L.suit;
         const g = o.glove in GLOVE3 ? GLOVE3[o.glove] : suit;
-        const img = S3.render({ pose: o.pose, swap: !!o.swap, turn: (o.dir || 1) < 0 ? Math.PI - 0.4 : 0.4, lift: o.lift || 0, look: o.look, outfit: "winter", feet: "boots", shoe: o.kit && o.kit.bootC || "#4A2F1F", glove: g, cap: L.cap || null, pants: "#4D4237", time: o.t });
+        const img = S3.render({ pose: o.pose, swap: !!o.swap, turn: (o.dir || 1) < 0 ? Math.PI - (o.turn != null ? o.turn : 0.4) : (o.turn != null ? o.turn : 0.4), lift: o.lift || 0, look: o.look, outfit: "winter", feet: "boots", shoe: o.kit && o.kit.bootC || "#4A2F1F", glove: g, cap: L.cap || null, pants: "#4D4237", time: o.t });
         const B = root.Figur3D.SPR, sz = (B.x1 - B.x0) * o.s;
         ctx.drawImage(img, o.x + B.x0 * o.s, o.y - B.y1 * o.s, sz, sz);
         return;
@@ -7033,7 +7033,14 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       if (V.thrower) {
         const th = V.thrower, s = S(th.z || 0) * KF;
         ctx.fillStyle = "rgba(60,80,110,0.2)"; ellipse(ctx, X(th.x + 0.05, th.z || 0), Y(0, th.z || 0) + 1, 0.5 * S(th.z || 0), 0.11 * S(th.z || 0));
-        const o = { x: X(th.x, th.z || 0), y: Y(0, th.z || 0), s, dir: th.dir || 1, pose: th.pose, swap: !!th.swap, look: th.look, kit: th.kit, lift: th.lift, mood: th.mood, glove: th.glove, t };
+        const o = { x: X(th.x, th.z || 0), y: Y(0, th.z || 0), s, dir: th.dir || 1, pose: th.pose, swap: !!th.swap, look: th.look, kit: th.kit, lift: th.lift, mood: th.mood, glove: th.glove, t, turn: th.turn };
+        // Schneestaub bei jedem Fußaufsatz: gut getroffen = große helle Wolke, daneben = kleines Bröseln
+        if (V.dust) for (const d of V.dust) {
+          const a = (t - d.t) / 0.55; if (a < 0 || a > 1) continue;
+          const px = X(d.x, 0), py = Y(0, 0), sz = S(0) * (d.good ? 0.55 : 0.25) * (0.4 + a);
+          ctx.fillStyle = `rgba(255,255,255,${(d.good ? 0.85 : 0.5) * (1 - a)})`;
+          for (let k = -1; k <= 1; k++) { ctx.beginPath(); ctx.ellipse(px + k * sz * 0.7 - a * sz * 0.8, py - sz * 0.25 - a * sz * 0.3 * (1 + Math.abs(k)), sz * 0.55, sz * 0.32, 0, 0, TAU); ctx.fill(); }
+        }
         drawFig(ctx, o);
         if (th.held) {
           const h = handAt(o), rr = Math.max(2.6, th.held.d / 2 * S(th.z || 0) * BALLK);
@@ -8106,7 +8113,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.10.2";
+  const VERSION = "0.10.3";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender;
@@ -8664,6 +8671,8 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   }
   function gaitStart(hx) { G.gait = { hx, plant: hx + 0.1, side: false, tOn: now, tOff: null, tNext: now + STEP, n: 0 }; }
   function gaitContact(vx) {
+    const L0 = G.run && G.run.last, good = !!(L0 && L0.acc > 0.5 && now - L0.at < 0.35);
+    (G.dust = G.dust || []).push({ x: G.th.ax != null ? G.th.ax + 0.1 : G.th.x, t: now, good }); if (G.dust.length > 8) G.dust.shift();
     const g = G.gait, r = clamp(0.14 + 0.035 * vx, 0.14, 0.36);
     g.side = !g.side; g.plant = g.hx + r; g.tOn = now; g.tOff = null; g.n++;
     g.tNext = footT((G.th.lastF || 0) + 1);
@@ -8671,8 +8680,8 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   function gaitPose(vx, imp) {
     const g = G.gait, r = clamp(0.14 + 0.035 * vx, 0.14, 0.36), dx = g.hx - g.plant;   // Hüfte vor dem Fuß (m)
     const sw = Math.cos(Math.PI * (g.n + clamp((now - g.tOn) / Math.max(0.1, g.tNext - g.tOn), 0, 1)));
-    const up = imp ? { aF: [-105, -5], aB: [92 + 8 * sw, 8], hd: -6 } : { aF: [-78, -96], aB: [5 + 38 * sw, -88 - 10 * sw], hd: 2 };
-    const lean = imp ? -8 : 6 + 7 * clamp(vx / 6.4, 0, 1);
+    const up = imp ? { aF: [-120, -12], aB: [50 + 12 * sw, 55], hd: -4 } : { aF: [-70, -100], aB: [-10 + 62 * sw, -80 - 12 * sw], hd: 3 + 3 * Math.abs(sw) };
+    const lean = imp ? -6 : 8 + 12 * clamp(vx / 6.4, 0, 1);
     let sL, fL, lift = 0;
     if (g.tOff == null && dx < r) {
       // Stütze: Fuß fest, Hüfte zieht darüber; Knie federt in der Mitte ein
@@ -8771,14 +8780,19 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     if (ph === "angle") { const a = curAngle(); kThrow.set({ fill: a / 80, ok: a >= 34 && a <= 46, aktiv: true, puls: false, text: Math.round(a) + "°" }); }
     else if (ziel && ph === "aim" && G.zAng) { const a = zAngle(); zielPreview(); kThrow.set({ fill: a / 60, ok: !!(G.reticle && G.reticle.pts > 0), aktiv: true, puls: false, text: Math.round(a) + "°" }); }
     else kThrow.set({ fill: 0, ok: zone, aktiv: false, puls: zone, text: zone ? "Jetzt!" : "Wurf" });
-    csTakt.set({ hidden: true });
+    // Tempo über der Figur: was das Tippen bringt (Mat 14.11.2026: „man weiß nicht, wie und warum man tippt“)
+    if (runP && (ph === "run" || ph === "angle") && G.run && !ziel) {
+      const M = R.make(cam), th = G.th, x = M.X(th.ax != null ? th.ax : th.x, 0), y = M.Y(2.45, 0), q = clamp(th.vx / 6.4, 0, 1);
+      const say = q > 0.9 ? "SPITZE" : q > 0.7 ? "SCHNELL" : q > 0.4 ? "GEHT SO" : "LANGSAM";
+      csTakt.set({ hidden: false, x, y, fill: q, win: [0.85, 1], ok: q > 0.85, text: `${say} · ${dec(th.vx * 3.6, 0)} km/h` });
+    } else csTakt.set({ hidden: true });
     // Hinweise fürs erste Mal
     if (!on || ph === "drill") { csHint.clear(); return; }
     const T = S.tips;
-    if (ph === "ready") csHint.say("„Los“ tippen, dann weiter tippen, wenn der Kreis den Knopf berührt.");
+    if (ph === "ready") csHint.say("Je schneller der Anlauf, desto weiter der Wurf. „Los“ tippen, dann bei jedem Schritt tippen, wenn der Kreis den Knopf berührt.");
     else if (ph === "run" && countLeft()) csHint.say("Gleich geht’s los: beim nächsten Klack tippen.");
     else if (ph === "run" && G.th.x > ZONE[0]) csHint.say("Abwurfzone! „Wurf“ halten, bei 40° loslassen.");
-    else if (ph === "run" && (T.throw || 0) < 3) csHint.say("Tippen, wenn der Kreis den Knopf berührt. Gut getroffen = schneller.");
+    else if (ph === "run" && (T.throw || 0) < 3) csHint.say("Jeder Tipp im Schritt schiebt an (Schneewolke), daneben bremst. Die Leiste über dem Werfer zeigt das Tempo.");
     else if (ph === "angle") csHint.say("Loslassen bei etwa 40°.");
     else if (ph === "aim" && !G.pull) csHint.say((T.ziel || 0) < 3 ? "Gerade nach oben wischen, Richtung Schneemann. Die Leiste links muss die Marke „Perfekt“ treffen." : "Nach oben wischen, bis die Leiste die Marke trifft.");
     else if (ph === "aim") csHint.say(G.pull.perfect ? "Perfekt! Jetzt loslassen." : G.pull.k < G.pull.need ? "Weiter wischen …" : "Zu weit – zurück!");
@@ -9235,11 +9249,11 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     const held = ball && (G.phase === "ready" || G.phase === "run" || G.phase === "angle" || G.phase === "check" || G.phase === "checkOk" || G.phase === "walk" && G.walk.then !== "scoop" || G.phase === "fly" && now < G.fl.t0) ? { d: Ph.SIZE[ball.size].d, f: ball.f, ice: Ph.iceAt(ball), type: ball.type } : null;
     return {
       arc: G.phase === "drill" ? { x: th.x, drill: true, lane: null } : ["ready", "run", "angle"].includes(G.phase) ? { x: th.x + 0.25, deg: G.phase === "angle" ? curAngle() : null, speed: null, beat: null, foot: th.x, dots: null, last: null, lane: null, zone: ZONE } : null,
-      board: boardLines(), helper: helperView(), photo: isZiel() ? null : { x: PHOTO.x, z: PHOTO.z, flash: G.flash != null ? G.flash : null },
+      board: boardLines(), helper: helperView(), dust: G.dust, photo: isZiel() ? null : { x: PHOTO.x, z: PHOTO.z, flash: G.flash != null ? G.flash : null },
       say: G.say && now >= G.say.at && now - G.say.at < 2.6 ? G.say : null,
       cam: G.luz >= 1 ? { cx: cam.cx + Math.sin(now * 0.8) * 0.12 * G.luz, ppm: cam.ppm * (1 + Math.sin(now * 0.53) * 0.008 * G.luz) } : cam, focus: G.focus, marks: G.marks, judge: G.judge, tape: G.tape, crumbs: G.crumbs, ball: G.flyBall || null, trail: G.trail,
       patches: ["pick", "walk", "scoop", "form"].includes(G.phase) && G.patches ? G.patches : null,
-      thrower: { x: (G.phase === "run" || G.phase === "angle" || G.phase === "drill") && th.ax != null ? th.ax : th.x, z: th.z, dir: th.dir, pose: th.pose, swap: G.phase === "run" || G.phase === "angle" || G.phase === "drill" ? !!th.swap : false, lift: (G.phase === "run" || G.phase === "angle" || G.phase === "drill" || G.gest) ? th.lift || 0 : 0, mood: th.mood, look: myLook(), kit: R.kit(S.glove), glove: S.glove, held, puff: G.phase === "run" || G.phase === "angle" ? 1.5 : 0.6 },
+      thrower: { x: (G.phase === "run" || G.phase === "angle" || G.phase === "drill") && th.ax != null ? th.ax : th.x, z: th.z, dir: th.dir, pose: th.pose, swap: G.phase === "run" || G.phase === "angle" || G.phase === "drill" ? !!th.swap : false, lift: (G.phase === "run" || G.phase === "angle" || G.phase === "drill" || G.gest) ? th.lift || 0 : 0, turn: G.phase === "run" || G.phase === "drill" ? 0.18 : null, mood: th.mood, look: myLook(), kit: R.kit(S.glove), glove: S.glove, held, puff: G.phase === "run" || G.phase === "angle" ? 1.5 : 0.6 },
     };
   }
   // Trainings-Taktleiste: Punkte für jeden Fußaufsatz laufen auf die Linie zu; dazu, wann man halten muss, und was beim letzten Tipp los war
