@@ -483,6 +483,13 @@ table.mini tr.me td { background: var(--gold); }
   padding: 6px 12px; font: 600 15px/1.3 var(--font-label, "Avenir Next", sans-serif); pointer-events: none; }
 .cs-hint-k { display: inline-block; margin-right: 8px; padding: 1px 6px; border-radius: 3px; background: var(--red, #B23524); color: #FBF4E4; font: 800 11px/1.4 var(--font-display, Futura, sans-serif); letter-spacing: 0.1em; vertical-align: 1px; }
 .cs-hint.cs-oben { bottom: auto; top: 12px; }
+
+/* seit 14.11.2026 (Schneeball): Zielkreis, der sich auf den Knopf zusammenzieht (wie bei Rhythmusspielen), und Pulsieren */
+.cs-zu { position: absolute; inset: -4px; border-radius: 50%; border: 5px solid var(--gold, #DDA43B); pointer-events: none; transform-origin: 50% 50%; opacity: 0.95; }
+.cs-knopf.cs-ok .cs-zu { border-color: #4E9A4A; }
+.cs-knopf.cs-puls { animation: cs-puls 0.6s ease-in-out infinite; border-color: var(--red, #C23B2A); background: #FBE3D9; }
+@keyframes cs-puls { 0%, 100% { box-shadow: 0 4px 0 var(--ink-deep, #141C28), 0 0 0 0 rgba(194, 59, 42, 0.55); } 50% { box-shadow: 0 4px 0 var(--ink-deep, #141C28), 0 0 0 14px rgba(194, 59, 42, 0); } }
+@media (prefers-reduced-motion: reduce) { .cs-knopf.cs-puls { animation: none; } }
 </style>
 </head>
 <body>
@@ -7079,6 +7086,15 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     }
     function angleArc(c, M, a, t) {
       if (a.drill) return;
+      // Abwurfzone vor dem Balken: rotes Band am Boden mit Schrift, hier „Wurf“ halten
+      if (a.zone) {
+        const { X, Y } = M, z0 = -1.3, z1 = 1.3, P = (x, z) => [X(x, z), Y(0, z)];
+        const q = [P(a.zone[0], z1), P(a.zone[1], z1), P(a.zone[1], z0), P(a.zone[0], z0)];
+        c.save(); c.fillStyle = "rgba(194,59,42,0.22)"; c.strokeStyle = "rgba(194,59,42,0.8)"; c.lineWidth = 2; c.setLineDash([7, 5]);
+        c.beginPath(); q.forEach((p, i) => (i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]))); c.closePath(); c.fill(); c.stroke(); c.setLineDash([]);
+        const m = P((a.zone[0] + a.zone[1]) / 2, z0); c.fillStyle = "#C23B2A"; c.font = "700 12px Futura, 'Avenir Next Condensed', sans-serif"; c.textAlign = "center";
+        c.fillText("ABWURFZONE", m[0], m[1] + 14); c.restore();
+      }
       const { X, Y, S } = M, cx = X(a.x, 0), cy = Y(1.55, 0), R0 = Math.max(46, 2.4 * S(0));
       c.save();
       // Viertelkreis nur beim Halten, im Anlauf sieht man die Figur frei laufen
@@ -7976,22 +7992,26 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     return { release() { for (const id of [...ids]) { ids.delete(id); if (on.up) on.up(id, null, true); } node.classList.remove("cs-down"); } };
   }
 
-  // Runder Knopf unten links oder rechts. Ring: Takt (fill 0 … 1, ok = im grünen Bereich). o: { seite, text, symbol, klein,
+  // Runder Knopf unten links oder rechts. Ring: Takt (fill 0 … 1, ok = im grünen Bereich); zu: Zielkreis 0 … 1; puls. o: { seite, text, symbol, klein,
   // onDown(id, e), onUp(id, e, abgebrochen) }. Rückgabe { el, set({ fill, ok, text, symbol, hidden, aktiv, seite }), release() }
   function knopf(host, o) {
     const b = el("button", `cs-knopf cs-${o.seite === "rechts" ? "rechts" : "links"}${o.klein ? " cs-klein" : ""}`);
     b.type = "button";
-    b.innerHTML = `<svg class="cs-ring" viewBox="0 0 100 100" aria-hidden="true"><circle class="cs-ring-bg" cx="50" cy="50" r="46"/><circle class="cs-ring-v" cx="50" cy="50" r="46" pathLength="100" stroke-dasharray="0 100" style="opacity:0"/></svg><span class="cs-sym">${svg(o.symbol)}</span><span class="cs-txt">${esc(o.text || "")}</span>`;
+    b.innerHTML = `<span class="cs-zu" hidden></span><svg class="cs-ring" viewBox="0 0 100 100" aria-hidden="true"><circle class="cs-ring-bg" cx="50" cy="50" r="46"/><circle class="cs-ring-v" cx="50" cy="50" r="46" pathLength="100" stroke-dasharray="0 100" style="opacity:0"/></svg><span class="cs-sym">${svg(o.symbol)}</span><span class="cs-txt">${esc(o.text || "")}</span>`;
     b.setAttribute("aria-label", o.text || o.symbol || "Knopf");
     host.appendChild(b);
     const g = grab(b, { down: o.onDown && ((id, e) => o.onDown(id, e)), up: o.onUp && ((id, e, c) => o.onUp(id, e, c)) });
-    const ringV = b.querySelector(".cs-ring-v"), txt = b.querySelector(".cs-txt"), sym = b.querySelector(".cs-sym");
+    const ringV = b.querySelector(".cs-ring-v"), txt = b.querySelector(".cs-txt"), sym = b.querySelector(".cs-sym"), zu = b.querySelector(".cs-zu");
     let last = {};
     return { el: b, release: g.release, set(s) {
       if ("hidden" in s && s.hidden !== last.hidden) b.hidden = !!s.hidden;
       if (s.seite && s.seite !== last.seite) { b.classList.toggle("cs-links", s.seite !== "rechts"); b.classList.toggle("cs-rechts", s.seite === "rechts"); }   // z. B. Links- oder Rechtshänder
       if ("fill" in s) { const f = s.fill == null ? 0 : clamp(s.fill, 0, 1); const v = Math.round(f * 100); if (v !== last.v) { ringV.setAttribute("stroke-dasharray", `${v} ${100 - v}`); ringV.style.opacity = v ? "" : "0"; last.v = v; } }
       if ("ok" in s && s.ok !== last.ok) b.classList.toggle("cs-ok", !!s.ok);
+      // seit 14.11.2026 (Schneeball): zu = Zielkreis 0 … 1, zieht sich von außen auf den Knopf zusammen (1 = jetzt tippen), null = aus;
+      // puls = Knopf pulsiert (jetzt ist der Moment, z. B. Abwurfzone)
+      if ("zu" in s) { const on = s.zu != null; if (on !== last.zuOn) { zu.hidden = !on; last.zuOn = on; } if (on) zu.style.transform = `scale(${(1 + 0.85 * (1 - clamp(s.zu, 0, 1))).toFixed(3)})`; }
+      if ("puls" in s && s.puls !== last.puls) b.classList.toggle("cs-puls", !!s.puls);
       if ("aktiv" in s && s.aktiv !== last.aktiv) b.classList.toggle("cs-aktiv", !!s.aktiv);
       if ("text" in s && s.text !== last.text) { txt.textContent = s.text; b.setAttribute("aria-label", s.text); }
       if ("symbol" in s && s.symbol !== last.symbol) sym.innerHTML = svg(s.symbol);
@@ -8034,6 +8054,10 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       if ("fill" in s) fill.style.width = `${Math.round(clamp(s.fill || 0, 0, 1) * 100)}%`;
       if (s.win) { win.style.left = `${s.win[0] * 100}%`; win.style.width = `${Math.max(0, s.win[1] - s.win[0]) * 100}%`; }
       if ("ok" in s && s.ok !== last.ok) b.classList.toggle("cs-ok", !!s.ok);
+      // seit 14.11.2026 (Schneeball): zu = Zielkreis 0 … 1, zieht sich von außen auf den Knopf zusammen (1 = jetzt tippen), null = aus;
+      // puls = Knopf pulsiert (jetzt ist der Moment, z. B. Abwurfzone)
+      if ("zu" in s) { const on = s.zu != null; if (on !== last.zuOn) { zu.hidden = !on; last.zuOn = on; } if (on) zu.style.transform = `scale(${(1 + 0.85 * (1 - clamp(s.zu, 0, 1))).toFixed(3)})`; }
+      if ("puls" in s && s.puls !== last.puls) b.classList.toggle("cs-puls", !!s.puls);
       if ("text" in s && s.text !== last.text) txt.textContent = s.text || "";
       last = Object.assign(last, s);
     } };
@@ -8070,7 +8094,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.9.9";
+  const VERSION = "0.10.0";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender;
@@ -8518,25 +8542,26 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 
   // ------------------------------------------------------------------ Taktschule (Training, vor dem ersten Wurf): der Werfer läuft am Platz,
   // man übt nur das Tippen im Schritt-Takt, bis 6 Schritte sitzen; dann erst kommt der Wurf mit Halten und Loslassen
-  const DRILL_N = 6;
+  const DRILL_N = 3;
   function drillIntro() {
     G.phase = "drillIntro"; G.th.x = START_X + 2; hint(null);
-    drillCard("TAKTSCHULE · 1/2", "Dein Werfer läuft gleich los – erst einmal am Platz. Bei jedem Schritt läuft oben ein Punkt auf die Linie zu, und du hörst den Schritt. <b>Tippe genau dann, wenn der Punkt die Linie trifft.</b> Im Takt wird der Werfer schneller, daneben oder gar nicht wird er langsamer. Einmal je Schritt – Hämmern zählt nicht.", "Los geht's", true);
+    drillCard("TAKTSCHULE · 1/2", "Dein Werfer läuft am Platz. Nach <b>3, 2, 1</b> zieht sich um den Knopf „Schritt“ ein Kreis zusammen. <b>Tippe, wenn der Kreis den Knopf berührt</b> (du hörst dazu den Schritt). Getroffen = schneller, daneben = langsamer und mehr Zeit. Drei Treffer, dann geht’s zum Wurf.", "Los geht's", true);
   }
   function drillCard(kick, html, go, skip) {
     const el = $("drill"); el.hidden = !kick; if (!kick) return;
     $("drKick").textContent = kick; $("drTxt").innerHTML = html; $("drGo").textContent = go || ""; $("drGo").hidden = !go; $("drSkip").hidden = !skip; $("drCnt").textContent = "";
   }
   function drillStart() {
-    G.phase = "drill"; G.run = { t0: now + 0.5, tapped: {}, accs: [] }; G.th.vx = 0; G.th.lastF = 0; G.gait = null; G.drillHx = 0;
-    drillCard("TAKTSCHULE · 1/2", "Tippe, wenn ein Punkt die Linie trifft.", null, true); drillCount();
+    G.phase = "drill"; G.run = newRun(now); G.th.vx = 0; G.th.lastF = 0; G.gait = null; G.drillHx = 0;
+    drillCard("TAKTSCHULE · 1/2", "Tippe „Schritt“, wenn der Kreis den Knopf berührt.", null, true); drillCount();
   }
   function drillCount() { const n = (G.run.log || []).filter((x) => x.acc > 0.5).length; $("drCnt").innerHTML = Array.from({ length: DRILL_N }, (_, i) => `<i class="${i < n ? "on" : ""}"></i>`).join(""); return n; }
   function drillDone() {
     G.phase = "drillOk";
-    drillCard("TAKTSCHULE · 2/2", "Sitzt! Jetzt mit Wurf: genau so im Takt anlaufen. Vor dem Balken erscheint auf der Leiste ein roter Strich <b>HALTEN</b> – dann den Finger liegen lassen, der Winkel steigt; bei etwa <b>40°</b> loslassen. Zu spät gehalten heißt übertreten.", "Zum Wurf", false);
+    drillCard("TAKTSCHULE · 2/2", "Sitzt! Jetzt mit Wurf: genau so anlaufen. Vor dem Balken liegt die rote <b>Abwurfzone</b>, dort leuchtet „Wurf“. <b>„Wurf“ halten</b>, der Winkel steigt; bei etwa <b>40°</b> loslassen. Hältst du nicht, wirft er am Balken flach.", "Zum Wurf", false);
   }
   function drillEnd() { drillCard(null); G.run = null; G.phase = "ready"; G.th.x = START_X; G.th.vx = 0; G.th.pose = F.POSES.stand; G.th.lift = 0; G.th.ax = null; G.gait = null; }
+  function countTick() { const c = countLeft(); if (c && c !== G.run.lastC) { G.run.lastC = c; AU.tick(true); } }
   function footTick(loud) {
     const th = G.th; let f = th.lastF || 0;
     while (now >= footT(f + 1)) f++;
@@ -8560,7 +8585,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     if (G.phase === "form") { e.preventDefault(); formPress(); return; }
     if (G.phase === "show") { e.preventDefault(); if (now - G.reveal.t0 > 0.8) endReveal(); return; }
     const [x, y] = stagePoint(e.clientX, e.clientY);
-    if (G.phase === "ready") { e.preventDefault(); G.phase = "run"; G.run = { t0: now, tapped: {}, accs: [] }; G.th.lastF = 0; G.gait = null; hint(null); return; }
+    if (G.phase === "ready") { e.preventDefault(); G.phase = "run"; G.run = newRun(now); G.th.lastF = 0; G.gait = null; hint(null); return; }
     // im Anlauf: kurz tippen = Schritt im Takt, halten = Winkel (ab 0,18 s, gezählt ab dem Auflegen)
     if (G.phase === "run" || G.phase === "drill") { e.preventDefault(); ptr = { id: e.pointerId, t0: now, press: true }; capture(e); return; }
     if (G.phase === "aim") { e.preventDefault(); ptr = { id: e.pointerId, x0: x, y0: y, x, y }; G.pull = { x0: x, y0: y, x1: x, y1: y, k: 0 }; capture(e); hint(null); return; }
@@ -8581,13 +8606,25 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   // ------------------------------------------------------------------ Anlauf im Takt (Mat 13.11.2026: „zu einfach geworden“)
   // Schritte in festem Takt; tippt man, wenn der Fuß aufsetzt, wird man schneller, daneben oder gar nicht langsamer. Kein Hämmern:
   // jeder Schritt zählt nur einmal, ein zweites Tippen ist ein Stolperer.
-  const STEP = 0.44, HOLD = 0.18, WIN = 0.15;   // ruhiger Takt (Mat 14.11.2026: „zu schnell“), etwa 136 Schritte je Minute
-  // mit Kafi Luz kommt der Takt aus dem Tritt: jeder Fußaufsatz verschiebt sich ein wenig (fest je Wurf, sichtbar am Ring und auf der Leiste)
-  const footT = (f) => G.run.t0 + f * STEP + luzJit(f);
+  // Mat 14.11.2026: „viel zu eilig, nicht klar“. Darum: „3, 2, 1“ vor dem ersten Schritt, langsam anfangen (0,7 s), nur wer trifft,
+  // wird schneller (bis 0,5 s); daneben gibt wieder mehr Zeit. Die Schrittzeiten werden je Schritt festgelegt, wenn der vorige fällt.
+  const STEP0 = 0.7, STEP_MIN = 0.5, COUNT = 3, HOLD = 0.18, WIN = 0.17;
+  const STEP = STEP0;   // für Anzeigen, die einen Richtwert brauchen
+  // mit Kafi Luz kommt der Takt aus dem Tritt: jeder Fußaufsatz verschiebt sich ein wenig
   const luzJit = (f) => { const a = LUZ.jit[Math.min(4, Math.ceil(G.luz || 0))] * Math.min(1, (G.luz || 0) / Math.max(1, Math.ceil(G.luz || 0))); return a ? a * (Math.sin(f * 2.31 + G.n * 1.7) * 0.7 + Math.sin(f * 0.83 + G.seed % 7) * 0.5) : 0; };
-  function beatPhase() { const r = G.run; let f = Math.max(0, Math.floor((now - r.t0) / STEP) - 1); while (f < 400 && (f + 1 ? footT(f + 1) : 0) <= now) f++; const a = f ? footT(f) : r.t0, b = footT(f + 1); return clamp((now - a) / Math.max(0.05, b - a), 0, 1); }
+  function newRun(t0) { return { t0, tapped: {}, accs: [], times: [t0, t0 + COUNT * STEP0] }; }
+  function stepIv() { const a = G.run.accs.slice(-3); const q = a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0; return STEP0 - (STEP0 - STEP_MIN) * clamp(q, 0, 1); }
+  function footT(f) {
+    const r = G.run, T = r.times || (r.times = [r.t0, r.t0 + COUNT * STEP0]);
+    while (T.length <= f) { const k = T.length; T.push(T[k - 1] + stepIv() + luzJit(k) - luzJit(k - 1)); }
+    return T[f];
+  }
+  function nearestFoot(t) { let f = 1; while (footT(f + 1) < t) f++; return t - footT(f) > footT(f + 1) - t ? f + 1 : f; }
+  function beatPhase() { let f = 0; while (footT(f + 1) <= now && f < 400) f++; const a = footT(f), b = footT(f + 1); return clamp((now - a) / Math.max(0.05, b - a), 0, 1); }
+  // Countdown bis zum ersten Schritt (3, 2, 1), null danach
+  const countLeft = () => G.run && now < footT(1) ? Math.ceil((footT(1) - now) / STEP0) : null;
   function stepTap(t) {
-    const R0 = G.run, f = Math.max(1, Math.round((t - R0.t0) / STEP)), e = t - footT(f);
+    const R0 = G.run, f = nearestFoot(t), e = t - footT(f);
     let acc = 0;
     const twice = !!R0.tapped[f];
     if (Math.abs(e) < 0.2 && !twice) { R0.tapped[f] = 1; acc = clamp(1 - Math.abs(e) / WIN, 0, 1); }
@@ -8599,7 +8636,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   function stepMiss() {
     const R0 = G.run;
     // der erste Schritt ist zum Reinkommen, verpassen kostet nichts
-    for (let f = 2; footT(f) + 0.2 < now; f++) if (!R0.tapped[f]) { R0.tapped[f] = 1; R0.accs.push(0); R0.last = { acc: 0, at: now, miss: true }; (R0.log = R0.log || []).push({ f, acc: 0, miss: true }); }
+    for (let f = 1; footT(f) + 0.22 < now; f++) if (!R0.tapped[f]) { R0.tapped[f] = 1; R0.accs.push(0); R0.last = { acc: 0, at: now, miss: true }; (R0.log = R0.log || []).push({ f, acc: 0, miss: true }); }
   }
   // ------------------------------------------------------------------ Gangart (Mat 14.11.2026: „die Bewegung schaut nicht gut aus“)
   // Echter Laufschritt statt Posen-Wechsel: der Fuß setzt zum Takt-Schlag vor der Hüfte auf und bleibt am Boden stehen, während die
@@ -8666,11 +8703,12 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   // Mat 14.11.2026: ein Knopf „Schritt“ (starke Hand, im Takt tippen = Tempo = Kraft) und ein Knopf „Wurf“ (andere Hand:
   // halten = Winkel steigt, loslassen = Wurf). Zielwurf: Stick zielt seitlich, „Wurf“ halten = Winkel, loslassen; Kraft fest.
   // Tippen irgendwo aufs Bild geht weiter wie bisher (Ersatz).
+  const ZONE = [-4.6, -0.2];   // Abwurfzone vor dem Balken (am Boden markiert): dort „Wurf“ halten
   const CS = window.CMSteuer, ZV = 15.5, ZANG_RATE = 13, dec = (v, n) => v.toFixed(n).replace(".", ",");
   const csMap = (dx, dy) => (rotated ? [dy, -dx] : [dx, dy]);
   const kStep = CS.knopf($("hud"), { seite: "rechts", text: "Schritt", symbol: "lauf", onDown: () => {
     if (!G) return; AU.unlock();
-    if (G.phase === "ready") { G.phase = "run"; G.run = { t0: now, tapped: {}, accs: [] }; G.th.lastF = 0; G.gait = null; hint(null); return; }
+    if (G.phase === "ready") { G.phase = "run"; G.run = newRun(now); G.th.lastF = 0; G.gait = null; hint(null); return; }
     if (G.phase === "run" || G.phase === "drill") { stepTap(now); if (G.phase === "drill" && drillCount() >= DRILL_N) drillDone(); }
   } });
   const kThrow = CS.knopf($("hud"), { seite: "links", text: "Wurf", symbol: "wurf",
@@ -8708,26 +8746,26 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     kStep.set({ hidden: !runP || ph === "drill" && false, seite: sw ? "links" : "rechts" });
     kThrow.set({ hidden: !(runP && ph !== "drill" || ziel && ph === "aim"), seite: sw ? "rechts" : "links" });
     aimStick.set({ hidden: !(ziel && ph === "aim") });
-    if (runP && (ph === "run" || ph === "drill")) {
-      const b = beatPhase(), w = WIN / STEP, ok = b > 1 - w || b < w * 0.6;
-      kStep.set({ fill: b, ok, text: "Schritt" });
-    } else kStep.set({ fill: 0, ok: false, text: ph === "ready" ? "Los" : "Schritt" });
-    if (ph === "angle") { const a = curAngle(); kThrow.set({ fill: a / 80, ok: a >= 34 && a <= 46, aktiv: true, text: Math.round(a) + "°" }); }
-    else if (ziel && ph === "aim" && G.zAng) { const a = zAngle(); zielPreview(); kThrow.set({ fill: a / 60, ok: !!(G.reticle && G.reticle.pts > 0), aktiv: true, text: Math.round(a) + "°" }); }
-    else kThrow.set({ fill: 0, ok: false, aktiv: false, text: "Wurf" });
-    // Taktleiste über der Figur
-    if (runP && (ph === "run" || ph === "drill") && G.run) {
-      const M = R.make(cam), th = G.th, x = M.X(th.ax != null ? th.ax : th.x, 0), y = M.Y(2.35, 0), b = beatPhase(), w = WIN / STEP;
-      const L = G.run.last && now - G.run.last.at < 0.5 ? G.run.last : null;
-      const word = L ? (L.miss ? "verpasst" : L.acc > 0.75 ? "genau!" : L.e < 0 ? "zu früh" : "zu spät") : "";
-      const hold = ph === "run" && th.x > -(Math.max(1.5, th.vx) * 40 / angRate()) - 1.2;
-      csTakt.set({ hidden: false, x, y, fill: b, win: [1 - w, 1], ok: b > 1 - w, text: hold ? "JETZT „WURF“ HALTEN" : word || `${dec(th.vx * 3.6, 0)} km/h` });
-    } else csTakt.set({ hidden: true });
+    // Knopf „Schritt“: ein Kreis zieht sich zusammen; trifft er den Knopf, tippen. Davor 3, 2, 1. Darunter ein Wort, wie es war.
+    if (runP && (ph === "run" || ph === "drill" || ph === "angle") && G.run) {
+      const c = countLeft(), L = G.run.last && now - G.run.last.at < 0.5 ? G.run.last : null;
+      const word = L ? (L.miss ? "Verpasst" : L.twice ? "Doppelt" : L.acc > 0.75 ? "Genau!" : L.e < 0 ? "Zu früh" : "Zu spät") : "Schritt";
+      let f = 0; while (footT(f + 1) <= now && f < 400) f++;
+      const prev = footT(f), nx = footT(f + 1), u = clamp((now - prev) / Math.max(0.05, nx - prev), 0, 1);
+      kStep.set({ zu: ph === "angle" ? null : u, fill: 0, ok: ph !== "angle" && (nx - now < WIN || now - prev < WIN * 0.6), text: c ? String(c) : word });
+    } else kStep.set({ zu: null, fill: 0, ok: false, text: ph === "ready" ? "Los" : "Schritt" });
+    const zone = runP && ph === "run" && G.th.x > ZONE[0] && G.th.x < ZONE[1];
+    if (ph === "angle") { const a = curAngle(); kThrow.set({ fill: a / 80, ok: a >= 34 && a <= 46, aktiv: true, puls: false, text: Math.round(a) + "°" }); }
+    else if (ziel && ph === "aim" && G.zAng) { const a = zAngle(); zielPreview(); kThrow.set({ fill: a / 60, ok: !!(G.reticle && G.reticle.pts > 0), aktiv: true, puls: false, text: Math.round(a) + "°" }); }
+    else kThrow.set({ fill: 0, ok: zone, aktiv: false, puls: zone, text: zone ? "Jetzt!" : "Wurf" });
+    csTakt.set({ hidden: true });
     // Hinweise fürs erste Mal
     if (!on || ph === "drill") { csHint.clear(); return; }
     const T = S.tips;
-    if (ph === "ready") csHint.say("„Schritt“ tippen startet den Anlauf.");
-    else if (ph === "run" && (T.throw || 0) < 2) csHint.say(G.th.x > -6 ? "Vor dem Balken „Wurf“ halten: der Winkel steigt. Bei 40° loslassen." : "„Schritt“ tippen, wenn der Ring grün ist. Im Takt wirst du schneller.");
+    if (ph === "ready") csHint.say("„Los“ tippen. Nach 3, 2, 1 tippst du „Schritt“, wenn der Kreis den Knopf berührt.");
+    else if (ph === "run" && countLeft()) csHint.say("Gleich geht’s los: beim nächsten Klack tippen.");
+    else if (ph === "run" && G.th.x > ZONE[0]) csHint.say("Abwurfzone! „Wurf“ halten, bei 40° loslassen.");
+    else if (ph === "run" && (T.throw || 0) < 3) csHint.say("Tippen, wenn der Kreis den Knopf berührt. Gut getroffen = schneller.");
     else if (ph === "angle") csHint.say("Loslassen bei etwa 40°.");
     else if (ph === "aim" && !G.zAng) csHint.say((G.aimed || 0) < 30 && (T.ziel || 0) < 2 ? "Rechts am Stick zielen, links „Wurf“ halten." : "„Wurf“ halten: der Winkel steigt, das Kreuz wandert hoch. Auf dem Ziel loslassen.");
     else if (ph === "aim") csHint.say("Loslassen, wenn das Kreuz auf dem Ziel sitzt.");
@@ -8826,9 +8864,9 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     if (G.phase === "run" || G.phase === "angle") {
       // Tempo nur aus dem Tippen: im Takt bis 6,4 m/s; wer nicht tippt, läuft aus und bleibt stehen
       if (G.phase === "run") stepMiss();
-      const vT = 6.4 * rhythm();
+      const vT = countLeft() ? 0 : 6.4 * rhythm();
       th.vx += (vT - th.vx) * Math.min(1, dt * (th.vx < vT ? 2.2 : 1.6));
-      if (G.phase === "run" && th.vx < 0.35 && vT < 0.35 && !ptr) {
+      if (G.phase === "run" && !countLeft() && th.vx < 0.35 && vT < 0.35 && !ptr) {
         G.phase = "ready"; G.run = null; th.vx = 0; th.pose = R.POSE.hold; th.swap = false; th.lift = 0; th.ax = null; G.gait = null;
         hint("Stehen geblieben – tippe im Takt, dann läuft er", "top"); return;
       }
@@ -8837,19 +8875,23 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       if (G.phase === "run" && ptr && ptr.press && now - ptr.t0 >= HOLD) { G.phase = "angle"; G.ang = { t0: ptr.t0 }; ptr.press = false; }
       // Schritte: zwei je Laufzyklus, Aufsetzen bei u = 0 und 0,5; vor dem Balken Impulsschritte mit langem Arm
       const imp = th.x > -2.8;
+      countTick();
       footTick(G.phase === "run");
-      gaitStep(dt, th.vx, imp, th.x);
+      if (!countLeft()) gaitStep(dt, th.vx, imp, th.x); else { th.pose = F.ease(th.pose, R.POSE.hold, dt, true); th.ax = null; }
       setCam(Math.min(-1.2, th.x + 3.6), 58);
-      if (th.x >= 0.05) { ptr = null; foul(); }
+      // am Balken ohne zu halten: er wirft von selbst flach (statt zu übertreten); wer hält und zu spät loslässt, tritt über
+      if (G.phase === "run" && th.x >= -0.15) { ptr = null; doThrow({ ang: 14, pow: 0.78 + 0.22 * clamp(th.vx / 6.2, 0, 1), run: th.vx, xr: th.x + 0.6, rh: rhythm(), kraft: 1 + luzBoost(), luz: G.luz || 0, auto: true }); }
+      else if (th.x >= 0.05) { ptr = null; foul(); }
     }
     if (G.phase === "drill") {
-      if (now >= G.run.t0) stepMiss();
-      const vT = 2.6 + 3.8 * rhythm(); th.vx += (vT - th.vx) * Math.min(1, dt * 2.2);
+      if (!countLeft()) stepMiss();
+      const vT = countLeft() ? 0 : 2.6 + 3.8 * rhythm(); th.vx += (vT - th.vx) * Math.min(1, dt * 2.2);
       const u = (((now - G.run.t0) / (2 * STEP)) % 1 + 1) % 1;
       G.drillHx = (G.drillHx || 0) + th.vx * dt;
-      if (now >= G.run.t0) footTick(true);
-      gaitStep(dt, th.vx, false, G.drillHx);
-      th.ax = th.x + (th.ax - G.drillHx);   // am Platz: wie auf einem Laufband
+      countTick();
+      if (now >= footT(1) - 0.01) footTick(true);
+      if (!countLeft()) gaitStep(dt, th.vx, false, G.drillHx); else { th.pose = F.ease(th.pose, R.POSE.hold, dt, true); th.ax = null; }
+      if (th.ax != null) th.ax = th.x + (th.ax - G.drillHx);   // am Platz: wie auf einem Laufband
       setCam(th.x + 5, 50);
       if ((G.run.log || []).length > 40) drillDone();   // nach 40 Schritten geht es auch so weiter
     }
@@ -9174,8 +9216,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     const th = G.th, ball = G.ball;
     const held = ball && (G.phase === "ready" || G.phase === "run" || G.phase === "angle" || G.phase === "check" || G.phase === "checkOk" || G.phase === "walk" && G.walk.then !== "scoop" || G.phase === "fly" && now < G.fl.t0) ? { d: Ph.SIZE[ball.size].d, f: ball.f, ice: Ph.iceAt(ball), type: ball.type } : null;
     return {
-      arc: G.phase === "drill" ? { x: th.x, drill: true, lane: laneView() } : ["ready", "run", "angle"].includes(G.phase) ? { x: th.x + 0.25, deg: G.phase === "angle" ? curAngle() : null, speed: G.phase === "ready" ? null : th.vx / 6.4,
-        beat: G.phase === "run" ? beatPhase() : null, foot: th.x, dots: G.run && G.phase !== "ready" ? G.run.accs.slice(-7) : null, last: G.run && G.run.last && now - G.run.last.at < 0.35 ? G.run.last.acc : null, lane: null } : null,
+      arc: G.phase === "drill" ? { x: th.x, drill: true, lane: null } : ["ready", "run", "angle"].includes(G.phase) ? { x: th.x + 0.25, deg: G.phase === "angle" ? curAngle() : null, speed: null, beat: null, foot: th.x, dots: null, last: null, lane: null, zone: ZONE } : null,
       board: boardLines(), helper: helperView(), photo: isZiel() ? null : { x: PHOTO.x, z: PHOTO.z, flash: G.flash != null ? G.flash : null },
       say: G.say && now >= G.say.at && now - G.say.at < 2.6 ? G.say : null,
       cam: G.luz >= 1 ? { cx: cam.cx + Math.sin(now * 0.8) * 0.12 * G.luz, ppm: cam.ppm * (1 + Math.sin(now * 0.53) * 0.008 * G.luz) } : cam, focus: G.focus, marks: G.marks, judge: G.judge, tape: G.tape, crumbs: G.crumbs, ball: G.flyBall || null, trail: G.trail,
@@ -9275,9 +9316,9 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     pressBeats(n, off) { for (let i = 0; i < n; i++) { const ph = ((now - G.form.t0) / BEAT) % 1; this.step((1 - ph) * BEAT + (off || 0) + 0.0001); formPress(); this.step(0.05); } },
     // Weitwurf: Anlauf (Sekunden), dann Winkel halten bis deg
     throwTap(run, deg, off) {
-      G.phase = "run"; G.run = { t0: now, tapped: {}, accs: [] }; hint(null);
-      // bei jedem Aufsetzen tippen (off = Versatz in Sekunden; null = gar nicht tippen)
-      const end = now + run;
+      G.phase = "run"; G.run = newRun(now); hint(null);
+      // bei jedem Aufsetzen tippen (off = Versatz in Sekunden; null = gar nicht tippen); run zählt ab dem ersten Schritt (nach 3, 2, 1)
+      const end = footT(1) + run;
       for (let f = 1; off !== null && footT(f) + (off || 0) <= end; f++) {
         const tf = footT(f) + (off || 0);
         if (tf > now) this.step(tf - now);
