@@ -279,6 +279,8 @@ table.mini tr.me td { background: var(--gold); }
 #scrMenu .card.menu .big { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 7px 12px; }
 #scrMenu .card.menu .big small { text-align: right; }
 
+.rpGrid b { overflow: hidden; }
+
 /* Cold Medal Games · Fenster „Deine Figur“ (pass/pass.css)
    Aussehen wie die Menüs des Skispringens: Papier mit Doppelrahmen, Knöpfe wie Druckmarken, Futura für Titel und Knöpfe,
    Buchschrift für Lesetext. Farben und Schriften kommen aus den Variablen des Spiels (alle Spiele der Reihe haben sie),
@@ -7870,7 +7872,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.9.5";
+  const VERSION = "0.9.6";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender;
@@ -7944,7 +7946,14 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 
   // ------------------------------------------------------------------ Bildschirme
   const SCREENS = ["scrMenu", "scrReport", "scrStand", "scrPass", "scrInfo"];
-  function show(id) { for (const s of SCREENS) $(s).hidden = s !== id; $("hud").hidden = !!id; AU.ambient(!id || id === "scrStand"); AU.music(!!id && AU.on); AU.storm(!id && !!G && G.cond.sky === "sturm"); }
+  // Schrift verkleinern, bis der Text in sein Feld passt (iPhone-Schriften laufen breiter)
+  function fitText(root) {
+    for (const el of root.querySelectorAll(".rpGrid b, .rpGrid i")) {
+      el.style.fontSize = ""; let fs = parseFloat(getComputedStyle(el).fontSize), n = 0;
+      while (el.scrollWidth > el.clientWidth + 1 && fs > 9 && n++ < 20) { fs -= 1; el.style.fontSize = fs + "px"; }
+    }
+  }
+  function show(id) { for (const s of SCREENS) $(s).hidden = s !== id; if (id) fitText($(id)); $("hud").hidden = !!id; AU.ambient(!id || id === "scrStand"); AU.music(!!id && AU.on); AU.storm(!id && !!G && G.cond.sky === "sturm"); }
 
   // ------------------------------------------------------------------ Zustand eines Durchgangs
   // mode: "comp" = Weitwurf-Wettkampf, "train" = Training Weitwurf, "ziel" = Zielwurf-Wettkampf
@@ -8033,7 +8042,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     $("rpGrid").innerHTML = [
       ["Temperatur", nb(`${String(c.temp).replace(".", ",").replace("-", "−")} °C`), c.temp <= -5 ? "Frost" : c.temp > 1 ? "Tauwetter" : "um null Grad"],
       ["Tageszeit", Ph.TODS[c.tod], c.tod === "morning" ? "Sonne von Osten" : c.tod === "afternoon" ? "Sonne hoch" : "Sonne weg"],
-      ["Wetter", Ph.SKIES[c.sky], c.thaw ? "gestern Tauwetter" : "1856 m über dem Meer"],
+      ["Wetter", Ph.SKIES[c.sky], c.thaw ? "gestern Tauwetter" : { klar: "klare Sicht", grau: "graues Licht", neu: "es schneit", sturm: "kaum Sicht" }[c.sky] || ""],
       ["Wind", nb(ww), wd || "kein Wind"],
     ].map(([k, v, i]) => `<div><small>${k}</small><b>${esc(v)}</b><i>${esc(i)}</i></div>`).join("");
     const set = $("rpSet");
@@ -8967,6 +8976,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   window.__sw = {
     VERSION, get S() { return S; }, get G() { return G; }, get cam() { return cam; }, sanitize, Ph, C, HELPERS,
     test(on) { testMode = !!on; set3d(); },
+    fit() { fitText(document); },
     use3d(on) { R.use3d = !!on; },
     // Taktschule im Test: n Schritte genau im Takt tippen
     // im Anlauf n Schritte genau im Takt tippen
