@@ -8070,7 +8070,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.9.8";
+  const VERSION = "0.9.9";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender;
@@ -8119,12 +8119,18 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   // ------------------------------------------------------------------ Bühne: 844 × 390, skaliert; im Hochformat gedreht
   const stage = $("stage"), cv = $("cv"), ctx = cv.getContext("2d");
   let uiS = 1, rotated = false, dpr = 1, R = null;
+  // sichere Ränder des Geräts (Notch, Statusleiste, Home-Balken): nichts darf darunter liegen (Mat 14.11.2026: „zu weit links“)
+  const safeProbe = document.createElement("div");
+  safeProbe.style.cssText = "position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)";
+  document.body.appendChild(safeProbe);
+  function insets() { const cs = getComputedStyle(safeProbe), n = (v) => parseFloat(v) || 0; return { t: n(cs.paddingTop), r: n(cs.paddingRight), b: n(cs.paddingBottom), l: n(cs.paddingLeft) }; }
   function layout() {
-    const vw = window.innerWidth, vh = window.innerHeight;
+    const vw = window.innerWidth, vh = window.innerHeight, I = insets();
     rotated = vh > vw * 1.05;
-    const aw = rotated ? vh : vw, ah = rotated ? vw : vh;
+    // gedreht: Spiel-links = Bildschirm oben, Spiel-oben = Bildschirm rechts
+    const aw = rotated ? vh - I.t - I.b : vw - I.l - I.r, ah = rotated ? vw - I.l - I.r : vh - I.t - I.b;
     uiS = Math.min(aw / W, ah / H);
-    const ox = (aw - W * uiS) / 2, oy = (ah - H * uiS) / 2;
+    const ox = (rotated ? I.t : I.l) + (aw - W * uiS) / 2, oy = (rotated ? I.r : I.t) + (ah - H * uiS) / 2;
     stage.style.transform = rotated ? `translate(${vw - oy}px, ${ox}px) rotate(90deg) scale(${uiS})` : `translate(${ox}px, ${oy}px) scale(${uiS})`;
     dpr = Math.min(2, (window.devicePixelRatio || 1) * uiS);
     cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
@@ -8504,7 +8510,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       updChips(); return;
     }
     G.phase = "ready"; G.th.dir = 1; G.th.x = START_X; G.th.vx = 0;
-    setCam(START_X + 5, 58);
+    setCam(START_X + 3.6, 58);   // Werfer rechts neben dem Knopf „Wurf“
     if (G.mode === "train" && !G.drilled) { G.drilled = true; return drillIntro(); }
     hint(null);
     updChips();
@@ -8833,7 +8839,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       const imp = th.x > -2.8;
       footTick(G.phase === "run");
       gaitStep(dt, th.vx, imp, th.x);
-      setCam(Math.min(-1.2, th.x + 5), 58);
+      setCam(Math.min(-1.2, th.x + 3.6), 58);
       if (th.x >= 0.05) { ptr = null; foul(); }
     }
     if (G.phase === "drill") {
