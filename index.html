@@ -285,6 +285,9 @@ table.mini tr.me td { background: var(--gold); }
 .ifBody { columns: auto; flex: 1 1 auto; min-height: 0; margin-bottom: 46px; }
 .ifBody p { max-width: 70ch; }
 
+/* Steuerung der Reihe: Hinweis unter der Kopfzeile, nicht über den Chips */
+#hud .cs-hint.cs-oben { top: 50px; }
+
 /* Cold Medal Games · Fenster „Deine Figur“ (pass/pass.css)
    Aussehen wie die Menüs des Skispringens: Papier mit Doppelrahmen, Knöpfe wie Druckmarken, Futura für Titel und Knöpfe,
    Buchschrift für Lesetext. Farben und Schriften kommen aus den Variablen des Spiels (alle Spiele der Reihe haben sie),
@@ -434,6 +437,52 @@ table.mini tr.me td { background: var(--gold); }
 .ps-dialog { gap: 8px; }
 .ps-head { padding-bottom: 4px; }
 .ps-title { font-size: 28px; line-height: 29px; }
+
+/* oberflaeche/steuerung.css – Spielsteuerung (CMSteuer). Farben aus dem Spiel (--ink, --paper, --gold …), sonst Plakatfarben. */
+.cs-knopf, .cs-stick { position: absolute; bottom: 14px; width: 104px; height: 104px; border-radius: 50%; padding: 0;
+  pointer-events: auto; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+.cs-links { left: 16px; } .cs-rechts { right: 16px; }
+.cs-knopf { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  background: var(--paper, #F3EEE2); color: var(--ink, #1E2734); border: 3px solid var(--ink-deep, #141C28);
+  box-shadow: 0 4px 0 var(--ink-deep, #141C28), 0 8px 18px rgba(0, 0, 0, 0.25); transition: transform 0.05s; }
+.cs-knopf.cs-klein { width: 84px; height: 84px; }
+.cs-knopf.cs-down, .cs-knopf.cs-aktiv { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink-deep, #141C28), 0 4px 10px rgba(0, 0, 0, 0.25); background: #FFF8E8; }
+.cs-ring { position: absolute; inset: -7px; width: calc(100% + 14px); height: calc(100% + 14px); transform: rotate(-90deg); pointer-events: none; }
+.cs-ring circle { fill: none; stroke-width: 6; }
+.cs-ring-bg { stroke: rgba(20, 28, 40, 0.18); }
+.cs-ring-v { stroke: var(--gold, #DDA43B); stroke-linecap: round; transition: stroke 0.08s; }
+.cs-knopf.cs-ok .cs-ring-v { stroke: #4E9A4A; }
+.cs-knopf.cs-ok { border-color: #2F6B2C; }
+.cs-sym svg { width: 38px; height: 38px; display: block; }
+.cs-klein .cs-sym svg { width: 30px; height: 30px; }
+.cs-txt { font: 800 12px/1 var(--font-display, Futura, "Avenir Next", sans-serif); letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; max-width: 92%; overflow: hidden; text-overflow: ellipsis; }
+.cs-stick { background: radial-gradient(circle, rgba(243, 238, 226, 0.22) 0 38%, rgba(243, 238, 226, 0.12) 39% 100%); border: 3px solid rgba(243, 238, 226, 0.75);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3); width: 132px; height: 132px; display: flex; align-items: center; justify-content: center; color: var(--paper, #F3EEE2); }
+.cs-stick-knob { position: absolute; left: 50%; top: 50%; width: 48px; height: 48px; margin: -24px 0 0 -24px; border-radius: 50%;
+  background: var(--paper, #F3EEE2); border: 3px solid var(--ink-deep, #141C28); box-shadow: 0 3px 0 var(--ink-deep, #141C28); }
+.cs-stick .cs-txt { position: absolute; top: -20px; left: 0; right: 0; text-align: center; color: var(--paper, #F3EEE2); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); }
+.cs-stick.cs-down { border-color: var(--gold, #DDA43B); }
+.cs-takt { position: absolute; left: 0; top: 0; pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: 2px; will-change: transform; }
+.cs-takt-bar { position: relative; width: 112px; height: 12px; border-radius: 6px; background: rgba(20, 28, 40, 0.55); border: 2px solid var(--paper, #F3EEE2); overflow: hidden; }
+.cs-takt-win { position: absolute; top: 0; bottom: 0; background: rgba(110, 175, 100, 0.85); }
+.cs-takt-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--gold, #DDA43B); mix-blend-mode: screen; }
+.cs-takt-fill::after { content: ""; position: absolute; right: -2px; top: -2px; bottom: -2px; width: 4px; background: #FFFFFF; border-radius: 2px; }
+.cs-takt.cs-ok .cs-takt-bar { border-color: #9BD08F; box-shadow: 0 0 8px rgba(155, 208, 143, 0.9); }
+.cs-takt-txt { font: 800 12px/1 var(--font-display, Futura, sans-serif); color: var(--ink, #1E2734); text-shadow: 0 0 3px #FFFFFF, 0 0 2px #FFFFFF; letter-spacing: 0.05em; }
+.cs-mag { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 4px;
+  background: rgba(20, 28, 40, 0.78); color: var(--paper, #F3EEE2); border: 2px solid var(--paper, #F3EEE2); border-radius: 6px; padding: 4px 14px 7px; pointer-events: none; }
+.cs-mag-n { display: flex; align-items: center; gap: 4px; }
+.cs-mag-n b { font: 800 30px/1 var(--font-display, Futura, sans-serif); }
+.cs-mag-n svg { width: 10px; height: 24px; color: var(--gold, #DDA43B); }
+.cs-mag-dots { display: flex; gap: 6px; }
+.cs-mag-dots i { width: 18px; height: 18px; border-radius: 50%; background: #10151E; border: 2px solid var(--paper, #F3EEE2); }
+.cs-mag-dots i.cs-hit { background: #FFFFFF; }
+.cs-mag-dots i.cs-miss { background: #B23524; }
+.cs-hint { position: absolute; left: 50%; bottom: 128px; z-index: 3; transform: translateX(-50%); max-width: min(560px, 70%); text-align: center;
+  background: var(--paper, #F3EEE2); color: var(--ink, #1E2734); border: 2px solid var(--ink-deep, #141C28); border-radius: 6px; box-shadow: 0 3px 0 var(--ink-deep, #141C28);
+  padding: 6px 12px; font: 600 15px/1.3 var(--font-label, "Avenir Next", sans-serif); pointer-events: none; }
+.cs-hint-k { display: inline-block; margin-right: 8px; padding: 1px 6px; border-radius: 3px; background: var(--red, #B23524); color: #FBF4E4; font: 800 11px/1.4 var(--font-display, Futura, sans-serif); letter-spacing: 0.1em; vertical-align: 1px; }
+.cs-hint.cs-oben { bottom: auto; top: 12px; }
 </style>
 </head>
 <body>
@@ -773,7 +822,7 @@ table.mini tr.me td { background: var(--gold); }
   function target(ball, inp, c, seed, D, quiet) {
     const r = rng(hash("ziel", seed)), m = mass(ball), rho = airRho(c);
     const icy = state(ball) === "eis", cd = icy ? CD * 0.8 : CD;
-    const a = (AIM_ANG + (quiet ? 0 : gauss(r) * 0.8)) * Math.PI / 180, lat = (inp.lat + (quiet ? 0 : gauss(r) * 0.4)) * Math.PI / 180;
+    const a = ((inp.ang != null ? inp.ang : AIM_ANG) + (quiet ? 0 : gauss(r) * 0.8)) * Math.PI / 180, lat = (inp.lat + (quiet ? 0 : gauss(r) * 0.4)) * Math.PI / 180;
     let x = 0, y = 1.8, z = 0, vx = inp.v * Math.cos(a) * Math.cos(lat), vy = inp.v * Math.sin(a), vz = inp.v * Math.cos(a) * Math.sin(lat), t = 0, n = 0;
     const d = SIZE[ball.size].d, path = [];
     while (t < 6 && x < D && y > 0) {
@@ -7889,10 +7938,139 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   root.SWAudio = S;
 })(typeof window !== "undefined" ? window : globalThis);
 
+// oberflaeche/steuerung.js – Spielsteuerung für alle Spiele der Reihe (global CMSteuer), seit 14.11.2026 (Biathlon 0.18).
+// Mat nach Biathlon Mania: „da ist es einfacher zu wissen, was man machen muss“. Darum sichtbare Bedienelemente statt
+// „irgendwo tippen“: runde Knöpfe mit Takt-Ring, ein Stick zum Zielen, eine Taktleiste über der Figur, ein Magazin und
+// eine Hinweiszeile für das erste Mal. Nur DOM und CSS (steuerung.css), keine Abhängigkeiten, kein Zeichnen auf dem Canvas.
+// Jedes Spiel liefert nur Texte, Symbole und Rückrufe. Abwärtskompatibel erweitern (neue Felder, alte bleiben).
+(function (root) {
+  "use strict";
+  const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+  // Symbole (Plakatstil, Strich), in Knöpfen nutzbar: symbol: "lauf" | "hocke" | "feuer" | "links" | "rechts" | "stock" | "wurf"
+  const SYM = {
+    lauf: '<path d="M9 21l3-6 3 2 2 5M12 15l1-5 4 2 2 3M13 10l-4 1-2 3"/><circle cx="15" cy="5" r="2"/><path d="M3 22h18"/>',
+    hocke: '<path d="M5 18c3-1 6-1 9-3l3-4M14 15l-4-3 2-4 4 1"/><circle cx="16" cy="5" r="2"/><path d="M2 21l20-3"/>',
+    feuer: '<circle cx="12" cy="12" r="7"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/>',
+    links: '<path d="M14 6l-6 6 6 6"/>', rechts: '<path d="M10 6l6 6-6 6"/>',
+    stock: '<path d="M7 3l3 18M17 3l-3 18M5 21h14"/>',
+    // seit 14.11.2026 (Schneeball): Wurf (Arm wirft einen Ball im Bogen)
+    wurf: '<circle cx="18" cy="6" r="2.4"/><path d="M5 21l3-6 3 1 1-5M8 15l-2-4 4-3 4 1M14 9c1-2 2-3 4-3"/><circle cx="10" cy="4" r="1.8"/>',
+  };
+  const svg = (k) => (SYM[k] ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SYM[k]}</svg>` : "");
+
+  // Zeiger an ein Element binden: Rückrufe mit pointerId; das Element fängt den Zeiger, das Spielfeld darunter bekommt nichts
+  function grab(node, on) {
+    const ids = new Set();
+    node.addEventListener("pointerdown", (e) => {
+      e.preventDefault(); e.stopPropagation();
+      try { node.setPointerCapture(e.pointerId); } catch (er) { /* egal */ }
+      ids.add(e.pointerId); node.classList.add("cs-down"); if (on.down) on.down(e.pointerId, e);
+    });
+    node.addEventListener("pointermove", (e) => { if (ids.has(e.pointerId) && on.move) { e.preventDefault(); on.move(e.pointerId, e); } });
+    const up = (e) => { if (!ids.delete(e.pointerId)) return; if (!ids.size) node.classList.remove("cs-down"); if (on.up) on.up(e.pointerId, e, e.type === "pointercancel"); };
+    node.addEventListener("pointerup", up); node.addEventListener("pointercancel", up);
+    node.addEventListener("contextmenu", (e) => e.preventDefault());
+    return { release() { for (const id of [...ids]) { ids.delete(id); if (on.up) on.up(id, null, true); } node.classList.remove("cs-down"); } };
+  }
+
+  // Runder Knopf unten links oder rechts. Ring: Takt (fill 0 … 1, ok = im grünen Bereich). o: { seite, text, symbol, klein,
+  // onDown(id, e), onUp(id, e, abgebrochen) }. Rückgabe { el, set({ fill, ok, text, symbol, hidden, aktiv, seite }), release() }
+  function knopf(host, o) {
+    const b = el("button", `cs-knopf cs-${o.seite === "rechts" ? "rechts" : "links"}${o.klein ? " cs-klein" : ""}`);
+    b.type = "button";
+    b.innerHTML = `<svg class="cs-ring" viewBox="0 0 100 100" aria-hidden="true"><circle class="cs-ring-bg" cx="50" cy="50" r="46"/><circle class="cs-ring-v" cx="50" cy="50" r="46" pathLength="100" stroke-dasharray="0 100" style="opacity:0"/></svg><span class="cs-sym">${svg(o.symbol)}</span><span class="cs-txt">${esc(o.text || "")}</span>`;
+    b.setAttribute("aria-label", o.text || o.symbol || "Knopf");
+    host.appendChild(b);
+    const g = grab(b, { down: o.onDown && ((id, e) => o.onDown(id, e)), up: o.onUp && ((id, e, c) => o.onUp(id, e, c)) });
+    const ringV = b.querySelector(".cs-ring-v"), txt = b.querySelector(".cs-txt"), sym = b.querySelector(".cs-sym");
+    let last = {};
+    return { el: b, release: g.release, set(s) {
+      if ("hidden" in s && s.hidden !== last.hidden) b.hidden = !!s.hidden;
+      if (s.seite && s.seite !== last.seite) { b.classList.toggle("cs-links", s.seite !== "rechts"); b.classList.toggle("cs-rechts", s.seite === "rechts"); }   // z. B. Links- oder Rechtshänder
+      if ("fill" in s) { const f = s.fill == null ? 0 : clamp(s.fill, 0, 1); const v = Math.round(f * 100); if (v !== last.v) { ringV.setAttribute("stroke-dasharray", `${v} ${100 - v}`); ringV.style.opacity = v ? "" : "0"; last.v = v; } }
+      if ("ok" in s && s.ok !== last.ok) b.classList.toggle("cs-ok", !!s.ok);
+      if ("aktiv" in s && s.aktiv !== last.aktiv) b.classList.toggle("cs-aktiv", !!s.aktiv);
+      if ("text" in s && s.text !== last.text) { txt.textContent = s.text; b.setAttribute("aria-label", s.text); }
+      if ("symbol" in s && s.symbol !== last.symbol) sym.innerHTML = svg(s.symbol);
+      last = Object.assign(last, s);
+    } };
+  }
+
+  // Stick zum Zielen wie ein Trackpad: der Finger verschiebt (onMove(dx, dy) in Bildschirm-Pixeln, schon gedreht über o.map),
+  // der Knopf in der Mitte zeigt die Richtung. o: { seite, text, map(dx, dy) → [dx, dy], onDown(id), onUp(id, abgebrochen) }
+  function stick(host, o) {
+    const b = el("div", `cs-stick cs-${o.seite === "links" ? "links" : "rechts"}`, `<span class="cs-stick-knob"></span><span class="cs-txt">${esc(o.text || "")}</span>`);
+    b.setAttribute("role", "slider"); b.setAttribute("aria-label", o.text || "Zielen");
+    host.appendChild(b);
+    const knob = b.querySelector(".cs-stick-knob"); let p = null, off = [0, 0];
+    const place = () => { knob.style.transform = `translate(${off[0]}px, ${off[1]}px)`; };
+    const g = grab(b, {
+      down(id, e) { p = [e.clientX, e.clientY]; off = [0, 0]; place(); if (o.onDown) o.onDown(id, e); },
+      move(id, e) {
+        if (!p) return;
+        let dx = e.clientX - p[0], dy = e.clientY - p[1]; p = [e.clientX, e.clientY];
+        if (o.map) [dx, dy] = o.map(dx, dy);
+        const r = b.clientWidth * 0.3; off = [clamp(off[0] * 0.85 + dx * 1.6, -r, r), clamp(off[1] * 0.85 + dy * 1.6, -r, r)]; place();
+        if (o.onMove) o.onMove(dx, dy);
+      },
+      up(id, e, c) { p = null; off = [0, 0]; place(); if (o.onUp) o.onUp(id, c); },
+    });
+    return { el: b, release: g.release, set(s) { if ("hidden" in s) b.hidden = !!s.hidden; if ("text" in s) b.querySelector(".cs-txt").textContent = s.text; } };
+  }
+
+  // Taktleiste über der Figur: folgt der Figur (x, y in Pixeln der Ebene), fill = Fortschritt bis zum nächsten Abstoß,
+  // win = [von, bis] der grüne Bereich, ok = gerade drin, text = kleine Zeile darunter (z. B. Tempo)
+  function takt(host) {
+    const b = el("div", "cs-takt", `<div class="cs-takt-bar"><i class="cs-takt-win"></i><i class="cs-takt-fill"></i></div><span class="cs-takt-txt"></span>`);
+    host.appendChild(b);
+    const fill = b.querySelector(".cs-takt-fill"), win = b.querySelector(".cs-takt-win"), txt = b.querySelector(".cs-takt-txt");
+    let last = {};
+    return { el: b, set(s) {
+      if ("hidden" in s && s.hidden !== last.hidden) b.hidden = !!s.hidden;
+      if (s.x != null && s.y != null) b.style.transform = `translate(${Math.round(s.x)}px, ${Math.round(s.y)}px) translate(-50%, -100%)`;
+      if ("fill" in s) fill.style.width = `${Math.round(clamp(s.fill || 0, 0, 1) * 100)}%`;
+      if (s.win) { win.style.left = `${s.win[0] * 100}%`; win.style.width = `${Math.max(0, s.win[1] - s.win[0]) * 100}%`; }
+      if ("ok" in s && s.ok !== last.ok) b.classList.toggle("cs-ok", !!s.ok);
+      if ("text" in s && s.text !== last.text) txt.textContent = s.text || "";
+      last = Object.assign(last, s);
+    } };
+  }
+
+  // Magazin unten in der Mitte: übrige Patronen groß, darunter je Schuss ein Punkt (true = Treffer, false = Fehler, null = offen)
+  function magazin(host) {
+    const b = el("div", "cs-mag", `<div class="cs-mag-n"><b>5</b><svg viewBox="0 0 12 28" aria-hidden="true"><path d="M3 10h6v16H3zM3 10c0-4 1.5-7 3-8 1.5 1 3 4 3 8" fill="currentColor"/></svg></div><div class="cs-mag-dots"></div>`);
+    host.appendChild(b);
+    const n = b.querySelector(".cs-mag-n b"), dots = b.querySelector(".cs-mag-dots");
+    return { el: b, set(s) {
+      if ("hidden" in s) b.hidden = !!s.hidden;
+      if (s.shots) {
+        n.textContent = String(s.left != null ? s.left : s.shots.filter((x) => x == null).length);
+        dots.innerHTML = s.shots.map((x) => `<i class="${x === true ? "cs-hit" : x === false ? "cs-miss" : ""}"></i>`).join("");
+      }
+    } };
+  }
+
+  // Hinweiszeile für das erste Mal (unten in der Mitte über den Knöpfen, mit { oben: true } oben in der Mitte): say(text, sekunden) zeigt, clear() blendet aus
+  // o.oben: oben in der Mitte (wenn unten das Ziel oder Magazin liegt)
+  function hinweis(host, o) {
+    const b = el("div", "cs-hint" + (o && o.oben ? " cs-oben" : "")); b.hidden = true; b.setAttribute("role", "status");
+    host.appendChild(b);
+    let t = 0, cur = "";
+    return { el: b, get text() { return b.hidden ? "" : cur; },
+      say(text, sek) { clearTimeout(t); if (text !== cur || b.hidden) { cur = text; b.innerHTML = `<span class="cs-hint-k">TIPP</span>${esc(text)}`; } b.hidden = false; if (sek) t = setTimeout(() => { b.hidden = true; cur = ""; }, sek * 1000); },
+      clear() { clearTimeout(t); b.hidden = true; cur = ""; } };
+  }
+
+  root.CMSteuer = { version: 1, knopf, stick, takt, magazin, hinweis, SYM };
+})(typeof window !== "undefined" ? window : globalThis);
+
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.9.7";
+  const VERSION = "0.9.8";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender;
@@ -8321,8 +8499,8 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   // ------------------------------------------------------------------ Bereit
   function ready() {
     if (isZiel()) {
-      G.phase = "aim"; G.D = C.DIST[G.n]; G.vNeed = Ph.aimSpeed(G.D, G.cond, G.ball);
-      hint(S.tips.ziel < 3 ? "Finger auflegen, nach unten ziehen wie eine Steinschleuder, Fadenkreuz aufs Ziel · loslassen" : null, "top");
+      G.phase = "aim"; G.D = C.DIST[G.n]; G.vNeed = Ph.aimSpeed(G.D, G.cond, G.ball); G.aimLat = 0; G.zAng = null;
+      hint(null);
       updChips(); return;
     }
     G.phase = "ready"; G.th.dir = 1; G.th.x = START_X; G.th.vx = 0;
@@ -8477,6 +8655,77 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     if (G.th.x > -0.12) return foul();
     // Kraft aus dem Anlauftempo: wer zu früh loslässt, ist noch langsam
     doThrow({ ang: curAngle(), pow: 0.78 + 0.22 * clamp(G.th.vx / 6.2, 0, 1), run: G.th.vx, xr: G.th.x + 0.6, rh: rhythm(), kraft: 1 + luzBoost(), luz: G.luz || 0 });
+  }
+  // ------------------------------------------------------------------ Steuerung zum Sehen (oberflaeche/steuerung.js, wie Biathlon 0.18)
+  // Mat 14.11.2026: ein Knopf „Schritt“ (starke Hand, im Takt tippen = Tempo = Kraft) und ein Knopf „Wurf“ (andere Hand:
+  // halten = Winkel steigt, loslassen = Wurf). Zielwurf: Stick zielt seitlich, „Wurf“ halten = Winkel, loslassen; Kraft fest.
+  // Tippen irgendwo aufs Bild geht weiter wie bisher (Ersatz).
+  const CS = window.CMSteuer, ZV = 15.5, ZANG_RATE = 13, dec = (v, n) => v.toFixed(n).replace(".", ",");
+  const csMap = (dx, dy) => (rotated ? [dy, -dx] : [dx, dy]);
+  const kStep = CS.knopf($("hud"), { seite: "rechts", text: "Schritt", symbol: "lauf", onDown: () => {
+    if (!G) return; AU.unlock();
+    if (G.phase === "ready") { G.phase = "run"; G.run = { t0: now, tapped: {}, accs: [] }; G.th.lastF = 0; G.gait = null; hint(null); return; }
+    if (G.phase === "run" || G.phase === "drill") { stepTap(now); if (G.phase === "drill" && drillCount() >= DRILL_N) drillDone(); }
+  } });
+  const kThrow = CS.knopf($("hud"), { seite: "links", text: "Wurf", symbol: "wurf",
+    onDown: () => {
+      if (!G) return; AU.unlock();
+      if (G.phase === "run") { G.phase = "angle"; G.ang = { t0: now }; }
+      else if (G.phase === "aim") { G.zAng = { t0: now }; hint(null); }
+    },
+    onUp: (id, e, cancel) => {
+      if (!G) return;
+      if (G.phase === "angle") throwAngle();
+      else if (G.phase === "aim" && G.zAng) { if (cancel) { G.zAng = null; G.reticle = null; return; } zielRelease(); }
+    } });
+  const aimStick = CS.stick($("hud"), { seite: "rechts", text: "Zielen", map: csMap,
+    onMove: (dx) => { if (!G || G.phase !== "aim") return; G.aimLat = clamp(G.aimLat - dx * 0.035, -9, 9); G.aimed = (G.aimed || 0) + Math.abs(dx); } });
+  const csTakt = CS.takt($("hud")), csHint = CS.hinweis($("hud"), { oben: true });
+  const zAngle = () => G.zAng ? clamp(4 + (now - G.zAng.t0) * ZANG_RATE * (1 + 0.12 * (G.luz || 0)), 0, 60) : null;
+  function zielPreview() {
+    const a = zAngle(); if (a == null) { G.reticle = null; return; }
+    const wb = wobble(), r = Ph.target(G.ball, { v: ZV * (1 + wb.v), lat: G.aimLat + wb.lat, ang: a, t0: 0 }, Object.assign({}, G.cond, { wind: { x: 0, z: 0, gust: 0 } }), 1, G.D, true);
+    G.reticle = { x: r.x, y: r.y, z: r.z, short: r.x < G.D - 1e-6, pts: r.pts };
+  }
+  function zielRelease() {
+    const a = zAngle(), wb = wobble(); G.zAng = null; G.reticle = null;
+    const inp = { v: ZV * (1 + wb.v), lat: G.aimLat + wb.lat, ang: a, t0: now + G.n * 9, p: 1 };
+    const res = Ph.target(G.ball, inp, G.cond, Ph.hash(G.seed, "mez", G.n), G.D);
+    G.fl = { res, inp, t0: now + 0.14, i: 0 }; G.phase = "zfly"; G.thr = { t0: now };
+    if (S.tips.ziel < 3) { S.tips.ziel++; save(); }
+  }
+  // je Bild: welche Bedienelemente, Ring und Taktleiste
+  function csFrame() {
+    const on = G && !$("hud").hidden, ph = on ? G.phase : "", ziel = on && isZiel();
+    const runP = ["ready", "run", "angle", "drill"].includes(ph) && !ziel;
+    const sw = S.hand === "l";
+    kStep.set({ hidden: !runP || ph === "drill" && false, seite: sw ? "links" : "rechts" });
+    kThrow.set({ hidden: !(runP && ph !== "drill" || ziel && ph === "aim"), seite: sw ? "rechts" : "links" });
+    aimStick.set({ hidden: !(ziel && ph === "aim") });
+    if (runP && (ph === "run" || ph === "drill")) {
+      const b = beatPhase(), w = WIN / STEP, ok = b > 1 - w || b < w * 0.6;
+      kStep.set({ fill: b, ok, text: "Schritt" });
+    } else kStep.set({ fill: 0, ok: false, text: ph === "ready" ? "Los" : "Schritt" });
+    if (ph === "angle") { const a = curAngle(); kThrow.set({ fill: a / 80, ok: a >= 34 && a <= 46, aktiv: true, text: Math.round(a) + "°" }); }
+    else if (ziel && ph === "aim" && G.zAng) { const a = zAngle(); zielPreview(); kThrow.set({ fill: a / 60, ok: !!(G.reticle && G.reticle.pts > 0), aktiv: true, text: Math.round(a) + "°" }); }
+    else kThrow.set({ fill: 0, ok: false, aktiv: false, text: "Wurf" });
+    // Taktleiste über der Figur
+    if (runP && (ph === "run" || ph === "drill") && G.run) {
+      const M = R.make(cam), th = G.th, x = M.X(th.ax != null ? th.ax : th.x, 0), y = M.Y(2.35, 0), b = beatPhase(), w = WIN / STEP;
+      const L = G.run.last && now - G.run.last.at < 0.5 ? G.run.last : null;
+      const word = L ? (L.miss ? "verpasst" : L.acc > 0.75 ? "genau!" : L.e < 0 ? "zu früh" : "zu spät") : "";
+      const hold = ph === "run" && th.x > -(Math.max(1.5, th.vx) * 40 / angRate()) - 1.2;
+      csTakt.set({ hidden: false, x, y, fill: b, win: [1 - w, 1], ok: b > 1 - w, text: hold ? "JETZT „WURF“ HALTEN" : word || `${dec(th.vx * 3.6, 0)} km/h` });
+    } else csTakt.set({ hidden: true });
+    // Hinweise fürs erste Mal
+    if (!on || ph === "drill") { csHint.clear(); return; }
+    const T = S.tips;
+    if (ph === "ready") csHint.say("„Schritt“ tippen startet den Anlauf.");
+    else if (ph === "run" && (T.throw || 0) < 2) csHint.say(G.th.x > -6 ? "Vor dem Balken „Wurf“ halten: der Winkel steigt. Bei 40° loslassen." : "„Schritt“ tippen, wenn der Ring grün ist. Im Takt wirst du schneller.");
+    else if (ph === "angle") csHint.say("Loslassen bei etwa 40°.");
+    else if (ph === "aim" && !G.zAng) csHint.say((G.aimed || 0) < 30 && (T.ziel || 0) < 2 ? "Rechts am Stick zielen, links „Wurf“ halten." : "„Wurf“ halten: der Winkel steigt, das Kreuz wandert hoch. Auf dem Ziel loslassen.");
+    else if (ph === "aim") csHint.say("Loslassen, wenn das Kreuz auf dem Ziel sitzt.");
+    else csHint.clear();
   }
   // Steinschleuder: Zug in Bühnen-Pixeln → Kraft k (1 = so weit wie nötig für den Kopf) und Richtung
   const PULL_FULL = 150;
@@ -8920,7 +9169,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     const held = ball && (G.phase === "ready" || G.phase === "run" || G.phase === "angle" || G.phase === "check" || G.phase === "checkOk" || G.phase === "walk" && G.walk.then !== "scoop" || G.phase === "fly" && now < G.fl.t0) ? { d: Ph.SIZE[ball.size].d, f: ball.f, ice: Ph.iceAt(ball), type: ball.type } : null;
     return {
       arc: G.phase === "drill" ? { x: th.x, drill: true, lane: laneView() } : ["ready", "run", "angle"].includes(G.phase) ? { x: th.x + 0.25, deg: G.phase === "angle" ? curAngle() : null, speed: G.phase === "ready" ? null : th.vx / 6.4,
-        beat: G.phase === "run" ? beatPhase() : null, foot: th.x, dots: G.run && G.phase !== "ready" ? G.run.accs.slice(-7) : null, last: G.run && G.run.last && now - G.run.last.at < 0.35 ? G.run.last.acc : null, lane: laneView() } : null,
+        beat: G.phase === "run" ? beatPhase() : null, foot: th.x, dots: G.run && G.phase !== "ready" ? G.run.accs.slice(-7) : null, last: G.run && G.run.last && now - G.run.last.at < 0.35 ? G.run.last.acc : null, lane: null } : null,
       board: boardLines(), helper: helperView(), photo: isZiel() ? null : { x: PHOTO.x, z: PHOTO.z, flash: G.flash != null ? G.flash : null },
       say: G.say && now >= G.say.at && now - G.say.at < 2.6 ? G.say : null,
       cam: G.luz >= 1 ? { cx: cam.cx + Math.sin(now * 0.8) * 0.12 * G.luz, ppm: cam.ppm * (1 + Math.sin(now * 0.53) * 0.008 * G.luz) } : cam, focus: G.focus, marks: G.marks, judge: G.judge, tape: G.tape, crumbs: G.crumbs, ball: G.flyBall || null, trail: G.trail,
@@ -8973,7 +9222,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   function render() {
     if (isZiel()) R.drawAim(ctx, aimView(), now);
     else { R.draw(ctx, view(), now); if (G && G.snap && now >= G.snap.at) takeSnap(); }
-    sayBox(); revealBox();
+    sayBox(); revealBox(); csFrame();
     if (G) { placePatchButtons(); updWind(); }
   }
 
