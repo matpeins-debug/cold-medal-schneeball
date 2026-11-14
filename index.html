@@ -6,6 +6,9 @@
 <meta name="theme-color" content="#162442">
 <title>Cold Medal · Schneeball</title>
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Schneeball">
@@ -8094,7 +8097,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.10.0";
+  const VERSION = "0.10.1";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender;
@@ -8545,7 +8548,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   const DRILL_N = 3;
   function drillIntro() {
     G.phase = "drillIntro"; G.th.x = START_X + 2; hint(null);
-    drillCard("TAKTSCHULE · 1/2", "Dein Werfer läuft am Platz. Nach <b>3, 2, 1</b> zieht sich um den Knopf „Schritt“ ein Kreis zusammen. <b>Tippe, wenn der Kreis den Knopf berührt</b> (du hörst dazu den Schritt). Getroffen = schneller, daneben = langsamer und mehr Zeit. Drei Treffer, dann geht’s zum Wurf.", "Los geht's", true);
+    drillCard("TAKTSCHULE · 1/2", "Tippe „Schritt“: Dein Werfer läuft am Platz los. Um den Knopf zieht sich ein Kreis zusammen. <b>Tippe, wenn der Kreis den Knopf berührt</b> (du hörst dazu den Schritt). Getroffen = schneller, daneben = langsamer und mehr Zeit. Drei Treffer, dann geht’s zum Wurf.", "Los geht's", true);
   }
   function drillCard(kick, html, go, skip) {
     const el = $("drill"); el.hidden = !kick; if (!kick) return;
@@ -8608,21 +8611,22 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   // jeder Schritt zählt nur einmal, ein zweites Tippen ist ein Stolperer.
   // Mat 14.11.2026: „viel zu eilig, nicht klar“. Darum: „3, 2, 1“ vor dem ersten Schritt, langsam anfangen (0,7 s), nur wer trifft,
   // wird schneller (bis 0,5 s); daneben gibt wieder mehr Zeit. Die Schrittzeiten werden je Schritt festgelegt, wenn der vorige fällt.
-  const STEP0 = 0.7, STEP_MIN = 0.5, COUNT = 3, HOLD = 0.18, WIN = 0.17;
+  const STEP0 = 0.6, STEP_MIN = 0.42, HOLD = 0.18, WIN = 0.22;   // Mat 14.11.2026 abends: ohne Countdown, erster Tipp = erster Schritt
   const STEP = STEP0;   // für Anzeigen, die einen Richtwert brauchen
   // mit Kafi Luz kommt der Takt aus dem Tritt: jeder Fußaufsatz verschiebt sich ein wenig
   const luzJit = (f) => { const a = LUZ.jit[Math.min(4, Math.ceil(G.luz || 0))] * Math.min(1, (G.luz || 0) / Math.max(1, Math.ceil(G.luz || 0))); return a ? a * (Math.sin(f * 2.31 + G.n * 1.7) * 0.7 + Math.sin(f * 0.83 + G.seed % 7) * 0.5) : 0; };
-  function newRun(t0) { return { t0, tapped: {}, accs: [], times: [t0, t0 + COUNT * STEP0] }; }
+  // der Tipp, der den Anlauf startet, ist schon der erste Schritt (Fuß 1 = jetzt, zählt als genau)
+  function newRun(t0) { return { t0, tapped: { 1: 1 }, accs: [1], times: [t0 - STEP0, t0], last: { acc: 1, at: t0, e: 0 } }; }
   function stepIv() { const a = G.run.accs.slice(-3); const q = a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0; return STEP0 - (STEP0 - STEP_MIN) * clamp(q, 0, 1); }
   function footT(f) {
-    const r = G.run, T = r.times || (r.times = [r.t0, r.t0 + COUNT * STEP0]);
+    const r = G.run, T = r.times || (r.times = [r.t0 - STEP0, r.t0]);
     while (T.length <= f) { const k = T.length; T.push(T[k - 1] + stepIv() + luzJit(k) - luzJit(k - 1)); }
     return T[f];
   }
   function nearestFoot(t) { let f = 1; while (footT(f + 1) < t) f++; return t - footT(f) > footT(f + 1) - t ? f + 1 : f; }
   function beatPhase() { let f = 0; while (footT(f + 1) <= now && f < 400) f++; const a = footT(f), b = footT(f + 1); return clamp((now - a) / Math.max(0.05, b - a), 0, 1); }
   // Countdown bis zum ersten Schritt (3, 2, 1), null danach
-  const countLeft = () => G.run && now < footT(1) ? Math.ceil((footT(1) - now) / STEP0) : null;
+  const countLeft = () => null;   // kein Countdown mehr
   function stepTap(t) {
     const R0 = G.run, f = nearestFoot(t), e = t - footT(f);
     let acc = 0;
@@ -8691,7 +8695,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     th.pose = r.pose; th.swap = r.swap; th.lift = r.lift; th.ax = r.ax;
   }
   // Tempo kommt nur vom Tippen (Mat 14.11.2026): Schnitt der letzten drei Schritte; vor dem ersten Tipp ein halber Schwung vom Antritt
-  const rhythm = () => { const a = G.run.accs.slice(-3); return a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0.45; };
+  const rhythm = () => { const a = G.run.accs.slice(-3); return a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0.5; };
   const angRate = () => ANG_RATE * (1 + 0.12 * (G.luz || 0));
   const curAngle = () => clamp((now - G.ang.t0) * angRate(), 0, 89);
   function throwAngle() {
@@ -8762,7 +8766,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     // Hinweise fürs erste Mal
     if (!on || ph === "drill") { csHint.clear(); return; }
     const T = S.tips;
-    if (ph === "ready") csHint.say("„Los“ tippen. Nach 3, 2, 1 tippst du „Schritt“, wenn der Kreis den Knopf berührt.");
+    if (ph === "ready") csHint.say("„Los“ tippen, dann weiter tippen, wenn der Kreis den Knopf berührt.");
     else if (ph === "run" && countLeft()) csHint.say("Gleich geht’s los: beim nächsten Klack tippen.");
     else if (ph === "run" && G.th.x > ZONE[0]) csHint.say("Abwurfzone! „Wurf“ halten, bei 40° loslassen.");
     else if (ph === "run" && (T.throw || 0) < 3) csHint.say("Tippen, wenn der Kreis den Knopf berührt. Gut getroffen = schneller.");
@@ -8864,8 +8868,9 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     if (G.phase === "run" || G.phase === "angle") {
       // Tempo nur aus dem Tippen: im Takt bis 6,4 m/s; wer nicht tippt, läuft aus und bleibt stehen
       if (G.phase === "run") stepMiss();
-      const vT = countLeft() ? 0 : 6.4 * rhythm();
-      th.vx += (vT - th.vx) * Math.min(1, dt * (th.vx < vT ? 2.2 : 1.6));
+      // flüssig: schon ein Treffer bringt Schwung, gute Folge bis 6,4 m/s; nur drei Fehltritte hintereinander halten ihn an
+      const rh = rhythm(), vT = rh > 0 ? 2.0 + 4.4 * rh : 0;
+      th.vx += (vT - th.vx) * Math.min(1, dt * (th.vx < vT ? 3.0 : 1.4));
       if (G.phase === "run" && !countLeft() && th.vx < 0.35 && vT < 0.35 && !ptr) {
         G.phase = "ready"; G.run = null; th.vx = 0; th.pose = R.POSE.hold; th.swap = false; th.lift = 0; th.ax = null; G.gait = null;
         hint("Stehen geblieben – tippe im Takt, dann läuft er", "top"); return;
@@ -8885,7 +8890,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     }
     if (G.phase === "drill") {
       if (!countLeft()) stepMiss();
-      const vT = countLeft() ? 0 : 2.6 + 3.8 * rhythm(); th.vx += (vT - th.vx) * Math.min(1, dt * 2.2);
+      const vT = 2.0 + 4.4 * rhythm(); th.vx += (vT - th.vx) * Math.min(1, dt * 2.2);
       const u = (((now - G.run.t0) / (2 * STEP)) % 1 + 1) % 1;
       G.drillHx = (G.drillHx || 0) + th.vx * dt;
       countTick();
@@ -9307,8 +9312,8 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     use3d(on) { R.use3d = !!on; },
     // Taktschule im Test: n Schritte genau im Takt tippen
     // im Anlauf n Schritte genau im Takt tippen
-    runTaps(n) { const f0 = (G.th.lastF || 0) + 1; for (let f = f0; f < f0 + n && G.phase === "run"; f++) { const tf = footT(f); if (tf > now) this.step(tf - now); stepTap(now); } return G.th.vx; },
-    drillTaps(n) { for (let f = 1; f <= n && G.phase === "drill"; f++) { const tf = footT(f); if (tf > now) this.step(tf - now); stepTap(now); if (drillCount() >= DRILL_N) drillDone(); } return G.phase; },
+    runTaps(n) { let f0 = (G.th.lastF || 0) + 1; while (footT(f0) <= now + 1e-6) f0++; for (let f = f0; f < f0 + n && G.phase === "run"; f++) { const tf = footT(f); if (tf > now) this.step(tf - now); stepTap(now); } return G.th.vx; },
+    drillTaps(n) { for (let f = 2; f <= n + 1 && G.phase === "drill"; f++) { const tf = footT(f); if (tf > now) this.step(tf - now); stepTap(now); if (drillCount() >= DRILL_N) drillDone(); } return G.phase; },
     step(sec) { const n = Math.ceil(sec / 0.02); for (let i = 0; i < n; i++) update(sec / n); render(); },
     open(mode, seed) { G = newGame(mode, seed); rpMode = mode; fillReport(); show("scrReport"); },
     go() { $("rpGo").click(); },
@@ -9319,7 +9324,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       G.phase = "run"; G.run = newRun(now); hint(null);
       // bei jedem Aufsetzen tippen (off = Versatz in Sekunden; null = gar nicht tippen); run zählt ab dem ersten Schritt (nach 3, 2, 1)
       const end = footT(1) + run;
-      for (let f = 1; off !== null && footT(f) + (off || 0) <= end; f++) {
+      for (let f = 2; off !== null && footT(f) + (off || 0) <= end; f++) {
         const tf = footT(f) + (off || 0);
         if (tf > now) this.step(tf - now);
         if (G.phase !== "run") return G.phase;
