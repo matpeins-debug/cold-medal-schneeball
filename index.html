@@ -589,7 +589,7 @@ table.mini tr.me td { background: var(--gold); }
         <h3>Spiel</h3>
         <p>Inoffizielles Fanspiel der Reihe Cold Medal Games. Alle Werferinnen und Werfer sind erfunden; St. Moritz ist frei nachempfunden (Plakatstil der 1920er).</p>
         <h3>So geht’s</h3>
-        <p>Ball wählen: Walnuss verzeiht einen schiefen Takt, Mandarine passt immer, Orange fliegt mit sauberem Takt am weitesten; dazu ein verbotener Eisball. Dein Helfer hat sie fertig im Korb, oder du formst selbst (Fleck wählen, Größe wählen, im Takt drücken, wenn sich der Ring schließt). Weitwurf: Tippen startet den Anlauf; tippe bei jedem Schritt, wenn der Fuß aufsetzt (Leiste oben: tippen, wenn ein Punkt die Linie trifft; der erste Schritt ist frei) – im Takt wirst du schneller. Vor dem Balken den Finger liegen lassen: der Winkel steigt; bei etwa 40° loslassen. Nicht über den Balken treten. Zielwurf wie beim Basketball: gerade nach oben wischen, Richtung Schneemann. Die Länge des Wischens füllt die Kraftleiste links; trifft sie die Marke „Perfekt Kraft“, sitzt der Wurf. Die Marke wandert mit dem Abstand.</p>
+        <p>Ball wählen: Walnuss verzeiht einen schiefen Takt, Mandarine passt immer, Orange fliegt mit sauberem Takt am weitesten; dazu ein verbotener Eisball. Dein Helfer hat sie fertig im Korb, oder du formst selbst (Fleck wählen, Größe wählen, im Takt drücken, wenn sich der Ring schließt). Weitwurf: Tippen startet den Anlauf; tippe bei jedem Schritt, wenn der Fuß aufsetzt (Leiste oben: tippen, wenn ein Punkt die Linie trifft; der erste Schritt ist frei) – im Takt wirst du schneller. Vor dem Balken den Finger liegen lassen: der Winkel steigt; bei etwa 40° loslassen, und zwar wenn der Kreis den Wurf-Knopf berührt (Stemmschritt: bis 8 % weiter, daneben bis 15 % weniger). Nicht über den Balken treten. Zielwurf wie beim Basketball: gerade nach oben wischen, Richtung Schneemann. Die Länge des Wischens füllt die Kraftleiste links; trifft sie die Marke „Perfekt Kraft“, sitzt der Wurf. Die Marke wandert mit dem Abstand.</p>
         <h3>Kafi Luz</h3>
         <p>Der Hüttenwirt schenkt vor jedem Wurf ein Kafi Luz aus (Kaffee mit Träsch), ein Glas je Wurf, höchstens vier im Blut. Es wärmt und macht Mut: der Wurf hat mehr Kraft, bei Frost und im Sturm noch etwas mehr. Dafür kommt der Takt aus dem Tritt (die Schritte werden unregelmäßig), der Winkel steigt schneller und das Bild schwankt. Beim Zielwurf beruhigt ein Glas die Hand, mehr lässt sie zittern. Nach jedem Wurf baut sich ein halbes Glas ab.</p>
         <h3>Schnee</h3>
@@ -903,7 +903,7 @@ table.mini tr.me td { background: var(--gold); }
     if (P.state(b) === "eis" && P.checked(seed, a.name, n)) return { dist: 0, valid: false, why: "dsq", type, size };
     const inp = {
       ang: 39 + gauss(r) * (2 + (1 - sk) * 7), pow: clamp(0.8 + sk * 0.15 + gauss(r) * (0.04 + (1 - sk) * 0.08), 0.5, 1.4),
-      run: 3.4 + sk * 2.4, rh: clamp(0.2 + sk * 0.45 + gauss(r) * 0.1, 0, 1), xr: -0.15 - (1 - sk) * 0.9 - r() * 0.2, kraft: 0.82 + sk * 0.12, t0: n * 13 + r() * 6,
+      run: 3.4 + sk * 2.4, rh: clamp(0.2 + sk * 0.45 + gauss(r) * 0.1, 0, 1), xr: -0.15 - (1 - sk) * 0.9 - r() * 0.2, kraft: (0.82 + sk * 0.12) * Math.sqrt(1 + clamp(-0.07 + sk * 0.13 + gauss(r) * 0.04, -0.15, 0.08)), t0: n * 13 + r() * 6,
     };
     inp.foul = r() < 0.03 + (1 - sk) * 0.03;
     const res = P.fly(b, inp, c, hash(seed, a.name, n));
@@ -8250,7 +8250,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.11.1";
+  const VERSION = "0.12.0";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender;
@@ -8265,7 +8265,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 
   // ------------------------------------------------------------------ Spielstand (nur auf diesem Gerät; Name, Land und Figur im Pass)
   const KEY = "coldmedal-schneeball";
-  const DEF = { v: 1, glove: "wolle", sound: 1, fig3d: 1, rec: { comp: 0, train: 0, ziel: 0 }, medals: [0, 0, 0], tips: { form: 0, throw: 0, ziel: 0 }, train: { temp: -1, tod: "morning", sky: "klar", wind: "mild" }, comps: 0 };
+  const DEF = { v: 1, glove: "wolle", sound: 1, fig3d: 1, rec: { comp: 0, train: 0, ziel: 0 }, medals: [0, 0, 0], tips: { form: 0, throw: 0, ziel: 0, stemm: 0 }, train: { temp: -1, tod: "morning", sky: "klar", wind: "mild" }, comps: 0 };
   function sanitize(o) {
     const S = JSON.parse(JSON.stringify(DEF));
     if (!o || typeof o !== "object") return S;
@@ -8507,7 +8507,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     b.disabled = G.luzNow || L >= LUZ.max; b.textContent = L >= LUZ.max ? "Nichts mehr" : G.luzNow ? "Prost!" : "Kafi Luz trinken";
   }
   function beginAttempt() {
-    G.phase = "rack"; G.ball = null; G.fl = null; G.tape = null; G.judge = { flag: null, at: 0 }; G.focus = null; G.crumbs = []; G.hit = null; G.zball = null;
+    G.phase = "rack"; G.ball = null; G.fl = null; G.tape = null; G.judge = { flag: null, at: 0 }; G.focus = null; G.crumbs = []; G.hit = null; G.zball = null; G.stemm = null;
     G.th = { x: START_X, z: 0, dir: 1, pose: F.POSES.stand, vx: 0 };
     G.patches = null; G.shown = false; G.gest = null; G.flash = null; G.snap = null;
     AU.music(AU.on);
@@ -8714,7 +8714,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   function drillCount() { const n = (G.run.log || []).filter((x) => x.acc > 0.5).length; $("drCnt").innerHTML = Array.from({ length: DRILL_N }, (_, i) => `<i class="${i < n ? "on" : ""}"></i>`).join(""); return n; }
   function drillDone() {
     G.phase = "drillOk";
-    drillCard("TAKTSCHULE · 2/2", "Sitzt! Jetzt mit Wurf: genau so anlaufen. Vor dem Balken liegt die rote <b>Abwurfzone</b>, dort leuchtet „Wurf“. <b>„Wurf“ halten</b>, der Winkel steigt; bei etwa <b>40°</b> loslassen. Hältst du nicht, wirft er am Balken flach.", "Zum Wurf", false);
+    drillCard("TAKTSCHULE · 2/2", "Sitzt! Jetzt mit Wurf: genau so anlaufen. Vor dem Balken liegt die rote <b>Abwurfzone</b>, dort leuchtet „Wurf“. <b>„Wurf“ halten</b>, der Winkel steigt; bei etwa <b>40°</b> loslassen – am besten, wenn der Kreis den Knopf berührt: das ist der <b>Stemmschritt</b>, bis 8 % weiter. Hältst du nicht, wirft er am Balken flach.", "Zum Wurf", false);
   }
   function drillEnd() { drillCard(null); G.run = null; G.phase = "ready"; G.th.x = START_X; G.th.vx = 0; G.th.pose = F.POSES.stand; G.th.lift = 0; G.th.ax = null; G.gait = null; }
   function countTick() { const c = countLeft(); if (c && c !== G.run.lastC) { G.run.lastC = c; AU.tick(true); } }
@@ -8853,10 +8853,17 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   const rhythm = () => { const a = G.run.accs.slice(-3); return a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0.5; };
   const angRate = () => ANG_RATE * (1 + 0.12 * (G.luz || 0));
   const curAngle = () => clamp((now - G.ang.t0) * angRate(), 0, 89);
+  const STEMM = { ok: 0.06, zero: 0.12, full: 0.26, plus: 0.08, minus: 0.15 };
+  function stemmBonus(t) { const d = Math.abs(t - footT(nearestFoot(t))); return d <= STEMM.ok ? STEMM.plus : d <= STEMM.zero ? STEMM.plus * (STEMM.zero - d) / (STEMM.zero - STEMM.ok) : -STEMM.minus * Math.min(1, (d - STEMM.zero) / (STEMM.full - STEMM.zero)); }
   function throwAngle() {
     if (G.th.x > -0.12) return foul();
+    // Stemmschritt (Mat 14.11.2026: „das Werfen braucht ein gewisses Etwas an Schwierigkeit“): loslassen, wenn der Fuß aufsetzt.
+    // Genau (±0,06 s) bis +8 % Weite, daneben bis −15 %. Weite geht mit v², darum die Wurzel auf die Kraft.
+    const sb = stemmBonus(now);
+    G.stemm = { b: sb, e: now - footT(nearestFoot(now)), at: now };
+    if (sb > 0.04 && (S.tips.stemm || 0) < 3) { S.tips.stemm = (S.tips.stemm || 0) + 1; save(); }
     // Kraft aus dem Anlauftempo: wer zu früh loslässt, ist noch langsam
-    doThrow({ ang: curAngle(), pow: 0.78 + 0.22 * clamp(G.th.vx / 6.2, 0, 1), run: G.th.vx, xr: G.th.x + 0.6, rh: rhythm(), kraft: 1 + luzBoost(), luz: G.luz || 0 });
+    doThrow({ ang: curAngle(), pow: 0.78 + 0.22 * clamp(G.th.vx / 6.2, 0, 1), run: G.th.vx, xr: G.th.x + 0.6, rh: rhythm(), kraft: (1 + luzBoost()) * Math.sqrt(1 + sb), stemm: sb, luz: G.luz || 0 });
   }
   // ------------------------------------------------------------------ Steuerung zum Sehen (oberflaeche/steuerung.js, wie Biathlon 0.18)
   // Mat 14.11.2026: ein Knopf „Schritt“ (starke Hand, im Takt tippen = Tempo = Kraft) und ein Knopf „Wurf“ (andere Hand:
@@ -8914,9 +8921,14 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       kStep.set({ zu: ph === "angle" ? null : u, fill: 0, ok: ph !== "angle" && (nx - now < WIN || now - prev < WIN * 0.6), text: c ? String(c) : word });
     } else kStep.set({ zu: null, fill: 0, ok: false, text: ph === "ready" ? "Los" : "Schritt" });
     const zone = runP && ph === "run" && G.th.x > ZONE[0] && G.th.x < ZONE[1];
-    if (ph === "angle") { const a = curAngle(); kThrow.set({ fill: a / 80, ok: a >= 34 && a <= 46, aktiv: true, puls: false, text: Math.round(a) + "°" }); }
+    const SB = G && G.stemm && now - G.stemm.at < 1.1 ? G.stemm : null;
+    if (ph === "angle") { // Kreis zieht sich zum nächsten Fußaufsatz zusammen: berührt er den Knopf, loslassen (Stemmschritt)
+      const a = curAngle(); let f = 0; while (footT(f + 1) <= now && f < 400) f++;
+      const prev = footT(f), nx = footT(f + 1), u = clamp((now - prev) / Math.max(0.05, nx - prev), 0, 1);
+      kThrow.set({ fill: a / 80, ok: a >= 34 && a <= 46, aktiv: true, puls: false, zu: u, text: Math.round(a) + "°" }); }
+    else if (SB && !ziel) kThrow.set({ fill: 0, ok: SB.b > 0.04, aktiv: false, puls: false, zu: null, text: SB.b > 0.04 ? "Stemmen!" : SB.e < 0 ? "Zu früh" : "Zu spät" });
     else if (ziel && ph === "aim" && G.zAng) { const a = zAngle(); zielPreview(); kThrow.set({ fill: a / 60, ok: !!(G.reticle && G.reticle.pts > 0), aktiv: true, puls: false, text: Math.round(a) + "°" }); }
-    else kThrow.set({ fill: 0, ok: zone, aktiv: false, puls: zone, text: zone ? "Jetzt!" : "Wurf" });
+    else kThrow.set({ fill: 0, ok: zone, aktiv: false, puls: zone, zu: null, text: zone ? "Jetzt!" : "Wurf" });
     // Tempo über der Figur: was das Tippen bringt (Mat 14.11.2026: „man weiß nicht, wie und warum man tippt“)
     if (runP && (ph === "run" || ph === "angle") && G.run && !ziel) {
       const M = R.make(cam), th = G.th, x = M.X(th.ax != null ? th.ax : th.x, 0), y = M.Y(2.45, 0), q = clamp(th.vx / 6.4, 0, 1);
@@ -8930,7 +8942,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     else if (ph === "run" && countLeft()) csHint.say("Gleich geht’s los: beim nächsten Klack tippen.");
     else if (ph === "run" && G.th.x > ZONE[0]) csHint.say("Abwurfzone! „Wurf“ halten, bei 40° loslassen.");
     else if (ph === "run" && (T.throw || 0) < 3) csHint.say("Jeder Tipp im Schritt schiebt an (Schneewolke), daneben bremst. Die Leiste über dem Werfer zeigt das Tempo.");
-    else if (ph === "angle") csHint.say("Loslassen bei etwa 40°.");
+    else if (ph === "angle") csHint.say((T.stemm || 0) < 3 ? "Loslassen bei etwa 40° – genau wenn der Kreis den Knopf berührt (Stemmschritt): bis 8 % weiter." : "40° und Stemmschritt.");
     else if (ph === "aim" && !G.pull) csHint.say((T.ziel || 0) < 3 ? "Gerade nach oben wischen, Richtung Schneemann. Die Leiste links muss die Marke „Perfekt“ treffen." : "Nach oben wischen, bis die Leiste die Marke trifft.");
     else if (ph === "aim") csHint.say(G.pull.perfect ? "Perfekt! Jetzt loslassen." : G.pull.k < G.pull.need ? "Weiter wischen …" : "Zu weit – zurück!");
     else csHint.clear();
@@ -9195,8 +9207,9 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     if (early > late && early >= 2) return "Trainer: Du tippst zu früh. Warte, bis der Punkt auf der Linie ist – der Fuß setzt dann auf.";
     if (late > early && late >= 2) return "Trainer: Du tippst zu spät. Tippe schon, wenn der Punkt die Linie erreicht.";
     if (inp.ang != null && (inp.ang < 33 || inp.ang > 47)) return inp.ang < 33 ? "Trainer: Takt passt. Halte etwas länger – um 40° fliegt der Ball am weitesten." : "Trainer: Takt passt. Lass früher los – über 45° geht der Ball nur hoch.";
+    if (inp.stemm != null && inp.stemm < 0.02) return "Trainer: Winkel passt. Lass los, wenn der Kreis den Wurf-Knopf berührt – dann setzt der Fuß auf, du stemmst dich rein: bis 8 % weiter."
     if (inp.xr != null && -inp.xr > 1.2) return "Trainer: Gut! Du kannst noch näher an den Balken – etwas später halten bringt Meter.";
-    return "Trainer: Sauber! Takt, Winkel und Abwurf passen – jetzt im Wettkampf zeigen.";
+    return "Trainer: Sauber! Takt, Winkel, Stemmschritt und Abwurf passen – jetzt im Wettkampf zeigen.";
   }
   function sayBox() {
     const el = $("say"), on = false && G && G.say && now >= G.say.at && now - G.say.at < 2.8 && !["rack", "report", "show"].includes(G.phase);
@@ -9486,6 +9499,8 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     pick(id) { if (G.phase === "rack") beginPick(); pickPatch(id); }, size: chooseSize, done: formDone, take: takeRack, self: beginPick,
     pressBeats(n, off) { for (let i = 0; i < n; i++) { const ph = ((now - G.form.t0) / BEAT) % 1; this.step((1 - ph) * BEAT + (off || 0) + 0.0001); formPress(); this.step(0.05); } },
     // Weitwurf: Anlauf (Sekunden), dann Winkel halten bis deg
+    // Stemmschritt: Bonus beim Loslassen dt Sekunden nach dem nächsten Fußaufsatz (nur mit laufendem Anlauf)
+    stemmAt(dt) { if (!G.run) G.run = newRun(now); const f = nearestFoot(now) + 1; return stemmBonus(footT(f) + dt); },
     throwTap(run, deg, off) {
       G.phase = "run"; G.run = newRun(now); hint(null);
       // bei jedem Aufsetzen tippen (off = Versatz in Sekunden; null = gar nicht tippen); run zählt ab dem ersten Schritt (nach 3, 2, 1)
