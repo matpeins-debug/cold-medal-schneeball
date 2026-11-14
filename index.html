@@ -53,7 +53,12 @@ h2 { font-family: var(--font-display); font-size: 21px; line-height: 1.1; text-t
 .row2 { display: flex; gap: 8px; }
 .row2 > * { flex: 1 1 0; min-width: 0; }
 /* Menü: nichts darf über die Karte hinaus – Texte brechen um, Knöpfe teilen sich die Breite */
-.card.menu .big, .card.menu .mid { white-space: normal; overflow-wrap: anywhere; hyphens: auto; }
+.card.menu .big, .card.menu .mid { white-space: normal; overflow-wrap: normal; }
+/* keine Silbentrennung, nirgends (Mat 14.11.2026: „Es gibt Zeilenumbrüche!“): Knöpfe bleiben einzeilig, zu lange Texte werden kleiner (fitText) */
+html, body, body * { -webkit-hyphens: manual; hyphens: manual; }
+.ps-lbl.ps-lbl { -webkit-hyphens: manual; hyphens: manual; overflow-wrap: normal; }
+.card.menu .mid, .card.menu .big > span, .pill { white-space: nowrap; }
+.card.menu .big > span { display: block; overflow: hidden; }
 .card.menu .big span { line-height: 1.1; font-size: 18px; }
 .card.menu .big small { line-height: 1.2; }
 .card.menu .mid { padding: 8px 6px; font-size: 12.5px; letter-spacing: 0.03em; text-align: center; line-height: 1.15; }
@@ -8047,7 +8052,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 /* COLD MEDAL SCHNEEBALL – Ton per WebAudio: Knirschen beim Drücken, Takt, Wurf, Aufschlag, Zerbröseln, Applaus. Global: SWAudio. */
 (function (root) {
   "use strict";
-  let A = null, out = null, on = true, noiseBuf = null, amb = null, mus = null, silent = null;
+  let A = null, out = null, on = true, noiseBuf = null, amb = null, mus = null, silent = null, rev = null, echo = null;
   // iPhone: der Stummschalter dämpft WebAudio; als „Wiedergabe“ angemeldet (audioSession bzw. ein stilles <audio>) klingt es trotzdem
   function iosPlayback() {
     try { if (root.navigator && root.navigator.audioSession) root.navigator.audioSession.type = "playback"; } catch (e) { /* alt */ }
@@ -8070,6 +8075,14 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       noiseBuf = A.createBuffer(1, A.sampleRate, A.sampleRate);
       const d = noiseBuf.getChannelData(0);
       for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      // Hall (Holzhütte, Schnee) und Echo von den Bergen
+      try {
+        const len = Math.floor(A.sampleRate * 2.2), ir = A.createBuffer(2, len, A.sampleRate);
+        for (let ch = 0; ch < 2; ch++) { const x = ir.getChannelData(ch); for (let i = 0; i < len; i++) x[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3.2); }
+        const cv = A.createConvolver(); cv.buffer = ir; rev = A.createGain(); rev.gain.value = 0.32; rev.connect(cv); cv.connect(out);
+        const dl = A.createDelay(1.5), fb = A.createGain(), lp = A.createBiquadFilter(); dl.delayTime.value = 0.48; fb.gain.value = 0.38; lp.type = "lowpass"; lp.frequency.value = 1400;
+        echo = A.createGain(); echo.gain.value = 0.5; echo.connect(dl); dl.connect(lp); lp.connect(fb); fb.connect(dl); lp.connect(out);
+      } catch (e) { rev = null; echo = null; }
     }
     if (A.state === "suspended") A.resume().catch(() => {});
     return A;
@@ -8113,28 +8126,101 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
         src.connect(fl); fl.connect(g); g.connect(out); src.start(); lfo.start(); amb = { src, lfo, g };
       } else if (!want && amb) { try { amb.src.stop(); amb.lfo.stop(); } catch (e) { /* schon aus */ } amb = null; }
     },
-    // Ländler im Dreivierteltakt (Bass – Akkord – Akkord, Melodie wie ein Schwyzerörgeli), leise im Menü und zwischen den Würfen
+    // Ländler im Dreivierteltakt, gespielt von einem Musikanten neben der Hütte (Mat 14.11.2026: „rustikaler, als würde jemand
+    // neben dem Haus musizieren“): Schwyzerörgeli mit zwei leicht verstimmten Stimmzungen (Schwebung), Bass-Knöpfe und
+    // „um-pa-pa“, dazu ein Bassgeiger. Dumpf durch die Luft (Tiefpass), etwas links, mit Hall; Timing und Lautstärke wie von Hand,
+    // ab und zu ein Vorschlag. Teil A in G-Dur, Teil B in D-Dur, je 8 Takte, dann wieder von vorn.
     music(want) {
-      if (!want) { if (mus) { clearInterval(mus.iv); mus.g.gain.setTargetAtTime(0.0001, A.currentTime, 0.3); mus = null; } return; }
+      if (!want) { if (mus) { clearInterval(mus.iv); mus.g.gain.setTargetAtTime(0.0001, A.currentTime, 0.4); mus = null; } return; }
       const a = ctx(); if (!a || mus) return;
-      const g = a.createGain(); g.gain.value = 0.0001; g.gain.setTargetAtTime(0.16, a.currentTime, 0.4); g.connect(out);
-      const beat = 0.26, hz = (n) => 440 * Math.pow(2, (n - 69) / 12);
-      // C-Dur: Takte als [Bass, Akkord, Melodie je Viertel]
-      const BARS = [[48, [64, 67], [72, 76, 79]], [43, [62, 65], [77, 74, 71]], [48, [64, 67], [72, 76, 79]], [43, [62, 65], [79, 77, 74]],
-        [41, [65, 69], [81, 79, 77]], [48, [64, 67], [76, 79, 76]], [43, [62, 65], [74, 71, 74]], [48, [64, 67], [72, 0, 0]]];
-      const note = (f, t, d, vol, type, det) => { const o = a.createOscillator(), e = a.createGain(); o.type = type; o.frequency.value = f; if (det) o.detune.value = det;
-        e.gain.setValueAtTime(0.0001, t); e.gain.exponentialRampToValueAtTime(vol, t + 0.02); e.gain.exponentialRampToValueAtTime(0.0001, t + d); o.connect(e); e.connect(g); o.start(t); o.stop(t + d + 0.05); };
-      let bar = 0, next = a.currentTime + 0.1;
+      const g = a.createGain(); g.gain.value = 0.0001; g.gain.setTargetAtTime(0.2, a.currentTime, 0.6);
+      const lp = a.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 2300; lp.Q.value = 0.5;
+      const pan = a.createStereoPanner ? a.createStereoPanner() : null; if (pan) pan.pan.value = -0.4;
+      g.connect(lp); (pan ? (lp.connect(pan), pan) : lp).connect(out); if (rev) { const sd = a.createGain(); sd.gain.value = 0.55; lp.connect(sd); sd.connect(rev); }
+      const hz = (n) => 440 * Math.pow(2, (n - 69) / 12), hum = (x) => x + (Math.random() - 0.5) * x;
+      // Takte: [Bass, Akkord, Melodie als [Ton, Dauer in Vierteln]]
+      const G = [55, [62, 67, 71]], D = [50, [62, 66, 69]], C = [48, [64, 67, 72]], A7 = [57, [61, 64, 67]];
+      const BARS = [
+        [G, [[74, 1], [79, 1], [83, 1]]], [D, [[81, 1], [78, 1], [74, 1]]], [G, [[79, 1.5], [81, 0.5], [83, 1]]], [C, [[84, 1], [83, 1], [81, 1]]],
+        [G, [[79, 1], [83, 1], [86, 1]]], [D, [[84, 1], [81, 1], [78, 1]]], [D, [[76, 1], [78, 1], [81, 1]]], [G, [[79, 2], [0, 1]]],
+        [D, [[78, 1], [81, 1], [86, 1]]], [A7, [[85, 1], [81, 1], [76, 1]]], [A7, [[79, 1.5], [78, 0.5], [76, 1]]], [D, [[74, 1], [78, 1], [81, 1]]],
+        [G, [[83, 1], [79, 1], [74, 1]]], [C, [[76, 1], [79, 1], [84, 1]]], [D, [[83, 1], [81, 1], [78, 1]]], [G, [[79, 2], [0, 1]]],
+      ];
+      // Örgeli-Ton: zwei Sägezahn-Stimmzungen ±9 Cent über einen Bandpass (Holzkasten), weicher Balg-Einsatz
+      const reed = (f, t, d, vol) => {
+        const bp = a.createBiquadFilter(), e = a.createGain(); bp.type = "bandpass"; bp.frequency.value = Math.min(3200, f * 2.2); bp.Q.value = 0.7;
+        e.gain.setValueAtTime(0.0001, t); e.gain.linearRampToValueAtTime(vol, t + 0.035); e.gain.setTargetAtTime(vol * 0.7, t + 0.05, 0.15); e.gain.setTargetAtTime(0.0001, t + d, 0.04);
+        for (const det of [-9, 9]) { const o = a.createOscillator(); o.type = "sawtooth"; o.frequency.value = f; o.detune.value = det; o.connect(bp); o.start(t); o.stop(t + d + 0.3); }
+        bp.connect(e); e.connect(g);
+      };
+      // Bassgeige: gezupft, kurzer Holzton
+      const bass = (f, t, vol) => { const o = a.createOscillator(), e = a.createGain(), l = a.createBiquadFilter(); o.type = "triangle"; o.frequency.value = f; l.type = "lowpass"; l.frequency.value = 600;
+        e.gain.setValueAtTime(0.0001, t); e.gain.exponentialRampToValueAtTime(vol, t + 0.01); e.gain.exponentialRampToValueAtTime(0.0001, t + 0.45); o.connect(l); l.connect(e); e.connect(g); o.start(t); o.stop(t + 0.5); };
+      let bar = 0, next = a.currentTime + 0.15, beat = 0.25;
       const sched = () => {
-        while (next < a.currentTime + 0.6) {
-          const [bs, ch, mel] = BARS[bar % BARS.length];
-          note(hz(bs), next, beat * 0.9, 0.5, "triangle");
-          for (const k of [1, 2]) for (const c of ch) note(hz(c), next + k * beat, beat * 0.5, 0.12, "square");
-          mel.forEach((m, i) => { if (m) { note(hz(m), next + i * beat, beat * 0.95, 0.16, "sawtooth", -6); note(hz(m), next + i * beat, beat * 0.95, 0.1, "sawtooth", 7); } });
+        while (next < a.currentTime + 0.7) {
+          const [[b0, ch], mel] = BARS[bar % BARS.length];
+          beat = 0.245 + Math.sin(bar * 0.7) * 0.008;                 // der Musikant drückt und zieht etwas
+          const v = 0.8 + Math.random() * 0.25;
+          bass(hz(b0 - 12), hum(next) , 0.55 * v); reed(hz(b0), next + 0.005, beat * 0.8, 0.07 * v);
+          for (const k of [1, 2]) for (const c of ch) reed(hz(c), next + k * beat + Math.random() * 0.012, beat * 0.45, 0.03 * v);
+          let tt = next;
+          for (const [m, du] of mel) {
+            if (m) { if (Math.random() < 0.18) reed(hz(m + 2), tt - 0.045, 0.04, 0.05 * v);   // Vorschlag
+              reed(hz(m), tt + Math.random() * 0.015, beat * du * 0.92, 0.075 * v); }
+            tt += beat * du;
+          }
           next += 3 * beat; bar++;
         }
       };
       sched(); mus = { g, iv: setInterval(sched, 200) };
+    },
+    // Juchzer aus dem Publikum: Stimme aus Sägezahn durch drei Formanten, „Ju-“ in der Bruststimme, dann der Kippton in die
+    // Kopfstimme „-huiii“, hoch gezogen und abfallend. n Rufer, jeder anders hoch, anders weit weg, anders links/rechts.
+    juchzer(n) {
+      const a = ctx(); if (!a) return;
+      for (let i = 0; i < (n || 1); i++) {
+        const t = a.currentTime + 0.05 + i * (0.28 + Math.random() * 0.35), fem = Math.random() < 0.45, f0 = (fem ? 380 : 230) * (0.92 + Math.random() * 0.16), L = 0.75 + Math.random() * 0.45;
+        const o = a.createOscillator(), vib = a.createOscillator(), vg = a.createGain(), mix = a.createGain(), e = a.createGain();
+        o.type = "sawtooth"; vib.frequency.value = 5.5 + Math.random(); vg.gain.value = f0 * 0.025; vib.connect(vg); vg.connect(o.frequency);
+        o.frequency.setValueAtTime(f0, t); o.frequency.linearRampToValueAtTime(f0 * 1.08, t + 0.13);
+        o.frequency.setValueAtTime(f0 * 2.35, t + 0.15); o.frequency.linearRampToValueAtTime(f0 * 2.75, t + 0.15 + L * 0.45);
+        o.frequency.linearRampToValueAtTime(f0 * 2.6, t + 0.15 + L * 0.75); o.frequency.exponentialRampToValueAtTime(f0 * 1.5, t + 0.15 + L);
+        const F = [[650, 300, 6], [1100, 2300, 9], [2600, 3100, 10]];
+        F.forEach(([fa, fb, q], k) => { const bp = a.createBiquadFilter(), fg = a.createGain(); bp.type = "bandpass"; bp.Q.value = q; bp.frequency.setValueAtTime(fa, t); bp.frequency.setValueAtTime(fb, t + 0.15); fg.gain.value = [1, 0.7, 0.35][k]; o.connect(bp); bp.connect(fg); fg.connect(mix); });
+        const vol = 0.32 * (0.6 + Math.random() * 0.5);
+        e.gain.setValueAtTime(0.0001, t); e.gain.linearRampToValueAtTime(vol * 0.7, t + 0.04); e.gain.linearRampToValueAtTime(vol * 0.35, t + 0.145); e.gain.linearRampToValueAtTime(vol, t + 0.2);
+        e.gain.setValueAtTime(vol, t + 0.15 + L * 0.7); e.gain.exponentialRampToValueAtTime(0.0001, t + 0.15 + L + 0.08);
+        const lp = a.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 2600 + Math.random() * 1600;
+        mix.connect(lp); lp.connect(e);
+        const pn = a.createStereoPanner ? a.createStereoPanner() : null; if (pn) { pn.pan.value = Math.random() * 1.6 - 0.8; e.connect(pn); pn.connect(out); } else e.connect(out);
+        if (rev) { const sd = a.createGain(); sd.gain.value = 0.6; e.connect(sd); sd.connect(rev); }
+        if (echo && i === 0) { const sd = a.createGain(); sd.gain.value = 0.35; e.connect(sd); sd.connect(echo); }
+        o.start(t); vib.start(t); o.stop(t + 0.3 + L); vib.stop(t + 0.3 + L);
+      }
+    },
+    // Alphorn während des Flugs (Naturtöne über Fis, wie ein echtes Alphorn): u = Höhe des Balls 0 … 1 wählt den Naturton,
+    // gleitend gebunden; mit Echo von den Bergen. Gibt { set(u), stop() } zurück.
+    alphorn() {
+      const a = ctx(); if (!a) return null;
+      const f0 = 92.5, H = [3, 4, 5, 6, 8, 9, 10, 12], t = a.currentTime;
+      const o = a.createOscillator(), o2 = a.createOscillator(), lp = a.createBiquadFilter(), e = a.createGain(), vib = a.createOscillator(), vg = a.createGain();
+      o.type = "sawtooth"; o2.type = "triangle"; o.frequency.value = f0 * 3; o2.frequency.value = f0 * 3; o2.detune.value = 4;
+      vib.frequency.value = 4.6; vg.gain.value = 1.4; vib.connect(vg); vg.connect(o.frequency); vg.connect(o2.frequency);
+      lp.type = "lowpass"; lp.frequency.value = 500; lp.Q.value = 2;
+      e.gain.setValueAtTime(0.0001, t); e.gain.linearRampToValueAtTime(0.16, t + 0.35);
+      o.connect(lp); o2.connect(lp); lp.connect(e); e.connect(out);
+      if (rev) { const sd = a.createGain(); sd.gain.value = 0.5; e.connect(sd); sd.connect(rev); }
+      if (echo) { const sd = a.createGain(); sd.gain.value = 0.7; e.connect(sd); sd.connect(echo); }
+      o.start(t); o2.start(t); vib.start(t);
+      let last = -1;
+      return {
+        set(u) { const h = H[Math.max(0, Math.min(H.length - 1, Math.round(u * (H.length - 1))))]; if (h === last) return; last = h; const now = a.currentTime;
+          for (const x of [o, o2]) x.frequency.setTargetAtTime(f0 * h, now, 0.05);
+          lp.frequency.setTargetAtTime(Math.min(4000, f0 * h * 3.2), now, 0.08); },
+        stop() { const now = a.currentTime; e.gain.cancelScheduledValues(now); e.gain.setValueAtTime(e.gain.value, now); e.gain.setTargetAtTime(0.0001, now, 0.25);
+          for (const x of [o, o2, vib]) x.stop(now + 1.5); },
+      };
     },
     // Sturmheulen: tiefes und hohes Rauschen, langsam schwellend
     storm(want) {
@@ -8293,7 +8379,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.13.0";
+  const VERSION = "0.13.1";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender;
@@ -8371,17 +8457,20 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   const set3d = () => { R.use3d = !!S.fig3d && !testMode; };
   set3d();
   window.addEventListener("resize", layout);
+  // Schriften laden am iPhone spät (Futura, Iowan): danach Knöpfe neu einpassen
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { try { fitText(document); } catch (e) { /* früh */ } });
 
   // ------------------------------------------------------------------ Bildschirme
   const SCREENS = ["scrMenu", "scrReport", "scrStand", "scrPass", "scrInfo"];
   // Schrift verkleinern, bis der Text in sein Feld passt (iPhone-Schriften laufen breiter)
   function fitText(root) {
-    for (const el of root.querySelectorAll(".rpGrid b, .rpGrid i")) {
+    for (const el of root.querySelectorAll(".rpGrid b, .rpGrid i, .card.menu .mid, .card.menu .big > span, .pill")) {
       el.style.fontSize = ""; let fs = parseFloat(getComputedStyle(el).fontSize), n = 0;
       while (el.scrollWidth > el.clientWidth + 1 && fs > 9 && n++ < 20) { fs -= 1; el.style.fontSize = fs + "px"; }
     }
   }
-  function show(id) { for (const s of SCREENS) $(s).hidden = s !== id; if (id) fitText($(id)); $("hud").hidden = !!id; AU.ambient(!id || id === "scrStand"); AU.music(!!id && AU.on); AU.storm(!id && !!G && G.cond.sky === "sturm"); }
+  function show(id) { if (id && G && G.fl && G.fl.horn) { G.fl.horn.stop(); G.fl.horn = null; }
+    for (const s of SCREENS) $(s).hidden = s !== id; if (id) fitText($(id)); $("hud").hidden = !!id; AU.ambient(!id || id === "scrStand"); AU.music(!!id && AU.on); AU.storm(!id && !!G && G.cond.sky === "sturm"); }
 
   // ------------------------------------------------------------------ Zustand eines Durchgangs
   // mode: "comp" = Weitwurf-Wettkampf, "train" = Training Weitwurf, "ziel" = Zielwurf-Wettkampf
@@ -8551,6 +8640,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     b.disabled = G.luzNow || L >= LUZ.max; b.textContent = L >= LUZ.max ? "Nichts mehr" : G.luzNow ? "Prost!" : "Kafi Luz trinken";
   }
   function beginAttempt() {
+    if (G.fl && G.fl.horn) { G.fl.horn.stop(); G.fl.horn = null; }
     G.phase = "rack"; G.ball = null; G.fl = null; G.tape = null; G.judge = { flag: null, at: 0 }; G.focus = null; G.crumbs = []; G.hit = null; G.zball = null; G.stemm = null;
     G.th = { x: START_X, z: 0, dir: 1, pose: F.POSES.stand, vx: 0 };
     G.patches = null; G.shown = false; G.gest = null; G.flash = null; G.snap = null;
@@ -8590,6 +8680,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   function fillTech() {
     const box = $("rkTech"); box.hidden = isZiel(); if (box.hidden) return;
     box.innerHTML = `<span class="tk">Technik</span>` + TECH_IDS.map((id) => `<button class="pill${tech() === id ? " on" : ""}" data-t="${id}">${esc(Ph.TECH[id].name)}</button>`).join("") + `<em>${esc(Ph.TECH[tech()].use)}</em>`;
+    fitText(box);
     box.querySelectorAll("button").forEach((b) => (b.onclick = (e) => { e.stopPropagation(); S.tech = b.dataset.t; save(); AU.press(1, false); fillTech(); }));
   }
   function takeRack(i) {
@@ -9219,6 +9310,9 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     const bx = a[1] + (b[1] - a[1]) * u, by = a[2] + (b[2] - a[2]) * u, bz = a[3] + (b[3] - a[3]) * u, mr = a[4] + (b[4] - a[4]) * u;
     const d0 = Ph.SIZE[G.ball.size].d;
     G.flyBall = { x: bx, y: by, z: bz, d: d0 * Math.cbrt(mr), f: G.ball.f, ice: Ph.iceAt(G.ball), type: G.ball.type, spin: t * 9 };
+    // Alphorn bei einem guten Wurf: der Naturton folgt der Höhe des Balls (Mat 14.11.2026)
+    if (f.horn === undefined) { const top = Math.max(0.5, ...P.map((q) => q[2])); f.top = top; f.horn = res.valid && res.dist >= Math.max(38, (G.best || 0) * 0.93) && AU.on ? AU.alphorn() : null; }
+    if (f.horn) f.horn.set(clamp(by / f.top, 0, 1));
     G.trail.push([bx, by, bz]); if (G.trail.length > 14) G.trail.shift();
     if (mr < (f.lastM || 1) - 0.03) { f.lastM = mr; for (let i = 0; i < 2; i++) G.crumbs.push(crumb(bx, by, bz, 0.04)); }
     for (const ev of res.events) if (!ev.done && t >= ev.t) { ev.done = true; AU.crumble(); for (let i = 0; i < 18; i++) G.crumbs.push(crumb(ev.x, ev.y, ev.z, 0.05)); }
@@ -9227,7 +9321,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     const x0 = Math.min(-6, (f.inp.xr || 0) - 2), ppm = Math.min(48, (W * 0.9) / Math.max(8, bx - x0 + 3), 250 / Math.max(1, f.peak + 0.5));
     setCam(x0 + W / 2 / ppm, ppm);
     if (t >= res.t) {
-      G.flyBall = null; G.trail = []; AU.thud(G.ball.size === "orange");
+      G.flyBall = null; G.trail = []; AU.thud(G.ball.size === "orange"); if (f.horn) { f.horn.stop(); f.horn = null; }
       for (let i = 0; i < 10; i++) G.crumbs.push(crumb(res.x, 0.05, res.z, 0.04, true));
       const best = res.valid && res.dist > G.best;
       G.marks.forEach((m) => { if (best) m.best = false; });
@@ -9390,6 +9484,8 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     if (!R0.landed && u >= R0.count) {
       R0.landed = true; AU.thud(true);
       if (R0.ok) AU.applause(R0.rec ? 1.2 : R0.pb ? 0.8 : R0.val >= (R0.ziel ? 5 : 45) ? 0.5 : 0.25);
+      // Juchzer aus dem Publikum bei guten Würfen
+      if (R0.ok && AU.juchzer) { const n = R0.rec ? 3 : R0.pb ? 2 : R0.val >= (R0.ziel ? 7 : 50) ? 1 : 0; if (n) setTimeout(() => AU.juchzer(n), testMode ? 0 : 250); }
       G.gestT = now;
     }
     // Kamera: erst beim Aufschlag, nach dem Hochzählen zurück zum Werfer, der jubelt oder abwinkt
