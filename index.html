@@ -7049,8 +7049,8 @@ table.mini tr.me td { background: var(--gold); }
   const INK = "#141B25", PAPER = "#F1E7D2", SNOW = "#F6F1E6", SNOWB = "#DCE4EC", SNOWS = "#B9C8D8";
   const TAN = Math.tan(P.SECTOR * Math.PI / 180);
   const KF = 0.0225;
-  const BALLK = 2.4;
-  const FIRE = { x: -2.3, z: 7.8 };   // Feuerschale neben der Hütte, die Gegner stehen darum (0.14.2)   // Ball größer gezeichnet als echt, damit man ihn auf dem Handy sieht
+  const BALLK = 2.4;   // Ball größer gezeichnet als echt, damit man ihn auf dem Handy sieht
+  const FIRE = { x: -2.3, z: 7.8 }, CHOP = { x: -5.6, z: 13.5 }, SAW = { x: 5.0, z: 11.5 };   // Feuerschale (Gegner stehen darum), Holzhacker, Zugsäge
   function c2(ctx, tr, X, Y) {
     ctx.lineCap = "round";
     for (let i = 1; i < tr.length; i++) {
@@ -7158,7 +7158,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   function create(dpr0) {
     let curT = 0, pano = null, panoKey = "", dpr = dpr0 || 1, world = buildWorld(1, "SUI"), tod = "afternoon", skyK = "klar", windK = 0;
     const R = {
-      FIRE, POSE, RUN, IMP, THROW, THROW_SIDE, T_REL, kit, runPose, use3d: false, W, H, GY, BACK, HOR, ZB, KF, make,
+      FIRE, CHOP, SAW, POSE, RUN, IMP, THROW, THROW_SIDE, T_REL, kit, runPose, use3d: false, W, H, GY, BACK, HOR, ZB, KF, make,
       setDpr(v) { if (Math.abs(v - dpr) > 0.01) { dpr = v; panoKey = ""; } },
       setScene(seed, theme, sky, wx) { tod = theme; skyK = sky || "klar"; windK = wx || 0; world = buildWorld(seed, "SUI"); panoKey = ""; },
       get tod() { return tod; },
@@ -7221,6 +7221,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       gr.addColorStop(0, night ? "#C9C3CF" : SNOWB); gr.addColorStop(0.35, night ? "#E3D9D6" : "#EEF0EE"); gr.addColorStop(1, night ? "#EADFD6" : SNOW);
       ctx.fillStyle = gr; ctx.fillRect(0, BACK - 6, W, H - BACK + 6);
       idyll(ctx, M, t, night);
+      sleigh(ctx, M, t, night);
       // Zuschauer hinter dem Zaun
       const zP = ZB + 1.4, sP = S(zP), Xp = (x) => X(x, zP), Yp = (y) => Y(y, zP);
       const xl = cam.cx - W / 2 / sP - 2, xr = cam.cx + W / 2 / sP + 2;
@@ -7255,6 +7256,8 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       // Requisiten hinten: Hütte, Schneemann, Kampfrichter
       fireBasket(ctx, M, 9.5, ZB - 1.2, t, night);
       flagPole(ctx, M, -4.4, 10.5, t, night);
+      sawyers(ctx, M, t, night);
+      chopper(ctx, M, t, night);
       benches(ctx, M, t, night);
       if (V.rivals) rivals(ctx, M, V.rivals.filter((r) => r.z > FIRE.z), t);   // wer hinter dem Feuer steht, zuerst
       fireBowl(ctx, M, FIRE.x, FIRE.z, t, night);
@@ -7790,6 +7793,80 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       { const m = pts[5], an = (1 - lift) * 1.35 * 0.5, mx = m[0] - d * Math.sin(an) * fh * 0.5, my = m[1] + Math.cos(an) * fh * 0.5, cs = fh * 0.2; c.fillStyle = "#FFFFFF"; c.fillRect(mx - cs * 1.5, my - cs * 0.5, cs * 3, cs); c.fillRect(mx - cs * 0.5, my - cs * 1.5, cs, cs * 3); }
       
     }
+    // ------------------------------------------------------------------ Leben im Dorf (Mat 14.11.2026: „volkstümlicher, im Hintergrund
+    // andere Aktivitäten wie Holzschneiden“): Holzhacker am Hackstock, zwei Männer an der Zugsäge, ab und zu ein Pferdeschlitten.
+    const WORK_LOOK = [{ hair: 6, hairC: 0, beard: 2, skin: 1, suit: "#5A4A3A", accent: "#C23B2A", cap: "#3A2E26" }, { hair: 1, hairC: 2, beard: 1, skin: 0, suit: "#3F5A3A", accent: "#E9E2D2", cap: "#7A2E3A" }, { hair: 7, hairC: 1, beard: 0, skin: 2, suit: "#2F4A6B", accent: "#E9E2D2", cap: "#2A2420" }];
+    const WORK_KIT = { head: "cap", feet: "shoes", torso: "sweater", legs: "knickers", glove: "suit", bootC: "#3A2A1E", pants: ["#4A4038", "#3A322C"] };
+    function chopper(c, M, t, night) {
+      const { X, Y, S } = M, x = CHOP.x, z = CHOP.z, s = S(z), k = s * KF;
+      if (X(x, z) < -80 || X(x, z) > W + 80) return;
+      const per = 2.2, u = (t % per) / per;   // ausholen (0 … 0,55), zuschlagen (0,55 … 0,62), Scheite fallen, nachlegen
+      // Hackstock und Scheiterbeige daneben
+      const bx = X(x + 0.75, z), by = Y(0, z), r = 0.28 * s;
+      c.fillStyle = night ? "#4E382C" : "#6E4E36"; c.fillRect(bx - r, by - 0.45 * s, r * 2, 0.45 * s);
+      c.fillStyle = night ? "#B08E6E" : "#D2AE82"; c.beginPath(); c.ellipse(bx, by - 0.45 * s, r, r * 0.3, 0, 0, TAU); c.fill();
+      for (let i = 0; i < 7; i++) { const px = X(x + 1.5 + (i % 4) * 0.22, z + 0.4), py = Y(0.1 + Math.floor(i / 4) * 0.2, z + 0.4); c.fillStyle = night ? "#B08E6E" : "#D2AE82"; c.beginPath(); c.moveTo(px, py); c.lineTo(px + 0.2 * s, py); c.lineTo(px + 0.1 * s, py - 0.17 * s); c.closePath(); c.fill(); }
+      // Scheit auf dem Stock: ganz, dann in zwei Hälften auseinander
+      const sp = u > 0.6 ? clamp((u - 0.6) / 0.25, 0, 1) : 0, ly = by - 0.45 * s;
+      c.fillStyle = night ? "#9A7A5E" : "#C8A070";
+      if (u < 0.6 || u > 0.92) c.fillRect(bx - 0.09 * s, ly - 0.36 * s, 0.18 * s, 0.36 * s);
+      else for (const d of [-1, 1]) { c.save(); c.translate(bx + d * (0.05 + sp * 0.5) * s, ly + sp * sp * 0.36 * s - (1 - sp) * 0.0); c.rotate(d * sp * 1.4); c.fillRect(d < 0 ? -0.09 * s : 0, -0.36 * s * (1 - sp * 0.3), 0.09 * s, 0.36 * s); c.restore(); }
+      // Holzhacker: Axt hoch über den Kopf, dann kräftig runter
+      const up = u < 0.55 ? Math.sin(u / 0.55 * Math.PI / 2) : u < 0.62 ? 1 - (u - 0.55) / 0.07 : 0;
+      const pose = F.mix(g({ lean: 34, sL: [8, 10], fL: [-14, 10], aF: [62, 6], aB: [58, 6], hd: 18 }), g({ lean: -6, sL: [8, 10], fL: [-14, 10], aF: [176, 14], aB: [170, 14], hd: -10 }), up);
+      const o = { x: X(x, z), y: by, s: k, dir: 1, pose, look: F.cleanLook(WORK_LOOK[0]), kit: WORK_KIT, three: false };
+      ctx_shadow(c, o.x, o.y, 8 * k); drawFig(c, o);
+      const h = handAt(o), ang = -Math.PI / 2 + (1 - up) * 2.2;   // Stiel vom Griff aus, Klinge am Ende
+      const ex = h[0] + Math.cos(ang) * 0.75 * s, ey = h[1] + Math.sin(ang) * 0.75 * s;
+      c.strokeStyle = "#8A6A44"; c.lineWidth = Math.max(1.5, 0.05 * s); c.beginPath(); c.moveTo(h[0], h[1]); c.lineTo(ex, ey); c.stroke();
+      c.fillStyle = "#6E747C"; c.save(); c.translate(ex, ey); c.rotate(ang); c.fillRect(-0.04 * s, -0.12 * s, 0.14 * s, 0.24 * s); c.restore();
+      if (u > 0.6 && u < 0.7) { c.fillStyle = "rgba(210,174,130,0.9)"; for (let i = 0; i < 6; i++) c.fillRect(bx + Math.sin(i * 2.1) * (u - 0.6) * 6 * s, ly - (u - 0.6) * 4 * s * (0.5 + (i % 3) * 0.3), 2, 2); }
+    }
+    function sawyers(c, M, t, night) {
+      const { X, Y, S } = M, x = SAW.x, z = SAW.z, s = S(z), k = s * KF;
+      if (X(x, z) < -120 || X(x, z) > W + 120) return;
+      const by = Y(0, z), ph = Math.sin(t * 2.6);   // Zugsäge hin und her
+      // Sägebock (X-Beine) mit Stamm
+      c.strokeStyle = night ? "#4E382C" : "#6E4E36"; c.lineWidth = Math.max(1.5, 0.05 * s);
+      for (const dx of [-0.6, 0.6]) { const a = [X(x + dx - 0.2, z), by], b = [X(x + dx + 0.2, z), Y(0.75, z)], d = [X(x + dx + 0.2, z), by], e = [X(x + dx - 0.2, z), Y(0.75, z)]; c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]); c.moveTo(d[0], d[1]); c.lineTo(e[0], e[1]); c.stroke(); }
+      c.fillStyle = night ? "#5E4232" : "#7A5638"; c.fillRect(X(x - 1.1, z), Y(0.88, z), 2.2 * s, 0.22 * s);
+      c.fillStyle = night ? "#B08E6E" : "#D2AE82"; c.beginPath(); c.ellipse(X(x + 1.1, z), Y(0.77, z), 0.04 * s, 0.11 * s, 0, 0, TAU); c.fill();
+      // zwei Männer, einer links, einer rechts, ziehen abwechselnd
+      const P1 = g({ lean: 18 + ph * 12, sL: [16, 8], fL: [-20, 8], aF: [70 - ph * 25, 20], aB: [66 - ph * 25, 26], hd: 10 }), P2 = g({ lean: 18 - ph * 12, sL: [16, 8], fL: [-20, 8], aF: [70 + ph * 25, 20], aB: [66 + ph * 25, 26], hd: 10 });
+      const o1 = { x: X(x - 0.15, z - 0.75), y: Y(0, z - 0.75), s: S(z - 0.75) * KF, dir: 1, pose: P1, look: F.cleanLook(WORK_LOOK[1]), kit: WORK_KIT, three: false };
+      const o2 = { x: X(x + 0.15, z + 0.75), y: Y(0, z + 0.75), s: S(z + 0.75) * KF, dir: -1, pose: P2, look: F.cleanLook(WORK_LOOK[2]), kit: WORK_KIT, three: false };
+      ctx_shadow(c, o2.x, o2.y, 8 * o2.s); drawFig(c, o2);
+      const h1 = handAt(o1), h2 = handAt(o2);
+      ctx_shadow(c, o1.x, o1.y, 8 * o1.s); drawFig(c, o1);
+      // Säge zwischen den Händen, Sägemehl rieselt
+      c.strokeStyle = "#8E959C"; c.lineWidth = Math.max(2, 0.06 * s); c.beginPath(); c.moveTo(h1[0], h1[1]); c.lineTo(h2[0], h2[1]); c.stroke();
+      c.fillStyle = "rgba(220,190,140,0.9)"; for (let i = 0; i < 8; i++) { const a = (t * 1.4 + i / 8) % 1; c.fillRect(X(x, z) + Math.sin(i * 3.3) * 0.15 * s, Y(0.85, z) + a * 0.85 * s, 1.6, 1.6); }
+      c.fillStyle = "rgba(220,190,140,0.5)"; c.beginPath(); c.ellipse(X(x, z), by, 0.35 * s, 0.07 * s, 0, 0, TAU); c.fill();
+    }
+    // Pferdeschlitten zieht weit hinten über den Weg am Waldrand, etwa alle 45 Sekunden, mal hin, mal her
+    function sleigh(c, M, t, night) {
+      const { X, Y, S } = M, z = ZB + 7, s = S(z), per = 45, n = Math.floor(t / per), u = (t % per) / per, dir = n % 2 ? -1 : 1;
+      const x = dir > 0 ? -40 + u * 150 : 110 - u * 150, px = X(x, z), py = Y(0.3, z);
+      if (px < -100 || px > W + 100) return;
+      c.save(); c.translate(px, py); c.scale(dir, 1);
+      const trot = Math.sin(t * 9), col = night ? "#3A2A20" : "#5A3E2A";
+      // Pferd: Rumpf, Hals, Kopf, vier Beine im Trab, Schweif
+      c.fillStyle = col; c.beginPath(); c.ellipse(1.6 * s, -1.05 * s, 0.65 * s, 0.3 * s, 0, 0, TAU); c.fill();
+      c.beginPath(); c.moveTo(2.1 * s, -1.2 * s); c.lineTo(2.45 * s, -1.75 * s); c.lineTo(2.65 * s, -1.7 * s); c.lineTo(2.35 * s, -1.05 * s); c.closePath(); c.fill();
+      c.beginPath(); c.ellipse(2.62 * s, -1.75 * s, 0.22 * s, 0.11 * s, 0.5, 0, TAU); c.fill();
+      c.strokeStyle = col; c.lineWidth = Math.max(1, 0.1 * s); c.lineCap = "round";
+      for (const [lx, ph] of [[1.15, 0], [1.35, Math.PI], [1.9, Math.PI], [2.1, 0]]) { const sw = Math.sin(t * 9 + ph) * 0.18 * s; c.beginPath(); c.moveTo(lx * s, -0.9 * s); c.lineTo(lx * s + sw, -0.05 * s - Math.max(0, Math.sin(t * 9 + ph)) * 0.12 * s); c.stroke(); }
+      c.beginPath(); c.moveTo(0.98 * s, -1.1 * s); c.quadraticCurveTo(0.75 * s, -0.8 * s + trot * 0.05 * s, 0.8 * s, -0.55 * s); c.stroke();
+      // Schellengeläut am Kummet, Zugstangen, roter Schlitten mit Kufen, Fuhrmann mit Decke
+      c.fillStyle = "#C9A65A"; for (let i = 0; i < 4; i++) { c.beginPath(); c.arc((2.1 + i * 0.07) * s, (-1.25 + i * 0.09) * s, 0.04 * s, 0, TAU); c.fill(); }
+      c.strokeStyle = "#3A2A20"; c.lineWidth = Math.max(1, 0.04 * s); c.beginPath(); c.moveTo(1.05 * s, -0.95 * s); c.lineTo(-0.05 * s, -0.55 * s); c.stroke();
+      c.fillStyle = "#A8322A"; c.beginPath(); c.moveTo(-1.3 * s, -0.25 * s); c.lineTo(0.1 * s, -0.25 * s); c.lineTo(0.25 * s, -0.75 * s); c.lineTo(-0.6 * s, -0.7 * s); c.lineTo(-1.25 * s, -0.95 * s); c.closePath(); c.fill();
+      c.strokeStyle = "#2A2420"; c.lineWidth = Math.max(1, 0.05 * s); c.beginPath(); c.moveTo(-1.4 * s, -0.08 * s); c.lineTo(0.2 * s, -0.08 * s); c.quadraticCurveTo(0.45 * s, -0.1 * s, 0.4 * s, -0.3 * s); c.stroke();
+      c.fillStyle = night ? "#2A2A34" : "#2F3A4A"; c.beginPath(); c.ellipse(-0.75 * s, -1.05 * s, 0.22 * s, 0.32 * s, 0, 0, TAU); c.fill();
+      c.fillStyle = "#E2BC9E"; c.beginPath(); c.arc(-0.72 * s, -1.48 * s, 0.13 * s, 0, TAU); c.fill(); c.fillStyle = "#2A2420"; c.fillRect(-0.9 * s, -1.66 * s, 0.36 * s, 0.1 * s); c.fillRect(-0.82 * s, -1.8 * s, 0.2 * s, 0.16 * s);
+      c.fillStyle = "#7A5A3A"; c.fillRect(-1.05 * s, -0.85 * s, 0.6 * s, 0.25 * s);
+      c.restore();
+    }
     // ------------------------------------------------------------------ Gemütliche Ecke (Mat 14.11.2026: „gemütlicher und einladender“):
     // Feuerschale in 3D (Schale auf drei Beinen, Scheite, Glut, züngelnde Flammen im Wind, Funken, Lichtkreis) und eine Bierbank-Garnitur
     // mit Fellen, Krügen und Laterne. Alles über die Projektion X/Y/S wie die Hütte.
@@ -7901,14 +7978,14 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
         // Glühweinkrug mit Dampf in der Hand
         if (r.idle === "krug" && (!r.mood || r.mood === "idle")) { const h = handAt(o), k2 = Math.max(1.5, 0.11 * S(z)); c.fillStyle = "#B8342A"; c.fillRect(h[0] - k2 * 0.6, h[1] - k2 * 1.4, k2 * 1.2, k2 * 1.4); c.fillStyle = "#FBF8F1"; c.fillRect(h[0] - k2 * 0.6, h[1] - k2 * 1.05, k2 * 1.2, k2 * 0.3);
           for (let k = 0; k < 3; k++) { const a = (t * 0.5 + k / 3 + r.ph) % 1; c.fillStyle = `rgba(255,255,255,${0.5 * (1 - a)})`; c.beginPath(); c.arc(h[0] + Math.sin(t * 2 + k) * k2 * 0.3, h[1] - k2 * (1.6 + a * 3), k2 * (0.3 + a * 0.5), 0, TAU); c.fill(); } }
-        // Namensschild mit Fahne
+        // Namensschild mit Fahne nur, wenn er redet oder kurz am Anfang (Mat 14.11.2026: „nicht immer der Name dabei“)
         const top = y - 92 * s, fs = Math.max(9, Math.min(12, 0.24 * S(z)));
-        c.font = `700 ${fs}px Futura, 'Avenir Next Condensed', sans-serif`;
+        if (r.tag) { c.font = `700 ${fs}px Futura, 'Avenir Next Condensed', sans-serif`;
         const tw = c.measureText(r.name).width, fw = fs * 1.3, bw = tw + fw + 10, bx = clamp(x - bw / 2, 2, W - bw - 2);
         c.fillStyle = "rgba(251,248,241,0.92)"; c.fillRect(bx, top - fs - 4, bw, fs + 7); c.strokeStyle = INK; c.lineWidth = 1; c.strokeRect(bx, top - fs - 4, bw, fs + 7);
         c.save(); c.translate(bx + 3, top - fs - 1); ST.drawFlag(c, r.nat, fw, fs); c.restore();
-        c.fillStyle = INK; c.textAlign = "left"; c.textBaseline = "alphabetic"; c.fillText(r.name, bx + fw + 7, top);
-        if (r.say && u < 2.8) bubble(c, x, top - fs - 4, r.say, u);
+        c.fillStyle = INK; c.textAlign = "left"; c.textBaseline = "alphabetic"; c.fillText(r.name, bx + fw + 7, top); }
+        if (r.say && u < 2.8) bubble(c, x, r.tag ? top - fs - 4 : top + 4, r.say, u);
       }
     }
     // Messhelfer: Bub mit Pudelmütze, bückt sich am Aufschlag und steckt einen Holzpflock mit Fähnchen
@@ -8546,6 +8623,14 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
         S._nat = setTimeout(tick, 9000 + Math.random() * 14000); };
       S._nat = setTimeout(tick, 4000);
     },
+    // Arbeit im Dorf: Axt auf dem Hackstock (dumpfer Schlag und Spalten), Zugsäge (raspelnder Strich); k = Nähe 0 … 1
+    work(kind, k) {
+      const a = ctx(); if (!a || k <= 0.02) return; const t = a.currentTime;
+      if (kind === "axt") { S.hit(t, 180, 0.7, 0.35 * k, 0.12, "lowpass"); S.hit(t + 0.01, 1400, 1.5, 0.18 * k, 0.06); }
+      else { const n = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain(); n.buffer = noiseBuf; f.type = "bandpass"; f.Q.value = 3; f.frequency.setValueAtTime(1800, t); f.frequency.linearRampToValueAtTime(2600, t + 0.5);
+        g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.07 * k, t + 0.08); g.gain.linearRampToValueAtTime(0.05 * k, t + 0.45); g.gain.linearRampToValueAtTime(0.0001, t + 0.55);
+        n.connect(f); f.connect(g); g.connect(out); n.start(t, Math.random() * 0.4); n.stop(t + 0.6); }
+    },
     cheer(kind) {
       const a = ctx(); if (!a) return null;
       const T = a.currentTime + 0.05, rnd = (x, y) => x + Math.random() * (y - x), fem = () => Math.random() < 0.45;
@@ -8784,7 +8869,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.15.1";
+  const VERSION = "0.16.0";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender, WXN = window.CMKulisse.wetter;
@@ -9112,7 +9197,8 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     return G.rivals.map((r) => { const [x, z] = RIV_POS[r.i];
       if (r.mood !== "idle" && r.mood !== "arme" && now - r.at > 3) r.mood = "idle";
       const idle = ["warm", "krug", "tripp"][r.i], calm = r.mood === "idle", fx = R.FIRE.x;
-      return { name: shortName(r.a.name), nat: r.a.nat, x, z, idle, dir: calm && idle === "warm" ? (fx < x ? -1 : 1) : G.th.x < x ? -1 : 1, mood: r.mood, at: r.at, ph: r.i * 1.7, say: r.say && now - r.at < 2.8 ? r.say : null, look: rivalLook(r.a), fem: FEM.test(r.a.name) }; });
+      const tag = (r.say && now - r.at < 2.8) || (G.phase === "ready" && now - (G.readyT || 0) < 2.5) || (G.snipe && G.snipe.ri === r.i && G.snipe.state === "fly");
+      return { name: shortName(r.a.name), nat: r.a.nat, x, z, idle, tag, dir: calm && idle === "warm" ? (fx < x ? -1 : 1) : G.th.x < x ? -1 : 1, mood: r.mood, at: r.at, ph: r.i * 1.7, say: r.say && now - r.at < 2.8 ? r.say : null, look: rivalLook(r.a), fem: FEM.test(r.a.name) }; });
   }
   // Störwurf: geplant beim Start des Wettkampfs (Versuch 2 … 4), nur im Anlauf, nie im Trülli
   function planSnipe() {
@@ -9355,7 +9441,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       hint(null);
       updChips(); return;
     }
-    G.phase = "ready"; G.th.dir = 1; G.th.x = START_X; G.th.vx = 0; G.tech = tech(); G.spin = null; G.th.turn = null;
+    G.phase = "ready"; G.readyT = now; G.th.dir = 1; G.th.x = START_X; G.th.vx = 0; G.tech = tech(); G.spin = null; G.th.turn = null;
     if (G.tech === "truelli") G.th.x = SPIN_X;
     if (G.rivals && Math.random() < (testMode ? 0 : 0.45)) rivalSay("tease", null, "idle");
     setCam(Math.min(-1.2, G.th.x + 3.6), 58);   // Werfer rechts neben dem Knopf „Wurf“
@@ -9726,6 +9812,11 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     now += dt;
     if (!G) return;
     const th = G.th;
+    // Holzhacker und Zugsäge im Hintergrund: Geräusch im Takt des Bilds, leiser je weiter weg
+    if (AU.on && $("hud") && !$("hud").hidden && !isZiel()) {
+      const ca = Math.floor((now - 0.6 * 2.2) / 2.2); if (ca !== G.chopN) { G.chopN = ca; AU.work("axt", clamp(1 - Math.abs(cam.cx - R.CHOP.x) / 18, 0, 1) * 0.8); }
+      const sa = Math.floor(now * 2.6 / Math.PI); if (sa !== G.sawN) { G.sawN = sa; AU.work("saege", clamp(1 - Math.abs(cam.cx - R.SAW.x) / 18, 0, 1) * 0.8); }
+    }
     // Feuerschale: Knistern je nach Nähe der Kamera (Mat 14.11.2026: „präsenter, gemütlicher“)
     if (AU.on && $("hud") && !$("hud").hidden && !isZiel()) { const k = clamp(1 - Math.abs(cam.cx - R.FIRE.x) / 16, 0, 1) * 0.9 + 0.1; if (Math.abs(k - (G.fireK || 0)) > 0.03) { G.fireK = k; AU.fire(k); } }
     const k = 1 - Math.exp(-dt * (G.phase === "fly" ? 5 : 3.2));
