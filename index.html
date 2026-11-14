@@ -6992,7 +6992,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       // Zuschauer hinter dem Zaun
       const zP = ZB + 1.4, sP = S(zP), Xp = (x) => X(x, zP), Yp = (y) => Y(y, zP);
       const xl = cam.cx - W / 2 / sP - 2, xr = cam.cx + W / 2 / sP + 2;
-      ST.drawPeople(ctx, world, Xp, Yp, sP, t, xl, xr, { focus: V.focus || null });
+      crowd(ctx, world, Xp, Yp, sP, t, xl, xr, V);
       // Schneewall mit Holzzaun (Pfosten alle 2 m), Tafel mit dem Ortsnamen
       const zF = ZB;
       ctx.fillStyle = night ? "#D7CCD0" : "#E9EDF0";
@@ -7430,6 +7430,75 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       }
       for (let i = 0; i < 6; i++) { const a = (t * 0.8 + i / 6) % 1, sx = bx + Math.sin(i * 3 + t * 2) * 0.3 * s + a * (0.4 + wind(t).d * wind(t).g * 2.4) * s, sy = by - (1.1 + a * 2.4) * s; c.fillStyle = `rgba(255,200,110,${(1 - a) * 0.9})`; c.fillRect(sx, sy, 1.6, 1.6); }
       smoke(c, bx, by - 1.3 * s, s, t, 0.35);
+    }
+    // Zuschauer hinter dem Zaun, jede Person lebt: wippt und tritt von einem Fuss auf den anderen, klatscht, wärmt die Hände,
+    // trinkt Glühwein, winkt; Schal und Bommel im Wind, Atemwolken; Köpfe folgen dem Ball, Jubel bei gültigen Würfen.
+    // Im Sturm geduckt und gegen den Wind gelehnt, eine Hand an der Mütze. Eigene Zeichnung (die Kulisse bleibt unverändert).
+    const SCARF = ["#C23B2A", "#E3B23C", "#2F5D8A", "#F7F4EC", "#3F6B55", "#8A3B5C"];
+    function crowd(c, Wd, X, Y, ppm, t, xMin, xMax, V) {
+      const P = Wd.people, focus = V.focus || null, night = KB.themeName() === "evening";
+      if (ppm < 6) return ST.drawPeople(c, Wd, X, Y, ppm, t, xMin, xMax, { focus });
+      const w = wind(t), storm = skyK === "sturm", cold = skyK === "sturm" || skyK === "neu";
+      const lookX = V.ball && V.ball.x != null ? V.ball.x : focus ? focus.x : V.thrower ? V.thrower.x : null;
+      const flags = [];
+      c.lineCap = "round"; c.lineJoin = "round";
+      for (let row = 2; row >= 0; row--) for (const p of P) {
+        if (p.row !== row || p.x < xMin - 2 || p.x > xMax + 2) continue;
+        const hh = (p.ph * 1000) % 1, mode = Math.floor(hh * 6), sc = SCARF[Math.floor(p.ph * 37) % SCARF.length];
+        const cheer = focus && focus.landed && p.ch < 0.55 && Math.abs(p.x - focus.x) < 26;
+        // Bewegung: Atmen, Gewicht verlagern, vor Kälte trippeln, Jubelsprünge
+        const shift = Math.sin(t * (0.7 + hh * 0.5) + p.ph * 3);
+        const hop = cheer ? Math.abs(Math.sin(t * 7 + p.ph)) * 0.16 : mode === 4 || (cold && mode === 0) ? Math.abs(Math.sin(t * 6 + p.ph)) * 0.04 : 0;
+        const crouch = storm ? 0.1 : 0, lean = storm ? -w.d * (0.1 + 0.08 * w.g) : shift * 0.035 + (cheer ? Math.sin(t * 5 + p.ph) * 0.05 : 0);
+        const k = p.h / 1.7, legH = 0.62 * k * ppm, cx = X(p.x), yb = Y(p.y + hop), bw = p.w * ppm, sh = (0.72 * k - crouch) * ppm * (1 + Math.sin(t * 1.6 + p.ph) * 0.008);
+        c.save(); c.translate(cx, yb);
+        // Beine mit Stiefeln: trippeln vor Kälte, sonst Gewicht von einem Bein aufs andere
+        { const tr = mode === 4 || (cold && mode === 0) || cheer, lw = bw * 0.36;
+          for (const sd of [-1, 1]) { const up = tr ? Math.max(0, Math.sin(t * 6 + p.ph + (sd > 0 ? Math.PI : 0))) * 0.06 * ppm : 0, lx = sd * bw * 0.2 + shift * 0.02 * ppm;
+            c.fillStyle = "#3B3A40"; c.fillRect(lx - lw / 2, -legH - up, lw, legH * 0.85); c.fillStyle = "#4A2F1F"; c.fillRect(lx - lw / 2 - 0.02 * ppm, -legH * 0.18 - up, lw + 0.06 * ppm, legH * 0.18); } }
+        c.translate(0, -legH * 0.92); c.rotate(lean);
+        // Körper: Jacke mit Schulterrundung, Lichtkante, Reissverschluss
+        c.fillStyle = p.body; c.beginPath(); c.moveTo(-bw / 2, 0); c.lineTo(-bw / 2, -sh + bw * 0.38); c.quadraticCurveTo(-bw / 2, -sh, 0, -sh); c.quadraticCurveTo(bw / 2, -sh, bw / 2, -sh + bw * 0.38); c.lineTo(bw / 2, 0); c.closePath(); c.fill();
+        c.fillStyle = night ? "rgba(255,200,140,0.10)" : "rgba(255,255,255,0.13)"; c.fillRect(-bw / 2, -sh + bw * 0.3, bw * 0.18, sh - bw * 0.3);
+        c.strokeStyle = "rgba(0,0,0,0.18)"; c.lineWidth = Math.max(0.6, 0.02 * ppm); c.beginPath(); c.moveTo(0, -sh + 0.12 * ppm); c.lineTo(0, 0); c.stroke();
+        // Kopf: dreht leicht zum Ball
+        const look = lookX == null ? Math.sin(t * 0.3 + p.ph * 5) * 0.6 : clamp((lookX - p.x) / 12, -1, 1);
+        const hr = 0.13 * k * ppm, hx = look * hr * 0.25, hy = -sh - hr * 0.9 + (storm ? hr * 0.35 : 0);
+        c.fillStyle = p.skin; c.beginPath(); c.arc(hx, hy, hr, 0, TAU); c.fill();
+        if (ppm > 12) { c.fillStyle = "#2A2420"; const ex = hx + look * hr * 0.45; c.fillRect(ex - hr * 0.42, hy - hr * 0.1, Math.max(1, hr * 0.16), Math.max(1, hr * 0.16)); c.fillRect(ex + hr * 0.22, hy - hr * 0.1, Math.max(1, hr * 0.16), Math.max(1, hr * 0.16));
+          c.fillStyle = "rgba(220,90,80,0.35)"; c.beginPath(); c.arc(ex - hr * 0.45, hy + hr * 0.3, hr * 0.18, 0, TAU); c.arc(ex + hr * 0.45, hy + hr * 0.3, hr * 0.18, 0, TAU); c.fill(); }
+        // Mütze mit Bommel, der beim Wippen und im Wind schwingt
+        if (p.hat) { c.fillStyle = p.hat; c.beginPath(); c.arc(hx, hy - hr * 0.1, hr * 1.06, Math.PI, TAU); c.closePath(); c.fill();
+          c.fillStyle = "rgba(255,255,255,0.35)"; c.fillRect(hx - hr * 1.06, hy - hr * 0.22, hr * 2.12, hr * 0.22);
+          if (p.ht === 2) { const bx = hx + w.d * w.g * hr * 0.6 + Math.sin(t * 6 + p.ph) * hr * 0.12 * (hop > 0.01 ? 2 : 0.6); c.fillStyle = p.hat; c.beginPath(); c.arc(bx, hy - hr * 1.2, hr * 0.42, 0, TAU); c.fill(); } }
+        // Schal: Wickel am Hals, Ende flattert in Windrichtung
+        { const ny = -sh + 0.02 * ppm, fl = Math.sin(t * (3 + 6 * w.k) + p.ph) * (0.03 + 0.06 * w.k) * ppm, L = (0.2 + 0.3 * w.g) * ppm;
+          c.fillStyle = sc; c.fillRect(-bw * 0.36, ny - 0.07 * ppm, bw * 0.72, 0.09 * ppm);
+          c.strokeStyle = sc; c.lineWidth = Math.max(1, 0.07 * ppm); c.beginPath(); c.moveTo(bw * 0.15 * w.d, ny); c.quadraticCurveTo(w.d * (bw * 0.15 + L * 0.5), ny + 0.08 * ppm * (1 - w.g) + fl, w.d * (bw * 0.15 + L), ny + 0.16 * ppm * (1 - w.g) - fl); c.stroke(); }
+        // Arme je nach Tätigkeit
+        const sy = -sh + 0.1 * ppm, sx = bw * 0.44, aw = Math.max(1, 0.1 * ppm), arm = (x1, y1, x2, y2, x3, y3) => { c.strokeStyle = p.body; c.lineWidth = aw; c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.lineTo(x3, y3); c.stroke(); c.fillStyle = "#3A3430"; c.beginPath(); c.arc(x3, y3, aw * 0.6, 0, TAU); c.fill(); };
+        if (cheer) { const wv = Math.sin(t * 9 + p.ph) * 0.08 * ppm; arm(-sx, sy, -sx - 0.12 * ppm, sy - 0.25 * ppm, -0.3 * ppm + wv, sy - 0.5 * ppm); arm(sx, sy, sx + 0.12 * ppm, sy - 0.25 * ppm, 0.3 * ppm - wv, sy - 0.5 * ppm); }
+        else if (storm && mode < 3) { arm(sx, sy, sx + 0.08 * ppm, sy - 0.2 * ppm, hx + hr * 0.6, hy - hr * 0.7); }
+        else if (mode === 1) { const cl = Math.abs(Math.sin(t * 4.5 + p.ph)), gap = (0.02 + 0.12 * cl) * ppm; arm(-sx, sy, -sx, sy + 0.22 * ppm, -gap, sy + 0.12 * ppm); arm(sx, sy, sx, sy + 0.22 * ppm, gap, sy + 0.12 * ppm); }
+        else if (mode === 2) { const sip = Math.max(0, Math.sin(t * 0.5 + p.ph * 2) - 0.75) * 4, mx = sx * 0.4, my = sy + (0.18 - 0.28 * sip) * ppm;
+          arm(sx, sy, sx + 0.1 * ppm, sy + 0.25 * ppm, mx, my); c.fillStyle = "#B8342A"; c.fillRect(mx - 0.06 * ppm, my - 0.14 * ppm, 0.12 * ppm, 0.14 * ppm); c.fillStyle = "#F7F4EC"; c.fillRect(mx - 0.06 * ppm, my - 0.09 * ppm, 0.12 * ppm, 0.03 * ppm);
+          if (!sip) for (let k = 0; k < 3; k++) { const a = (t * 0.6 + k / 3 + p.ph) % 1; c.fillStyle = `rgba(255,255,255,${0.45 * (1 - a)})`; c.beginPath(); c.arc(mx + Math.sin(t * 2 + k) * 0.03 * ppm + w.d * a * 0.15 * ppm, my - 0.16 * ppm - a * 0.35 * ppm, (0.03 + a * 0.05) * ppm, 0, TAU); c.fill(); } }
+        else if (mode === 3) { const wvOn = Math.sin(t * 0.4 + p.ph * 4) > 0.55, wv = Math.sin(t * 8 + p.ph) * 0.1 * ppm; if (wvOn) arm(sx, sy, sx + 0.15 * ppm, sy - 0.15 * ppm, sx + 0.2 * ppm + wv, sy - 0.42 * ppm); }
+        else if (mode === 5) { const rb = Math.sin(t * 10 + p.ph) * 0.03 * ppm; arm(-sx, sy, -sx, sy + 0.2 * ppm, -0.02 * ppm + rb, sy + 0.05 * ppm); arm(sx, sy, sx, sy + 0.2 * ppm, 0.02 * ppm - rb, sy + 0.05 * ppm); }
+        // Atemwolke
+        { const a = (t * 0.45 + p.ph) % 1.6; if (a < 1) { c.fillStyle = `rgba(255,255,255,${0.4 * (1 - a)})`; c.beginPath(); c.arc(hx + (look >= 0 ? 1 : -1) * (hr + a * 0.25 * ppm) + w.d * w.g * a * 0.3 * ppm, hy + hr * 0.3 - a * 0.1 * ppm, (0.04 + a * 0.08) * ppm, 0, TAU); c.fill(); } }
+        // Schnee bleibt auf Mütze und Schultern liegen
+        if (cold) { c.fillStyle = "rgba(255,255,255,0.9)"; c.beginPath(); c.ellipse(hx, hy - hr * (p.hat ? 1.05 : 0.95), hr * 0.7, hr * 0.18, 0, 0, TAU); c.ellipse(-bw * 0.3, -sh + bw * 0.12, bw * 0.16, 0.025 * ppm, -0.4, 0, TAU); c.ellipse(bw * 0.3, -sh + bw * 0.12, bw * 0.16, 0.025 * ppm, 0.4, 0, TAU); c.fill(); }
+        c.restore();
+        if (p.flag) flags.push(p);
+      }
+      c.strokeStyle = "#8C97A8"; c.lineWidth = Math.max(0.8, 0.045 * ppm);
+      for (const p of flags) {
+        const cheer = focus && focus.landed && Math.abs(p.x - focus.x) < 26;
+        const px = X(p.x + 0.22), top = Y(p.y + p.h + 0.55 + (cheer ? Math.abs(Math.sin(t * 6 + p.ph)) * 0.25 : 0));
+        c.beginPath(); c.moveTo(px, Y(p.y + p.h * 0.55)); c.lineTo(px, top); c.stroke();
+        ST.wavingFlag(c, p.flag, px, top, Math.max(2.2, 0.82 * ppm), Math.max(1.5, 0.54 * ppm), t, p.ph, cheer ? 5 : 2.6 + w.k * 6);
+      }
     }
     // Wind für die Animationen: Richtung, Grundstärke je Wetter (0 still … 1 Sturm) und Böen über die Zeit
     function wind(t) {
@@ -8181,7 +8250,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.11.0";
+  const VERSION = "0.11.1";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender;
