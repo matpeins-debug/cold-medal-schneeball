@@ -281,6 +281,10 @@ table.mini tr.me td { background: var(--gold); }
 
 .rpGrid b { overflow: hidden; }
 
+/* Info: eine Spalte, die scrollt (zwei Spalten liefen nach rechts aus dem Bild, Datenschutz und Impressum waren unsichtbar) */
+.ifBody { columns: auto; flex: 1 1 auto; min-height: 0; margin-bottom: 46px; }
+.ifBody p { max-width: 70ch; }
+
 /* Cold Medal Games · Fenster „Deine Figur“ (pass/pass.css)
    Aussehen wie die Menüs des Skispringens: Papier mit Doppelrahmen, Knöpfe wie Druckmarken, Futura für Titel und Knöpfe,
    Buchschrift für Lesetext. Farben und Schriften kommen aus den Variablen des Spiels (alle Spiele der Reihe haben sie),
@@ -414,6 +418,22 @@ table.mini tr.me td { background: var(--gold); }
   .ps-screen .ps-code-val { flex: none; font-size: 21px; letter-spacing: 0.04em; }
 }
 @media (prefers-reduced-motion: reduce) { .ps-btn:active, .ps-stage:active { transform: none; } }
+
+/* 14.11.2026 (Mat: „das Figurenmenü muss vereinheitlicht und schöner gestaltet werden“, iPhone-Schriften laufen breiter):
+   Kopf mit Zeile „Athletenpass“, Bühne mit Rahmen wie ein Passbild, Reiter und Auswahlknöpfe schrumpfen statt überzulaufen,
+   Bildunterschrift einzeilig. Nur Aussehen und Platz; Aufbau, Klassen und Verhalten bleiben gleich. */
+.ps-head { padding-bottom: 6px; border-bottom: 2px solid var(--ps-ink-deep); }
+.ps-title::before { content: "Athletenpass · Cold Medal Games"; display: block; margin-bottom: 2px; font-family: var(--ps-label); font-weight: 700;
+  font-size: 11px; line-height: 13px; letter-spacing: 0.24em; color: var(--ps-red); }
+.ps-stage { border-width: 3px; box-shadow: inset 0 0 0 3px #FBF8F1, inset 0 0 0 4px rgba(30, 39, 52, 0.25), 0 3px 0 rgba(20, 27, 37, 0.35); }
+.ps-cap { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ps-tabs button { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ps-row > .ps-seg { flex: 0 1 auto; min-width: 0; max-width: 100%; }
+.ps-row > .ps-seg button { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 8px; font-size: 15px; }
+.ps-opts, .ps-tabbox { min-width: 0; }
+.ps-dialog { gap: 8px; }
+.ps-head { padding-bottom: 4px; }
+.ps-title { font-size: 28px; line-height: 29px; }
 </style>
 </head>
 <body>
@@ -7872,7 +7892,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.9.6";
+  const VERSION = "0.9.7";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender;
@@ -8003,6 +8023,17 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   const figKit = R.kit(S.glove);
   const passUi = PS.ui.mount($("scrPass"), {
     title: "Deine Figur", kit: figKit, defaultName: "WERFER",
+    // Vorschau wie im Spiel: 3D-Figur im Winterzeug mit Stiefeln (oder flach, wenn 3D aus ist), auf dem hellen Grund der Reihe
+    preview: { poses: [["stand", "Stehen"], ["lauf", "Anlauf"], ["wurf", "Wurf"], ["jubel", "Jubel"]], pose: "stand", personPose: "stand", colorPose: "lauf",
+      draw(c, w, h, t, pose, look) {
+        PS.ui.backdrop(c, w, h);
+        let ps = F.idle(R.POSE.hold, t, 1), sw = false, lift = 0, mood = "froh";
+        if (pose === "lauf") { const r = R.runPose(t * 1.1); ps = r.pose; sw = r.swap; }
+        else if (pose === "wurf") ps = F.seq(R.THROW, Math.min(1, (t % 2.2) / 1.3), false);
+        else if (pose === "jubel") { const r = F.gesture("jubel", t % 3); if (r) { ps = r.pose; lift = r.lift || 0; mood = r.mood; } }
+        const s = Math.min(w / 62, (h - 22) / 92);
+        R.drawFig(c, { x: w / 2, y: h - 16, s, dir: 1, pose: ps, swap: sw, lift, look: F.cleanLook(look), kit: figKit, glove: S.glove, mood, t });
+      } },
     personHint: "Gilt in allen Spielen von Cold Medal.",
     tabs: [{ id: "glove", label: "Handschuhe", pose: "stand", rows: [
       { type: "seg", label: "Hände", list: Object.entries(Ph.GLOVES).map(([k, v]) => [k, v.name]), get: () => S.glove, set: (v) => { S.glove = v; Object.assign(figKit, R.kit(v)); save(); } },
