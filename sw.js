@@ -1,6 +1,6 @@
 // Cold Medal Schneeball: Offline-Speicher. Beim ersten Besuch wird alles geladen, danach startet das Spiel auch ohne Netz.
 // Die Seite selbst kommt zuerst aus dem Netz (neue Version), ohne Netz aus dem Speicher.
-const CACHE = "schneeball-0.9.1";
+const CACHE = "schneeball-0.9.2";
 const FILES = ["./", "index.html", "manifest.webmanifest"];   // Icons und Vorschaubild kommen mit der Live-Seite
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));
