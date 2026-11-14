@@ -5148,6 +5148,190 @@ table.mini tr.me td { background: var(--gold); }
   K.panorama = { LAYERS, buildPanorama, drawPanorama, drawFront, drawSky, drawReflection, drawLive, mountPanorama, placePanorama };
 })(typeof window !== "undefined" ? window : globalThis);
 
+/* Cold Medal Games · Wetter für alle Spiele (kulisse/wetter.js, CMKulisse.wetter)
+ *
+ * Vier Wetterlagen, sichtbar und spürbar verschieden (erprobt im Schneeball 0.8 bis 0.11, Mat 13. und 14.11.2026; herausgelöst
+ * für alle Spiele am 14.11.2026): klar (sonnig), grau (bedeckt), neu (Schneefall), sturm (Schneesturm). Hier liegen das Bild des
+ * Wetters und das Wetter des Tages; was es mit der Physik macht (Wind, Schnee, Ski, Ball), legt jedes Spiel selbst fest.
+ * Gezeichnet wird ohne Zustand, nur aus der Zeit t: kein Zufall im Bild, gleiche Zeit gibt gleiches Bild.
+ *
+ *   W.tag(ort, datum, o)     Wetter des Tages je Ort, aus Ort und Datum gerechnet, für alle gleich. datum: beliebiger Schlüssel
+ *                            ("2026-11-14", Seed einer Gruppenrunde). o.gewicht { klar, grau, neu, sturm } (Standard 2, 1, 1, 1),
+ *                            o.schnee: Neigung des Orts zu Schneefall (Faktor auf neu)
+ *   W.wind(lage, t, x)       Wind für Animationen: { d: Richtung ±1, k: Grundstärke 0 … 1, g: Stärke mit Böen }; x: Wind in m/s
+ *   W.himmel(c, o)           über Himmel und Bergen, direkt nach dem Panorama: Sonne mit Glanz und Strahlen, Alpendohlen; Hochnebel,
+ *                            Nebel- und Wolkenbänke, im Sturm fast weiß. o: { lage, W, unten (Horizont, bis dahin wird getönt), t,
+ *                            nacht, sonne: [x, y] oder tageszeit ("morning" links tief, sonst rechts hoch), x (Wind m/s), k (Maßstab,
+ *                            Bildhöhe / 390), voegel (Standard ja) }
+ *   W.ueber(c, o)            über der ganzen Szene, zuletzt: Glitzern auf dem Schnee, Flocken, Sturmnebel, Schneefahnen am Boden.
+ *                            o: { lage, W, H, t, cx (Kameraweg in px auf Bodenhöhe, für die Parallaxe), boden (y der Schneefläche; ohne
+ *                            kein Glitzern und keine Schneefahnen), flocken (eigene Flocken, Standard ja), nacht, x, k, dicht (Stärke
+ *                            des Schleiers bei bedeckt und Sturm, Standard 1; das Skispringen nimmt weniger, damit der Springer gut
+ *                            zu sehen bleibt) }
+ *   W.rauch(c, x, y, s, t, a0, w)  Rauch, der mit dem Wind zieht (w aus W.wind): bei Windstille gerade, im Sturm flach weggerissen
+ *   W.temp(lage, tageszeit)  Abweichung der Temperatur in °C: Sonne wärmt am Tag, Schneefall kühlt etwas, Sturm deutlich
+ *   W.flocken(lage)          Menge Schneefall 0 … 1,3 für Spiele mit eigenen Flocken
+ *   W.KEYS, W.NAME (sonnig, bedeckt …), W.SICHT (klare Sicht, graues Licht …)
+ */
+(function (root) {
+  "use strict";
+  const TAU = Math.PI * 2;
+  const KEYS = ["klar", "grau", "neu", "sturm"];
+  const NAME = { klar: "sonnig", grau: "bedeckt", neu: "Schneefall", sturm: "Schneesturm" };
+  const SICHT = { klar: "klare Sicht", grau: "graues Licht", neu: "es schneit", sturm: "kaum Sicht" };
+  const BASE = { klar: 0.08, grau: 0.2, neu: 0.28, sturm: 0.82 };   // Grundstärke des Winds je Lage (0 still … 1 Sturm)
+  const ok = (l) => (NAME[l] ? l : "klar");
+
+  // FNV-1a über den Text: gleiche Eingabe, gleiche Zahl, auf jedem Gerät
+  function hash(s) {
+    let h = 0x811c9dc5;
+    s = String(s);
+    for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+    return h >>> 0;
+  }
+  // Rauschwert 0 … 1 aus zwei Zahlen (Positionen der Flocken und Funken, ohne Zustand)
+  const hsh = (i, k) => { const v = Math.sin(i * 12.9898 + k * 78.233) * 43758.5453; return v - Math.floor(v); };
+
+  function tag(ort, datum, o) {
+    o = o || {};
+    const w = Object.assign({ klar: 2, grau: 1, neu: 1, sturm: 1 }, o.gewicht || {});
+    if (o.schnee != null) w.neu *= Math.max(0, o.schnee);
+    let sum = 0;
+    for (const k of KEYS) sum += Math.max(0, w[k] || 0);
+    if (!(sum > 0)) return "klar";
+    let x = (hash(`wetter|${String(ort || "").split("-")[0]}|${datum}`) % 100000) / 100000 * sum;
+    for (const k of KEYS) { x -= Math.max(0, w[k] || 0); if (x < 0) return k; }
+    return "klar";
+  }
+
+  function wind(lage, t, x) {
+    x = +x || 0;
+    const k = Math.min(1, BASE[ok(lage)] + Math.abs(x) * 0.05), gust = 0.7 + 0.3 * Math.sin(t * 1.3) * Math.sin(t * 0.47 + 2);
+    return { d: x < 0 ? -1 : 1, k, g: k * gust };
+  }
+
+  const temp = (lage, tageszeit) => (lage === "klar" ? (tageszeit === "evening" ? 0 : 1.5) : lage === "neu" ? -1 : lage === "sturm" ? -4 : 0);
+  const flocken = (lage) => ({ klar: 0, grau: 0.2, neu: 1, sturm: 1.3 })[ok(lage)];
+
+  function rauch(c, x, y, s, t, a0, w) {
+    w = w || { d: 1, k: 0, g: 0 };
+    const dx = w.d * (0.5 + w.g * 5), up = 3.2 * (1 - w.g * 0.7), sp = 0.22 + w.g * 0.4;
+    for (let i = 0; i < 7; i++) {
+      const a = (t * sp + i / 7) % 1;
+      c.fillStyle = `rgba(210,212,216,${a0 * (1 - a)})`;
+      c.beginPath(); c.arc(x + a * dx * s + Math.sin(t + i) * 0.15 * s * (1 - w.k), y - a * up * s, (0.25 + a * 0.7 * (1 + w.g * 0.6)) * s, 0, TAU); c.fill();
+    }
+  }
+
+  function himmel(c, o) {
+    const lage = ok(o.lage), W = o.W, bottom = o.unten, t = o.t || 0, night = !!o.nacht, k = o.k || 1, dir = (+o.x || 0) < 0 ? -1 : 1;
+    c.save();
+    if (lage === "klar") {
+      if (night) { c.restore(); return; }
+      const sun = o.sonne || (o.tageszeit === "morning" ? [W * 0.18, 70 * k] : [W * 0.72, 40 * k]), sx = sun[0], sy = sun[1];
+      const g = c.createRadialGradient(sx, sy, 4 * k, sx, sy, 260 * k);
+      g.addColorStop(0, "rgba(255,250,225,0.95)"); g.addColorStop(0.08, "rgba(255,244,210,0.55)"); g.addColorStop(0.4, "rgba(255,236,200,0.12)"); g.addColorStop(1, "rgba(255,236,200,0)");
+      // Glanz nur im Umkreis der Sonne füllen (außerhalb ist der Verlauf durchsichtig)
+      const x0 = Math.max(0, sx - 260 * k), x1 = Math.min(W, sx + 260 * k), y1 = Math.min(bottom, sy + 260 * k);
+      c.fillStyle = g; if (x1 > x0 && y1 > 0) c.fillRect(x0, 0, x1 - x0, y1);
+      c.fillStyle = "rgba(255,255,248,1)"; c.beginPath(); c.arc(sx, sy, 13 * k, 0, TAU); c.fill();
+      // Strahlen, langsam drehend
+      c.translate(sx, sy); c.rotate(t * 0.03); c.fillStyle = "rgba(255,248,220,0.10)";
+      for (let i = 0; i < 9; i++) { c.rotate(TAU / 9); c.beginPath(); c.moveTo(0, 0); c.lineTo(220 * k, (-12 - (i % 3) * 6) * k); c.lineTo(220 * k, (12 + (i % 2) * 6) * k); c.closePath(); c.fill(); }
+      c.restore(); c.save();
+      // Alpendohlen kreisen über dem Tal
+      if (o.voegel !== false) {
+        c.strokeStyle = "rgba(30,30,36,0.85)"; c.lineWidth = 1.4 * k; c.lineCap = "round";
+        for (let i = 0; i < 5; i++) {
+          const ang = t * (0.25 + i * 0.04) + i * 1.3, bx = W * (0.3 + 0.12 * i) + Math.cos(ang) * (40 + i * 9) * k, by = (70 + i * 11 + Math.sin(ang) * 16) * k, fl = Math.sin(t * 9 + i * 2) * 2.5 * k, sz = (3.6 - i * 0.25) * k;
+          c.beginPath(); c.moveTo(bx - sz, by - fl); c.quadraticCurveTo(bx - sz * 0.4, by - k, bx, by); c.quadraticCurveTo(bx + sz * 0.4, by - k, bx + sz, by - fl); c.stroke();
+        }
+      }
+      c.restore();
+      return;
+    }
+    const a = lage === "grau" ? [0.55, 0.3] : lage === "neu" ? [0.62, 0.42] : [0.9, 0.82];
+    const col = night ? "110,112,130" : lage === "sturm" ? "226,230,236" : "190,196,205";
+    const g = c.createLinearGradient(0, 0, 0, bottom); g.addColorStop(0, `rgba(${col},${a[0]})`); g.addColorStop(1, `rgba(${col},${a[1]})`);
+    c.fillStyle = g; c.fillRect(0, 0, W, bottom);
+    // Nebelbänke ziehen über die Bergflanken (bei bedeckt deutlich, sonst zart)
+    const fa = lage === "grau" ? 0.5 : lage === "neu" ? 0.35 : 0.25, fc = night ? "150,150,170" : "236,238,242", span = W + 500 * k;
+    for (let i = 0; i < 5; i++) {
+      const sp = (6 + i * 3) * dir * (lage === "sturm" ? 4 : 1) * k, x = ((i * 211 * k + t * sp) % span + span) % span - 250 * k, y = bottom - (70 - i * 13) * k + Math.sin(t * 0.2 + i) * 4 * k;
+      const g2 = c.createRadialGradient(x, y, 4 * k, x, y, 200 * k); g2.addColorStop(0, `rgba(${fc},${fa})`); g2.addColorStop(1, `rgba(${fc},0)`);
+      c.fillStyle = g2; c.save(); c.translate(x, y); c.scale(1, 0.16); c.translate(-x, -y); c.fillRect(x - 200 * k, y - 200 * k, 400 * k, 400 * k); c.restore();
+    }
+    // Wolkenbänke (nicht bei Hochnebel)
+    if (lage !== "grau") {
+      c.fillStyle = `rgba(${night ? "90,92,110" : "160,168,180"},${lage === "sturm" ? 0.35 : 0.3})`;
+      const sp2 = W + 300 * k;
+      for (let i = 0; i < 7; i++) {
+        const x = ((i * 157 * k + t * (lage === "sturm" ? 30 : 4) * dir * k) % sp2 + sp2) % sp2 - 150 * k, y = (30 + (i % 3) * 38) * k;
+        c.beginPath(); c.ellipse(x, y, 150 * k, 24 * k, 0, 0, TAU); c.fill();
+      }
+    }
+    c.restore();
+  }
+
+  function ueber(c, o) {
+    const lage = ok(o.lage), W = o.W, H = o.H, t = o.t || 0, cx = o.cx || 0, k = o.k || 1, boden = o.boden, flk = o.flocken !== false;
+    const dir = (+o.x || 0) < 0 ? -1 : 1, md = (v, m) => ((v % m) + m) % m, dk = o.dicht != null ? Math.max(0, +o.dicht) : 1;
+    c.save();
+    if (lage === "klar") {
+      // Glitzern: einzelne Kristalle funkeln auf dem Schnee auf (nicht am Abend)
+      if (boden != null && !o.nacht) {
+        c.strokeStyle = "rgba(255,255,255,0.95)"; c.lineWidth = 1;
+        for (let i = 0; i < 70; i++) {
+          const x = md(hsh(i, 1) * W * 1.5 - cx, W), y = boden + 10 * k + hsh(i, 2) * (H - boden - 12 * k), tw = Math.sin(t * (2 + hsh(i, 3) * 4) + i * 3);
+          if (tw > 0.75) { const r = (tw - 0.75) * 10 * (0.5 + hsh(i, 4)) * k; c.beginPath(); c.moveTo(x - r, y); c.lineTo(x + r, y); c.moveTo(x, y - r); c.lineTo(x, y + r); c.stroke(); }
+        }
+      }
+      c.restore();
+      return;
+    }
+    if (lage === "grau") {
+      c.fillStyle = `rgba(110,120,135,${0.1 * dk})`; c.fillRect(0, 0, W, H);
+      if (flk) {   // vereinzelte Flocken
+        c.fillStyle = "rgba(255,255,255,0.7)";
+        for (let i = 0; i < 18; i++) { const x = md(hsh(i, 8) * W - cx / 3 + Math.sin(t * 0.6 + i) * 18 * k, W), y = md(hsh(i, 9) * H + t * 12 * k, H); c.beginPath(); c.arc(x, y, 1.1 * k, 0, TAU); c.fill(); }
+      }
+      c.restore();
+      return;
+    }
+    const st = lage === "sturm";
+    if (st) {   // Nebel: oben dicht, unten lichter, schwillt mit den Böen
+      const gu = 0.5 + 0.5 * Math.sin(t * 0.9) * Math.sin(t * 0.37 + 1), g = c.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, `rgba(232,236,242,${(0.55 + 0.2 * gu) * dk})`); g.addColorStop(0.62, `rgba(232,236,242,${(0.25 + 0.22 * gu) * dk})`); g.addColorStop(1, `rgba(232,236,242,${(0.05 + 0.08 * gu) * dk})`);
+      c.fillStyle = g; c.fillRect(0, 0, W, H);
+    }
+    if (flk) {
+      const n = st ? 420 : 120, vx = st ? 260 * dir : 14, vy = st ? 120 : 26;
+      c.fillStyle = "rgba(255,255,255,0.88)"; c.strokeStyle = "rgba(255,255,255,0.8)"; c.lineCap = "round";
+      for (let i = 0; i < n; i++) {
+        const d = 0.4 + hsh(i, 5) * 0.9, x = md(hsh(i, 6) * W - cx * 0.5 * d + Math.sin(t * 0.7 + i) * 12 * k + t * vx * d * k, W), y = md(hsh(i, 7) * H + t * vy * d * k, H);
+        if (st) { c.lineWidth = (0.8 + d) * k; c.beginPath(); c.moveTo(x, y); c.lineTo(x - dir * 9 * d * k, y - 4 * d * k); c.stroke(); }
+        else { c.beginPath(); c.arc(x, y, (0.9 + d * 1.1) * k, 0, TAU); c.fill(); }
+      }
+      if (!st) {   // große, nahe Flocken taumeln vorbei
+        c.fillStyle = "rgba(255,255,255,0.75)";
+        for (let i = 0; i < 14; i++) { const x = md(hsh(i, 14) * W - cx * 1.8 + Math.sin(t * 1.1 + i * 2) * 26 * k + t * 20 * k, W), y = md(hsh(i, 15) * H + t * 55 * k, H), r = (2.2 + hsh(i, 16) * 2.2) * k; c.beginPath(); c.arc(x, y, r, 0, TAU); c.fill(); }
+      }
+    }
+    if (st && boden != null) {   // Schneefahnen fegen über den Boden
+      const w = wind(lage, t, o.x), span = W + 400 * k;
+      for (let i = 0; i < 26; i++) {
+        const d = 0.5 + hsh(i, 10), y = boden + 6 * k + hsh(i, 11) * (H - boden - 6 * k), len = (60 + hsh(i, 12) * 140) * d * k, x = md(hsh(i, 13) * span - cx * 0.85 * d + t * 420 * d * dir * k, span) - 200 * k;
+        const g = c.createLinearGradient(x - dir * len, y, x, y); g.addColorStop(0, "rgba(250,252,255,0)"); g.addColorStop(1, `rgba(250,252,255,${0.35 * w.g + 0.1})`);
+        c.strokeStyle = g; c.lineWidth = (2 + d * 3) * k; c.beginPath(); c.moveTo(x - dir * len, y + Math.sin(t * 3 + i) * 2 * k); c.quadraticCurveTo(x - dir * len * 0.5, y - 3 * d * k, x, y); c.stroke();
+      }
+    }
+    c.restore();
+  }
+
+  const K = root.CMKulisse || (root.CMKulisse = {});
+  K.wetter = { KEYS, NAME, SICHT, hash, tag, wind, himmel, ueber, rauch, temp, flocken };
+})(typeof window !== "undefined" ? window : globalThis);
+
 /* Cold Medal Games · gemeinsame Figur (figur/figur.js, global CMFigur)
  *
  * Ein Körper für alle Spiele der Reihe, im Plakatstil: gleicher Körperbau und gleiche Posen für alle, erkennbar nur an Frisur,
@@ -6845,12 +7029,14 @@ table.mini tr.me td { background: var(--gold); }
 (function (root) {
   "use strict";
   const F = root.CMFigur, K = root.CMKulisse, KB = K.basis, PAN = K.panorama, ST = K.stadion, P = root.SWPhys;
+  const WX = K.wetter;   // Wetter für alle Spiele (kulisse/wetter.js), ab 0.14.2
   const W = 844, H = 390, HOR = 236, BACK = 272, GY = 336, ZB = 26, ZF = 9;
   const TAU = Math.PI * 2, clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
   const INK = "#141B25", PAPER = "#F1E7D2", SNOW = "#F6F1E6", SNOWB = "#DCE4EC", SNOWS = "#B9C8D8";
   const TAN = Math.tan(P.SECTOR * Math.PI / 180);
   const KF = 0.0225;
-  const BALLK = 2.4;   // Ball größer gezeichnet als echt, damit man ihn auf dem Handy sieht
+  const BALLK = 2.4;
+  const FIRE = { x: -2.3, z: 7.8 };   // Feuerschale neben der Hütte, die Gegner stehen darum (0.14.2)   // Ball größer gezeichnet als echt, damit man ihn auf dem Handy sieht
   function c2(ctx, tr, X, Y) {
     ctx.lineCap = "round";
     for (let i = 1; i < tr.length; i++) {
@@ -6958,7 +7144,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   function create(dpr0) {
     let curT = 0, pano = null, panoKey = "", dpr = dpr0 || 1, world = buildWorld(1, "SUI"), tod = "afternoon", skyK = "klar", windK = 0;
     const R = {
-      POSE, RUN, IMP, THROW, THROW_SIDE, T_REL, kit, runPose, use3d: false, W, H, GY, BACK, HOR, ZB, KF, make,
+      FIRE, POSE, RUN, IMP, THROW, THROW_SIDE, T_REL, kit, runPose, use3d: false, W, H, GY, BACK, HOR, ZB, KF, make,
       setDpr(v) { if (Math.abs(v - dpr) > 0.01) { dpr = v; panoKey = ""; } },
       setScene(seed, theme, sky, wx) { tod = theme; skyK = sky || "klar"; windK = wx || 0; world = buildWorld(seed, "SUI"); panoKey = ""; },
       get tod() { return tod; },
@@ -7054,6 +7240,8 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       // Requisiten hinten: Hütte, Schneemann, Kampfrichter
       fireBasket(ctx, M, 9.5, ZB - 1.2, t, night);
       flagPole(ctx, M, -4.4, 10.5, t, night);
+      benches(ctx, M, t, night);
+      fireBowl(ctx, M, FIRE.x, FIRE.z, t, night);
       hut(ctx, M, night, t);
       snowman(ctx, M);
       if (V.board) chalkboard(ctx, M, V.board, night);
@@ -7566,16 +7754,9 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       }
     }
     // Wind für die Animationen: Richtung, Grundstärke je Wetter (0 still … 1 Sturm) und Böen über die Zeit
-    function wind(t) {
-      const base = skyK === "sturm" ? 0.82 : skyK === "neu" ? 0.28 : skyK === "grau" ? 0.2 : 0.08;
-      const k = Math.min(1, base + Math.abs(windK) * 0.05), gust = 0.7 + 0.3 * Math.sin(t * 1.3) * Math.sin(t * 0.47 + 2);
-      return { d: windK < 0 ? -1 : 1, k, g: k * gust };
-    }
+    function wind(t) { return WX.wind(skyK, t, windK); }
     // Rauch: weiche, wachsende Wolken; bei Windstille steigt er gerade, im Sturm wird er flach weggerissen
-    function smoke(c, x, y, s, t, a0) {
-      const w = wind(curT), dx = w.d * (0.5 + w.g * 5), up = 3.2 * (1 - w.g * 0.7), sp = 0.22 + w.g * 0.4;
-      for (let i = 0; i < 7; i++) { const a = (t * sp + i / 7) % 1; c.fillStyle = `rgba(210,212,216,${a0 * (1 - a)})`; c.beginPath(); c.arc(x + a * dx * s + Math.sin(t + i) * 0.15 * s * (1 - w.k), y - a * up * s, (0.25 + a * 0.7 * (1 + w.g * 0.6)) * s, 0, TAU); c.fill(); }
-    }
+    function smoke(c, x, y, s, t, a0) { WX.rauch(c, x, y, s, t, a0, WX.wind(skyK, curT, windK)); }
     // Schweizer Fahne am Mast neben der Hütte: hängt bei Windstille, flattert mit dem Wind, im Sturm steif und schnell
     function flagPole(c, M, x, z, t, night) {
       const { X, Y, S } = M, s = S(z), bx = X(x, z), by = Y(0, z);
@@ -7592,6 +7773,79 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       c.closePath(); c.fill();
       { const m = pts[5], an = (1 - lift) * 1.35 * 0.5, mx = m[0] - d * Math.sin(an) * fh * 0.5, my = m[1] + Math.cos(an) * fh * 0.5, cs = fh * 0.2; c.fillStyle = "#FFFFFF"; c.fillRect(mx - cs * 1.5, my - cs * 0.5, cs * 3, cs); c.fillRect(mx - cs * 0.5, my - cs * 1.5, cs, cs * 3); }
       
+    }
+    // ------------------------------------------------------------------ Gemütliche Ecke (Mat 14.11.2026: „gemütlicher und einladender“):
+    // Feuerschale in 3D (Schale auf drei Beinen, Scheite, Glut, züngelnde Flammen im Wind, Funken, Lichtkreis) und eine Bierbank-Garnitur
+    // mit Fellen, Krügen und Laterne. Alles über die Projektion X/Y/S wie die Hütte.
+    function fireBowl(c, M, x, z, t, night) {
+      const { X, Y, S } = M, s = S(z), cx = X(x, z), gy = Y(0, z);
+      if (cx < -120 || cx > W + 120) return;
+      const P = (px, py, pz) => [X(px, pz), Y(py, pz)], R = 0.55, rim = 0.62, bot = 0.32, rb = 0.28, wd = wind(t), fl = (k) => 0.8 + 0.2 * Math.sin(t * (9 + k) + k * 1.7) * Math.sin(t * (4.3 + k * 0.7));
+      // Lichtkreis auf dem Schnee, flackert mit
+      const lr = (night ? 4.2 : 2.6) * s * fl(1), gg = c.createRadialGradient(cx, gy, 2, cx, gy, lr);
+      gg.addColorStop(0, night ? "rgba(255,170,80,0.5)" : "rgba(255,180,100,0.28)"); gg.addColorStop(1, "rgba(255,170,80,0)");
+      c.save(); c.translate(cx, gy); c.scale(1, 0.32); c.fillStyle = gg; c.beginPath(); c.arc(0, 0, lr, 0, TAU); c.fill(); c.restore();
+      // Beine
+      c.strokeStyle = "#1E1A18"; c.lineWidth = Math.max(1.5, 0.05 * s);
+      for (const a of [Math.PI * 0.5, Math.PI * 1.17, Math.PI * 1.83]) { const p0 = P(x + Math.cos(a) * R * 0.75, rim - 0.12, z + Math.sin(a) * R * 0.75), p1 = P(x + Math.cos(a) * R * 1.05, 0, z + Math.sin(a) * R * 1.05); c.beginPath(); c.moveTo(p0[0], p0[1]); c.lineTo(p1[0], p1[1]); c.stroke(); }
+      // Innenseite mit Glut
+      const ring = (rr, yy, a0, a1, n) => { const out = []; for (let i = 0; i <= n; i++) { const a = a0 + (a1 - a0) * i / n; out.push(P(x + Math.cos(a) * rr, yy, z + Math.sin(a) * rr)); } return out; };
+      const top = ring(R, rim, 0, TAU, 32);
+      c.fillStyle = "#2A1A14"; c.beginPath(); top.forEach((q, i) => (i ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1]))); c.closePath(); c.fill();
+      const eg = c.createRadialGradient(cx, Y(rim, z), 1, cx, Y(rim, z), R * s); eg.addColorStop(0, `rgba(255,${150 + 60 * fl(2) | 0},60,0.95)`); eg.addColorStop(0.6, "rgba(200,60,20,0.7)"); eg.addColorStop(1, "rgba(80,20,10,0)");
+      c.fillStyle = eg; c.beginPath(); top.forEach((q, i) => (i ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1]))); c.closePath(); c.fill();
+      // Scheite, kreuz und quer, mit glühenden Enden
+      for (const [a, k] of [[0.4, 0], [2.1, 1], [3.6, 2]]) { const d = R * 0.7, p0 = P(x - Math.cos(a) * d, rim + 0.04, z - Math.sin(a) * d), p1 = P(x + Math.cos(a) * d, rim + 0.12, z + Math.sin(a) * d);
+        c.strokeStyle = "#4A2E1C"; c.lineWidth = Math.max(3, 0.12 * s); c.lineCap = "round"; c.beginPath(); c.moveTo(p0[0], p0[1]); c.lineTo(p1[0], p1[1]); c.stroke();
+        c.fillStyle = `rgba(255,${120 + 80 * fl(k + 3) | 0},40,0.9)`; c.beginPath(); c.arc(p1[0], p1[1], Math.max(1.5, 0.05 * s), 0, TAU); c.fill(); }
+      // Schale außen (Vorderseite), Eisen mit Rost und Glanzkante vom Feuer
+      const front = ring(R, rim, Math.PI, TAU, 16), bf = ring(rb, bot, TAU, Math.PI, 16);
+      c.fillStyle = "#3A2E28"; c.beginPath(); [...front, ...bf].forEach((q, i) => (i ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1]))); c.closePath(); c.fill();
+      c.fillStyle = "rgba(140,70,40,0.35)"; c.beginPath(); [...ring(R * 0.92, rim - 0.08, Math.PI * 1.15, Math.PI * 1.6, 8), ...ring(rb * 1.1, bot + 0.05, Math.PI * 1.6, Math.PI * 1.15, 8)].forEach((q, i) => (i ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1]))); c.closePath(); c.fill();
+      c.strokeStyle = `rgba(255,150,70,${0.5 + 0.3 * fl(4)})`; c.lineWidth = Math.max(1.2, 0.035 * s); c.beginPath(); front.forEach((q, i) => (i ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1]))); c.stroke();
+      // Flammen: Zungen, die sich im Wind neigen
+      const fy = Y(rim + 0.05, z), lean = wd.d * wd.g * 0.5 * s;
+      for (let k = 0; k < 9; k++) {
+        const ox = (k - 4) / 4 * R * 0.75 * s, h = (0.55 + 0.6 * Math.abs(Math.sin(t * (3.1 + k * 0.37) + k * 2.3)) * fl(k)) * s * (1 - Math.abs(k - 4) * 0.08), w = 0.16 * s;
+        const tip = [cx + ox + lean * h / s + Math.sin(t * 6 + k) * 0.06 * s, fy - h];
+        const grd = c.createLinearGradient(0, fy, 0, fy - h); grd.addColorStop(0, "rgba(255,240,170,0.95)"); grd.addColorStop(0.35, "rgba(255,170,50,0.9)"); grd.addColorStop(0.75, "rgba(230,80,30,0.75)"); grd.addColorStop(1, "rgba(200,50,20,0)");
+        c.fillStyle = grd; c.beginPath(); c.moveTo(cx + ox - w, fy); c.quadraticCurveTo(cx + ox - w * 0.9 + lean * 0.3, fy - h * 0.55, tip[0], tip[1]); c.quadraticCurveTo(cx + ox + w * 0.9 + lean * 0.3, fy - h * 0.5, cx + ox + w, fy); c.closePath(); c.fill();
+      }
+      // Funken
+      for (let i = 0; i < 14; i++) { const ph = (t * (0.5 + (i % 5) * 0.12) + i / 14) % 1, sx = cx + Math.sin(i * 7.3 + t * 1.5) * 0.25 * s + (wd.d * wd.g * 2.2 + 0.2) * ph * s, sy = fy - (0.4 + ph * 2.6) * s;
+        c.fillStyle = `rgba(255,${200 - ph * 120 | 0},90,${(1 - ph) * 0.95})`; c.fillRect(sx, sy, Math.max(1.2, 0.03 * s), Math.max(1.2, 0.03 * s)); }
+      smoke(c, cx, fy - 1.3 * s, s * 0.9, t, 0.28);
+    }
+    function benches(c, M, t, night) {
+      const { X, Y, S } = M, x0 = -0.6, x1 = 2.0;
+      if (X(x1, 9) < -80 || X(x0, 9) > W + 80) return;
+      const P = (x, y, z) => [X(x, z), Y(y, z)];
+      const poly = (pts, fill) => { c.beginPath(); pts.forEach((q, i) => (i ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1]))); c.closePath(); c.fillStyle = fill; c.fill(); };
+      const wood = night ? "#6E5040" : "#9A7250", woodD = night ? "#4E382C" : "#6E4E36", woodL = night ? "#8A6A54" : "#B88E66";
+      // Kasten: Deckfläche, Vorderkante, Seitenkante zur Kamera hin
+      const box = (a0, a1, y0, y1, z0, z1) => {
+        poly([P(a0, y1, z0), P(a1, y1, z0), P(a1, y1, z1), P(a0, y1, z1)], woodL);
+        poly([P(a0, y0, z0), P(a1, y0, z0), P(a1, y1, z0), P(a0, y1, z0)], wood);
+        const sx = X(a0, z0) > W / 2 ? a0 : a1; poly([P(sx, y0, z0), P(sx, y0, z1), P(sx, y1, z1), P(sx, y1, z0)], woodD);
+      };
+      const trestle = (y, z0, z1) => { for (const xx of [x0 + 0.25, x1 - 0.25]) { c.strokeStyle = woodD; c.lineWidth = Math.max(1.5, 0.04 * S(z0)); c.beginPath();
+        const a = P(xx, y, z0 + 0.05), b = P(xx, 0, z1 - 0.02), d = P(xx, y, z1 - 0.05), e = P(xx, 0, z0 + 0.02); c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]); c.moveTo(d[0], d[1]); c.lineTo(e[0], e[1]); c.stroke(); } };
+      // hintere Bank, Tisch, vordere Bank (von hinten nach vorn)
+      const BZ = [[9.95, 10.22], [9.0, 9.7], [8.48, 8.75]];
+      trestle(0.44, BZ[0][0], BZ[0][1]); box(x0, x1, 0.42, 0.46, BZ[0][0], BZ[0][1]);
+      trestle(0.74, BZ[1][0], BZ[1][1]); box(x0, x1, 0.72, 0.76, BZ[1][0], BZ[1][1]);
+      // Schnee auf der Tischkante hinten, Krüge, Laterne
+      { const zb = BZ[1][1]; c.fillStyle = night ? "#EEE4E2" : "#FFFFFF"; c.beginPath(); const a = P(x0, 0.77, zb - 0.12), b = P(x1, 0.77, zb - 0.12), d = P(x1, 0.79, zb), e = P(x0, 0.79, zb); c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]); c.lineTo(d[0], d[1]); c.lineTo(e[0], e[1]); c.closePath(); c.fill(); }
+      for (const [mx, mz] of [[-0.1, 9.3], [0.3, 9.45], [1.2, 9.25], [1.6, 9.5]]) { const sz = S(mz), bx = X(mx, mz), by = Y(0.76, mz), w = 0.09 * sz, h = 0.17 * sz;
+        c.fillStyle = "rgba(230,180,70,0.85)"; c.fillRect(bx - w, by - h, w * 2, h); c.fillStyle = "#FBF8F1"; c.fillRect(bx - w, by - h - 0.035 * sz, w * 2, 0.045 * sz);
+        c.strokeStyle = "rgba(255,255,255,0.7)"; c.lineWidth = 1; c.strokeRect(bx - w, by - h, w * 2, h); c.beginPath(); c.arc(bx + w * 1.3, by - h * 0.55, h * 0.28, -1.3, 1.3); c.stroke(); }
+      { const lz = 9.35, sz = S(lz), lx = X(0.75, lz), ly = Y(0.76, lz), fl = 0.85 + 0.15 * Math.sin(t * 13) * Math.sin(t * 5.3);
+        const lg = c.createRadialGradient(lx, ly - 0.12 * sz, 1, lx, ly - 0.12 * sz, (night ? 1.6 : 0.8) * sz); lg.addColorStop(0, `rgba(255,200,110,${(night ? 0.55 : 0.3) * fl})`); lg.addColorStop(1, "rgba(255,200,110,0)"); c.fillStyle = lg; c.fillRect(lx - 2 * sz, ly - 2 * sz, 4 * sz, 4 * sz);
+        c.fillStyle = "#2A2420"; c.fillRect(lx - 0.07 * sz, ly - 0.28 * sz, 0.14 * sz, 0.04 * sz); c.fillStyle = `rgba(255,${190 + 40 * fl | 0},110,0.95)`; c.fillRect(lx - 0.06 * sz, ly - 0.24 * sz, 0.12 * sz, 0.2 * sz); c.strokeStyle = "#2A2420"; c.lineWidth = 1; c.strokeRect(lx - 0.06 * sz, ly - 0.24 * sz, 0.12 * sz, 0.2 * sz); }
+      trestle(0.44, BZ[2][0], BZ[2][1]); box(x0, x1, 0.42, 0.46, BZ[2][0], BZ[2][1]);
+      // Schaffelle auf den Bänken
+      for (const [fx, fz] of [[0, BZ[2][0] + 0.13], [1.3, BZ[2][0] + 0.13], [0.6, BZ[0][0] + 0.13]]) { const sz = S(fz), px = X(fx, fz), py = Y(0.47, fz);
+        c.fillStyle = night ? "#D9CFC6" : "#EFE6D6"; c.beginPath(); for (let i = 0; i < 9; i++) { const a = i / 9 * TAU, r = (0.3 + 0.04 * Math.sin(i * 3.1)) * sz; c.ellipse(px + Math.cos(a) * r * 0.6, py + Math.sin(a) * r * 0.12, r * 0.45, r * 0.16, 0, 0, TAU); } c.fill(); }
     }
     // Gegner an der Hütte (Mat 14.11.2026: „man hat überhaupt keinen Bezug zu den Gegnern“): die drei, die um deinen Platz
     // kämpfen, stehen mit Namen und Fahne neben der Hütte, schauen zu, spotten, klatschen widerwillig, verschränken die Arme;
@@ -7726,74 +7980,9 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       }
     }
     // Wetter über Himmel und Bergen: Sonne mit Glanz, Hochnebel, Schneewolken, im Sturm fast weiß
-    function skyMood(c, bottom, night, t) {
-      if (skyK === "klar") {
-        if (night) return;
-        const sx = tod === "morning" ? W * 0.18 : W * 0.72, sy = tod === "morning" ? 70 : 40;
-        const g = c.createRadialGradient(sx, sy, 4, sx, sy, 260); g.addColorStop(0, "rgba(255,250,225,0.95)"); g.addColorStop(0.08, "rgba(255,244,210,0.55)"); g.addColorStop(0.4, "rgba(255,236,200,0.12)"); g.addColorStop(1, "rgba(255,236,200,0)");
-        c.fillStyle = g; c.fillRect(0, 0, W, bottom);
-        c.fillStyle = "rgba(255,255,248,1)"; c.beginPath(); c.arc(sx, sy, 13, 0, TAU); c.fill();
-        // Strahlen, langsam drehend
-        c.save(); c.translate(sx, sy); c.rotate(t * 0.03); c.fillStyle = "rgba(255,248,220,0.10)";
-        for (let i = 0; i < 9; i++) { c.rotate(TAU / 9); c.beginPath(); c.moveTo(0, 0); c.lineTo(220, -12 - (i % 3) * 6); c.lineTo(220, 12 + (i % 2) * 6); c.closePath(); c.fill(); }
-        c.restore();
-        // Alpendohlen kreisen über dem Tal
-        c.strokeStyle = "rgba(30,30,36,0.85)"; c.lineWidth = 1.4; c.lineCap = "round";
-        for (let i = 0; i < 5; i++) { const ang = t * (0.25 + i * 0.04) + i * 1.3, bx = W * (0.3 + 0.12 * i) + Math.cos(ang) * (40 + i * 9), by = 70 + i * 11 + Math.sin(ang) * 16, fl = Math.sin(t * 9 + i * 2) * 2.5, sz = 3.6 - i * 0.25;
-          c.beginPath(); c.moveTo(bx - sz, by - fl); c.quadraticCurveTo(bx - sz * 0.4, by - 1, bx, by); c.quadraticCurveTo(bx + sz * 0.4, by - 1, bx + sz, by - fl); c.stroke(); }
-        return;
-      }
-      const a = skyK === "grau" ? [0.55, 0.3] : skyK === "neu" ? [0.62, 0.42] : [0.9, 0.82];
-      const col = night ? "110,112,130" : skyK === "sturm" ? "226,230,236" : "190,196,205";
-      const g = c.createLinearGradient(0, 0, 0, bottom); g.addColorStop(0, `rgba(${col},${a[0]})`); g.addColorStop(1, `rgba(${col},${a[1]})`);
-      c.fillStyle = g; c.fillRect(0, 0, W, bottom);
-      // Nebelbänke ziehen über die Bergflanken (bei bedeckt deutlich, sonst zart)
-      { const fa = skyK === "grau" ? 0.5 : skyK === "neu" ? 0.35 : 0.25, fc = night ? "150,150,170" : "236,238,242";
-        for (let i = 0; i < 5; i++) { const sp = (6 + i * 3) * (windK < 0 ? -1 : 1) * (skyK === "sturm" ? 4 : 1), x = ((i * 211 + t * sp) % (W + 500) + W + 500) % (W + 500) - 250, y = bottom - 70 + i * 13 + Math.sin(t * 0.2 + i) * 4;
-          const g2 = c.createRadialGradient(x, y, 4, x, y, 200); g2.addColorStop(0, `rgba(${fc},${fa})`); g2.addColorStop(1, `rgba(${fc},0)`);
-          c.fillStyle = g2; c.save(); c.translate(x, y); c.scale(1, 0.16); c.translate(-x, -y); c.fillRect(x - 200, y - 200, 400, 400); c.restore(); } }
-      if (skyK !== "grau") { // Wolkenbänke
-        c.fillStyle = `rgba(${night ? "90,92,110" : "160,168,180"},${skyK === "sturm" ? 0.35 : 0.3})`;
-        for (let i = 0; i < 7; i++) { const x = ((i * 157 + t * (skyK === "sturm" ? 30 : 4) * (windK < 0 ? -1 : 1)) % (W + 300) + W + 300) % (W + 300) - 150, y = 30 + (i % 3) * 38; c.beginPath(); c.ellipse(x, y, 150, 24, 0, 0, TAU); c.fill(); }
-      }
-    }
+    function skyMood(c, bottom, night, t) { WX.himmel(c, { lage: skyK, W, unten: bottom, t, nacht: night, tageszeit: tod, x: windK }); }
     // Wetter über der ganzen Szene (ohne Zustand, aus der Zeit gerechnet): Glitzern in der Sonne, Schneefall, Sturm mit Schneefahnen und Nebel
-    function weather(c, t, cx) {
-      const hsh = (i, k) => { const v = Math.sin(i * 12.9898 + k * 78.233) * 43758.5453; return v - Math.floor(v); };
-      if (skyK === "klar") {
-        if (KB.themeName() === "evening") return;
-        for (let i = 0; i < 70; i++) { const x = ((hsh(i, 1) * W * 1.5 - cx * 12) % W + W) % W, y = BACK + 10 + hsh(i, 2) * (H - BACK - 12), tw = Math.sin(t * (2 + hsh(i, 3) * 4) + i * 3);
-          if (tw > 0.75) { const r = (tw - 0.75) * 10 * (0.5 + hsh(i, 4)); c.strokeStyle = "rgba(255,255,255,0.95)"; c.lineWidth = 1; c.beginPath(); c.moveTo(x - r, y); c.lineTo(x + r, y); c.moveTo(x, y - r); c.lineTo(x, y + r); c.stroke(); } }
-        return;
-      }
-      if (skyK === "grau") { c.fillStyle = "rgba(110,120,135,0.10)"; c.fillRect(0, 0, W, H);
-        c.fillStyle = "rgba(255,255,255,0.7)"; // vereinzelte Flocken
-        for (let i = 0; i < 18; i++) { const x = ((hsh(i, 8) * W - cx * 4 + Math.sin(t * 0.6 + i) * 18) % W + W) % W, y = (hsh(i, 9) * H + t * 12) % H; c.beginPath(); c.arc(x, y, 1.1, 0, TAU); c.fill(); }
-        return; }
-      const st = skyK === "sturm", n = st ? 420 : 120, dir = windK < 0 ? -1 : 1, vx = st ? 260 * dir : 14, vy = st ? 120 : 26;
-      if (st) { // Nebel: oben dicht, unten lichter, schwillt mit den Böen
-        const gu = 0.5 + 0.5 * Math.sin(t * 0.9) * Math.sin(t * 0.37 + 1), g = c.createLinearGradient(0, 0, 0, H);
-        g.addColorStop(0, `rgba(232,236,242,${0.55 + 0.2 * gu})`); g.addColorStop(0.62, `rgba(232,236,242,${0.25 + 0.22 * gu})`); g.addColorStop(1, `rgba(232,236,242,${0.05 + 0.08 * gu})`);
-        c.fillStyle = g; c.fillRect(0, 0, W, H);
-      }
-      c.fillStyle = "rgba(255,255,255,0.88)"; c.strokeStyle = "rgba(255,255,255,0.8)"; c.lineCap = "round";
-      for (let i = 0; i < n; i++) {
-        const d = 0.4 + hsh(i, 5) * 0.9, x = ((hsh(i, 6) * W - cx * 6 * d + Math.sin(t * 0.7 + i) * 12 + t * vx * d) % W + W) % W, y = ((hsh(i, 7) * H + t * vy * d) % H);
-        if (st) { c.lineWidth = 0.8 + d; c.beginPath(); c.moveTo(x, y); c.lineTo(x - dir * 9 * d, y - 4 * d); c.stroke(); }
-        else { c.beginPath(); c.arc(x, y, 0.9 + d * 1.1, 0, TAU); c.fill(); }
-      }
-      if (st) { // Schneefahnen fegen über den Boden
-        const w = wind(t);
-        for (let i = 0; i < 26; i++) { const d = 0.5 + hsh(i, 10), y = BACK + 6 + hsh(i, 11) * (H - BACK - 6), len = (60 + hsh(i, 12) * 140) * d,
-            x = ((hsh(i, 13) * (W + 400) - cx * 10 * d + t * 420 * d * dir) % (W + 400) + W + 400) % (W + 400) - 200;
-          const g = c.createLinearGradient(x - dir * len, y, x, y); g.addColorStop(0, "rgba(250,252,255,0)"); g.addColorStop(1, `rgba(250,252,255,${0.35 * w.g + 0.1})`);
-          c.strokeStyle = g; c.lineWidth = 2 + d * 3; c.beginPath(); c.moveTo(x - dir * len, y + Math.sin(t * 3 + i) * 2); c.quadraticCurveTo(x - dir * len * 0.5, y - 3 * d, x, y); c.stroke(); }
-      } else { // Schneefall: grosse, nahe Flocken taumeln vorbei
-        c.fillStyle = "rgba(255,255,255,0.75)";
-        for (let i = 0; i < 14; i++) { const x = ((hsh(i, 14) * W - cx * 22 + Math.sin(t * 1.1 + i * 2) * 26 + t * 20) % W + W) % W, y = (hsh(i, 15) * H + t * 55) % H, r = 2.2 + hsh(i, 16) * 2.2;
-          c.beginPath(); c.arc(x, y, r, 0, TAU); c.fill(); }
-      }
-    }
+    function weather(c, t, cx) { WX.ueber(c, { lage: skyK, W, H, t, cx: cx * 12, boden: BACK, nacht: KB.themeName() === "evening", x: windK }); }
     // Stimmung: Tönung je Tageszeit und weiche Vignette
     function grade(c, night) {
       if (tod === "morning") { c.fillStyle = "rgba(255,190,150,0.07)"; c.fillRect(0, 0, W, H); }
@@ -8298,11 +8487,62 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       fl.type = type || "bandpass"; fl.frequency.value = f; fl.Q.value = q; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
       n.connect(fl); fl.connect(g); g.connect(dest || out); n.start(t, Math.random() * 0.5); n.stop(t + dur + 0.02);
     },
+    // Glocke: Teiltöne wie eine Kirchen- oder Kuhglocke (Hum, Grundton, Terz, Quinte, Oktave), langer Nachklang; far = weit weg mit Hall
+    bell(t, f, vol, far) {
+      const a = A, P = far ? [[0.5, 0.6, 5], [1, 1, 4], [1.19, 0.5, 3], [1.5, 0.35, 2.5], [2, 0.4, 2], [2.66, 0.2, 1.5]] : [[1, 1, 0.9], [2.42, 0.5, 0.5], [3.9, 0.3, 0.35], [5.4, 0.18, 0.25]];
+      const g0 = a.createGain(), lp = a.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = far ? 1800 : 4000; g0.gain.value = vol; g0.connect(lp); lp.connect(out); if (rev) { const sd = a.createGain(); sd.gain.value = far ? 1.2 : 0.4; lp.connect(sd); sd.connect(rev); }
+      for (const [m, gv, d] of P) { const o = a.createOscillator(), g = a.createGain(); o.type = "sine"; o.frequency.value = f * m;
+        g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(gv, t + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, t + d); o.connect(g); g.connect(g0); o.start(t); o.stop(t + d + 0.05); }
+    },
+    // Örgeli-Ton (wie im Ländler), für kurze Figuren
+    reed(n, t, d, vol) {
+      const a = A, f = 440 * Math.pow(2, (n - 69) / 12), bp = a.createBiquadFilter(), e = a.createGain(); bp.type = "bandpass"; bp.frequency.value = Math.min(3200, f * 2.2); bp.Q.value = 0.7;
+      e.gain.setValueAtTime(0.0001, t); e.gain.linearRampToValueAtTime(vol, t + 0.03); e.gain.setTargetAtTime(0.0001, t + d, 0.05);
+      for (const det of [-9, 9]) { const o = a.createOscillator(); o.type = "sawtooth"; o.frequency.value = f; o.detune.value = det; o.connect(bp); o.start(t); o.stop(t + d + 0.3); }
+      const pn = a.createStereoPanner ? a.createStereoPanner() : null; bp.connect(e); if (pn) { pn.pan.value = -0.4; e.connect(pn); pn.connect(out); } else e.connect(out); if (rev) e.connect(rev);
+    },
+    // Feuerschale: Knistern und Prasseln, Lautstärke je nach Nähe (k 0 … 1), läuft solange gespielt wird
+    fire(k) {
+      const a = k > 0 ? ctx() : A; if (!a) return;
+      if (!S._fire && k > 0) {
+        const n = a.createBufferSource(), lp = a.createBiquadFilter(), g = a.createGain(), tot = a.createGain(); n.buffer = noiseBuf; n.loop = true; lp.type = "lowpass"; lp.frequency.value = 260; g.gain.value = 0.12;
+        n.connect(lp); lp.connect(g); g.connect(tot); tot.gain.value = 0; tot.connect(out); n.start();
+        const crack = () => { if (!S._fire) return; const t = a.currentTime, lv = S._fire.k; if (lv > 0.02) { const m = 1 + Math.floor(Math.random() * 3);
+            for (let i = 0; i < m; i++) S.hit(t + i * 0.02 + Math.random() * 0.03, 1800 + Math.random() * 3500, 2.5, (0.06 + Math.random() * 0.25) * lv, 0.008 + Math.random() * 0.03); }
+          S._fire.to = setTimeout(crack, 40 + Math.random() * 260); };
+        S._fire = { n, tot, k: 0 }; crack();
+      }
+      if (!S._fire) return;
+      S._fire.k = k; S._fire.tot.gain.setTargetAtTime(k * 0.9, a.currentTime, 0.3);
+      if (k <= 0) { const F = S._fire; S._fire = null; clearTimeout(F.to); F.tot.gain.setTargetAtTime(0.0001, a.currentTime, 0.2); setTimeout(() => { try { F.n.stop(); } catch (e) { /* aus */ } }, 800); }
+    },
+    // Natur und Dorf im Hintergrund: ab und zu fällt Schnee vom Ast, in der Sonne tropft es, von weitem die Kirchenglocke
+    nature(want, sky) {
+      if (!want) { if (S._nat) { clearTimeout(S._nat); S._nat = null; } return; }
+      const a = ctx(); if (!a || S._nat) return;
+      const tick = () => { const t = a.currentTime, r = Math.random();
+        if (r < 0.35) { S.hit(t, 500, 0.8, 0.12, 0.35, "lowpass"); S.hit(t + 0.05, 1600, 1, 0.05, 0.4); }                 // Schnee plumpst vom Ast
+        else if (r < 0.6 && sky === "klar") { for (let i = 0; i < 3; i++) { const o = a.createOscillator(), g = a.createGain(), tt = t + i * (0.5 + Math.random()); o.type = "sine"; o.frequency.setValueAtTime(2400 + Math.random() * 800, tt); o.frequency.exponentialRampToValueAtTime(1400, tt + 0.05); g.gain.setValueAtTime(0.03, tt); g.gain.exponentialRampToValueAtTime(0.0001, tt + 0.08); o.connect(g); g.connect(out); if (rev) g.connect(rev); o.start(tt); o.stop(tt + 0.1); } }   // Tropfen
+        else if (r < 0.72) { for (let k = 0; k < 4; k++) S.bell(t + k * 1.15, 300, 0.05, true); }                       // Kirchenglocke im Dorf
+        S._nat = setTimeout(tick, 9000 + Math.random() * 14000); };
+      S._nat = setTimeout(tick, 4000);
+    },
     cheer(kind) {
       const a = ctx(); if (!a) return null;
       const T = a.currentTime + 0.05, rnd = (x, y) => x + Math.random() * (y - x), fem = () => Math.random() < 0.45;
       const fx = {
         juchzer: () => S.juchzer(1 + Math.floor(Math.random() * 2)),
+        // Dorfkirche: Glocke mit unharmonischen Teiltönen, weit weg, drei Schläge
+        glocke: () => { for (let k = 0; k < 3; k++) S.bell(T + k * 1.1, rnd(290, 310), 0.12, true); },
+        // Örgeli-Lauf hinauf (Freude) und „wah-wah“ hinunter (Pech): wie vom Musikanten an der Hütte
+        lauf: () => { [67, 71, 74, 79, 83, 86].forEach((n, i) => S.reed(n, T + i * 0.07, 0.12, 0.08)); S.reed(91, T + 0.42, 0.5, 0.09); S.reed(79, T + 0.42, 0.5, 0.05); },
+        wahwah: () => { [[64, 0, 0.34], [63, 0.38, 0.34], [62, 0.76, 0.34], [61, 1.14, 0.8]].forEach(([n, d, du]) => { S.reed(n, T + d, du, 0.08); S.reed(n - 12, T + d, du, 0.05); }); },
+        // eine Kuhglocke, einmal dumpf geschüttelt
+        plonk: () => { S.bell(T, 210, 0.05, false); S.bell(T + 0.32, 205, 0.035, false); },
+        // Raunen der Menge (Rauschen, keine Stimmen)
+        raunen: () => { const n = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain(); n.buffer = noiseBuf; n.loop = true; f.type = "bandpass"; f.frequency.value = 380; f.Q.value = 1.1;
+          g.gain.setValueAtTime(0.0001, T); g.gain.linearRampToValueAtTime(0.16, T + 0.35); g.gain.exponentialRampToValueAtTime(0.0001, T + 1.6); f.frequency.setValueAtTime(480, T); f.frequency.linearRampToValueAtTime(300, T + 1.6);
+          n.connect(f); f.connect(g); g.connect(out); n.start(T); n.stop(T + 1.7); },
         jodel: () => { const f = fem(), b = f ? 300 : 190, P = [[0, b], [0.16, b * 1.5], [0.3, b * 1.25], [0.44, b * 1.5], [0.6, b * 2], [0.95, b * 1.9], [1.15, b * 1.7]];
           S.voice({ fem: f, f: P, v: [[0, "o"], [0.15, "i"], [0.3, "i"], [0.44, "i"], [0.6, "oe"], [1.15, "oe"]], h: [0], amp: [[0.03, 0.8], [0.14, 0.5], [0.17, 0.9], [0.29, 0.6], [0.31, 0.9], [0.43, 0.6], [0.46, 0.9], [0.95, 0.85], [1.15, 0.0001]], echo: true, vol: 0.27 }); },
         chor: () => { for (let i = 0; i < 4; i++) { const b = rnd(170, 230); S.voice({ delay: i * rnd(0.12, 0.3), f: [[0, b], [0.12, b * 1.05], [0.15, b * 1.6], [0.6, b * 1.75], [0.9, b * 1.2]], v: [[0, "u"], [0.14, "e"], [0.9, "e"]], h: [0.13], amp: [[0.03, 0.7], [0.13, 0.4], [0.18, 0.9], [0.7, 0.8], [0.9, 0.0001]], far: true, vol: 0.25 }); } },
@@ -8337,9 +8577,10 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       if (kind === "list") return Object.keys(fx);
       if (fx[kind]) { fx[kind](); return kind; }
       // Auswahl nach Anlass, nie zweimal dasselbe hintereinander
-      const POOL = { rekord: ["boeller"], weit: ["juchzer", "jodel", "chor", "pfiff", "treicheln", "goassl", "hopp", "tusch", "klatsch", "ratsche", "allez", "juhej"], kurz: ["oje", "uuuh", "lachen"] };
+      // 0.14.2: keine künstlichen Stimmen mehr im Spiel (Mat: „klingt eher nach Science Fiction“), nur Instrumente und Geräusche
+      const POOL = { rekord: ["boeller"], weit: ["pfiff", "treicheln", "goassl", "tusch", "klatsch", "ratsche", "glocke", "lauf"], kurz: ["wahwah", "plonk", "raunen"] };
       const L = (POOL[kind] || POOL.weit).filter((k) => k !== S._lastCheer); const k = L[Math.floor(Math.random() * L.length)] || "juchzer"; S._lastCheer = k; fx[k]();
-      if (kind === "rekord") { setTimeout(() => fx.treicheln(), 600); setTimeout(() => S.juchzer(2), 900); }
+      if (kind === "rekord") { setTimeout(() => fx.treicheln(), 600); setTimeout(() => fx.klatsch(), 900); setTimeout(() => fx.lauf(), 2600); }
       return k;
     },
     // Alphorn während des Flugs (Naturtöne über Fis, wie ein echtes Alphorn): u = Höhe des Balls 0 … 1 wählt den Naturton,
@@ -8522,10 +8763,10 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.14.1";
+  const VERSION = "0.14.2";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
-  const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender;
+  const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender, WXN = window.CMKulisse.wetter;
   const W = 844, H = 390;
   const $ = (id) => document.getElementById(id);
   const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
@@ -8613,7 +8854,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     }
   }
   function show(id) { if (id && G && G.fl && G.fl.horn) { G.fl.horn.stop(); G.fl.horn = null; }
-    for (const s of SCREENS) $(s).hidden = s !== id; if (id) fitText($(id)); $("hud").hidden = !!id; AU.ambient(!id || id === "scrStand"); AU.music(!!id && AU.on); AU.storm(!id && !!G && G.cond.sky === "sturm"); }
+    for (const s of SCREENS) $(s).hidden = s !== id; if (id) fitText($(id)); $("hud").hidden = !!id; AU.ambient(!id || id === "scrStand"); AU.music(!!id && AU.on); AU.storm(!id && !!G && G.cond.sky === "sturm"); AU.nature(!id && !!G, G && G.cond.sky); if (id) AU.fire(0); }
 
   // ------------------------------------------------------------------ Zustand eines Durchgangs
   // mode: "comp" = Weitwurf-Wettkampf, "train" = Training Weitwurf, "ziel" = Zielwurf-Wettkampf
@@ -8713,7 +8954,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     $("rpGrid").innerHTML = [
       ["Temperatur", nb(`${String(c.temp).replace(".", ",").replace("-", "−")} °C`), c.temp <= -5 ? "Frost" : c.temp > 1 ? "Tauwetter" : "um null Grad"],
       ["Tageszeit", Ph.TODS[c.tod], c.tod === "morning" ? "Sonne von Osten" : c.tod === "afternoon" ? "Sonne hoch" : "Sonne weg"],
-      ["Wetter", Ph.SKIES[c.sky], c.thaw ? "gestern Tauwetter" : { klar: "klare Sicht", grau: "graues Licht", neu: "es schneit", sturm: "kaum Sicht" }[c.sky] || ""],
+      ["Wetter", WXN.NAME[c.sky], c.thaw ? "gestern Tauwetter" : WXN.SICHT[c.sky] || ""],
       ["Wind", nb(ww), wd || "kein Wind"],
     ].map(([k, v, i]) => `<div><small>${k}</small><b>${esc(v)}</b><i>${esc(i)}</i></div>`).join("");
     const set = $("rpSet");
@@ -8722,7 +8963,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       const rows = [
         ["Temperatur", "temp", [[-8, "−8 °C"], [-3, "−3 °C"], [-1, "−1 °C"], [2, "+2 °C"]]],
         ["Tageszeit", "tod", Object.entries(Ph.TODS)],
-        ["Wetter", "sky", [["klar", "Sonnig"], ["grau", "Bedeckt"], ["neu", "Schneefall"], ["sturm", "Schneesturm"]]],
+        ["Wetter", "sky", WXN.KEYS.map((k) => [k, WXN.NAME[k][0].toUpperCase() + WXN.NAME[k].slice(1)])],
         ["Wind", "wind", [["still", "Still"], ["mild", "Leicht"], ["boeig", "Böig"]]],
       ];
       for (const [lab, k, list] of rows) {
@@ -8786,7 +9027,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   // Die drei, um die es geht (direkt vor dir, direkt hinter dir, der Führende), stehen rechts neben der Hütte. Sie necken vor dem
   // Wurf, spotten bei Fehlwürfen, klatschen widerwillig bei guten. Einmal je Wettkampf wirft der Schummler im Anlauf einen
   // Schneeball: wer den Schritt genau trifft, duckt sich weg; sonst wackelt der Takt zwei Schritte. Gelb und sein nächster Wurf zählt nicht.
-  const RIV_POS = [[-5.3, 6.2], [-3.3, 6.8], [-1.3, 6.0]];   // rechts neben der Hütte, hinter der Anlaufbahn
+  const RIV_POS = [[-4.1, 6.9], [-0.9, 7.0], [-3.4, 9.4]];   // rechts neben der Hütte, hinter der Anlaufbahn
   const SAY_RIV = {
     tease: ["Hopp, zeig emol, was chasch!", "Mal luege, ob s langet …", "Nöd z fescht verchrampfe!", "Bisch nervös?", "Hüt gwünn ich!", "Lauf nöd über de Balke!", "Gäll, s isch chalt i de Finger?"],
     spott: ["Hesch Gfrörni i de Finger?", "Das isch jo es Schneeflöckli gsi!", "Mini Grossmueter wirft wiiter!", "Gang lieber go schlittle!", "Hesch Chäsfondue i de Arm?", "Das isch kei Wurf, das isch es Gschänkli!", "Zielwasser vergässe?", "Nomal üebe, gäll!", "Do chunnt jo nöd emol de Hund naa!"],
@@ -9453,6 +9694,8 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     now += dt;
     if (!G) return;
     const th = G.th;
+    // Feuerschale: Knistern je nach Nähe der Kamera (Mat 14.11.2026: „präsenter, gemütlicher“)
+    if (AU.on && $("hud") && !$("hud").hidden && !isZiel()) { const k = clamp(1 - Math.abs(cam.cx - R.FIRE.x) / 16, 0, 1) * 0.9 + 0.1; if (Math.abs(k - (G.fireK || 0)) > 0.03) { G.fireK = k; AU.fire(k); } }
     const k = 1 - Math.exp(-dt * (G.phase === "fly" ? 5 : 3.2));
     cam.ppm += (camT.ppm - cam.ppm) * k; cam.cx += (camT.cx - cam.cx) * k;
     if (G.phase === "pick" || G.phase === "rack" || G.phase === "aim") th.pose = F.ease(th.pose, F.idle(R.POSE.hold, now, 0.7), dt);
