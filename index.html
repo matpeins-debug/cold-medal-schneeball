@@ -7806,7 +7806,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.9.3";
+  const VERSION = "0.9.4";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender;
@@ -8238,7 +8238,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     $("drKick").textContent = kick; $("drTxt").innerHTML = html; $("drGo").textContent = go || ""; $("drGo").hidden = !go; $("drSkip").hidden = !skip; $("drCnt").textContent = "";
   }
   function drillStart() {
-    G.phase = "drill"; G.run = { t0: now + 0.5, tapped: {}, accs: [] }; G.th.vx = 0; G.th.lastF = 0;
+    G.phase = "drill"; G.run = { t0: now + 0.5, tapped: {}, accs: [] }; G.th.vx = 0; G.th.lastF = 0; G.gait = null; G.drillHx = 0;
     drillCard("TAKTSCHULE · 1/2", "Tippe, wenn ein Punkt die Linie trifft.", null, true); drillCount();
   }
   function drillCount() { const n = (G.run.log || []).filter((x) => x.acc > 0.5).length; $("drCnt").innerHTML = Array.from({ length: DRILL_N }, (_, i) => `<i class="${i < n ? "on" : ""}"></i>`).join(""); return n; }
@@ -8246,7 +8246,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     G.phase = "drillOk";
     drillCard("TAKTSCHULE · 2/2", "Sitzt! Jetzt mit Wurf: genau so im Takt anlaufen. Vor dem Balken erscheint auf der Leiste ein roter Strich <b>HALTEN</b> – dann den Finger liegen lassen, der Winkel steigt; bei etwa <b>40°</b> loslassen. Zu spät gehalten heißt übertreten.", "Zum Wurf", false);
   }
-  function drillEnd() { drillCard(null); G.run = null; G.phase = "ready"; G.th.x = START_X; G.th.vx = 0; G.th.pose = F.POSES.stand; }
+  function drillEnd() { drillCard(null); G.run = null; G.phase = "ready"; G.th.x = START_X; G.th.vx = 0; G.th.pose = F.POSES.stand; G.th.lift = 0; G.th.ax = null; G.gait = null; }
   function footTick(loud) {
     const th = G.th; let f = th.lastF || 0;
     while (now >= footT(f + 1)) f++;
@@ -8270,7 +8270,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     if (G.phase === "form") { e.preventDefault(); formPress(); return; }
     if (G.phase === "show") { e.preventDefault(); if (now - G.reveal.t0 > 0.8) endReveal(); return; }
     const [x, y] = stagePoint(e.clientX, e.clientY);
-    if (G.phase === "ready") { e.preventDefault(); G.phase = "run"; G.run = { t0: now, tapped: {}, accs: [] }; G.th.lastF = 0; hint(null); return; }
+    if (G.phase === "ready") { e.preventDefault(); G.phase = "run"; G.run = { t0: now, tapped: {}, accs: [] }; G.th.lastF = 0; G.gait = null; hint(null); return; }
     // im Anlauf: kurz tippen = Schritt im Takt, halten = Winkel (ab 0,18 s, gezählt ab dem Auflegen)
     if (G.phase === "run" || G.phase === "drill") { e.preventDefault(); ptr = { id: e.pointerId, t0: now, press: true }; capture(e); return; }
     if (G.phase === "aim") { e.preventDefault(); ptr = { id: e.pointerId, x0: x, y0: y, x, y }; G.pull = { x0: x, y0: y, x1: x, y1: y, k: 0 }; capture(e); hint(null); return; }
@@ -8310,6 +8310,58 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     const R0 = G.run;
     // der erste Schritt ist zum Reinkommen, verpassen kostet nichts
     for (let f = 2; footT(f) + 0.2 < now; f++) if (!R0.tapped[f]) { R0.tapped[f] = 1; R0.accs.push(0); R0.last = { acc: 0, at: now, miss: true }; (R0.log = R0.log || []).push({ f, acc: 0, miss: true }); }
+  }
+  // ------------------------------------------------------------------ Gangart (Mat 14.11.2026: „die Bewegung schaut nicht gut aus“)
+  // Echter Laufschritt statt Posen-Wechsel: der Fuß setzt zum Takt-Schlag vor der Hüfte auf und bleibt am Boden stehen, während die
+  // Hüfte darüber zieht (Bein per Umkehrrechnung, kein Rutschen); danach Flugphase mit Hub, das andere Bein holt mit hohem Knie nach vorn.
+  // Ein Schritt je Takt-Schlag, also sieht man den Takt in den Beinen. th.x bleibt die Hüfte; th.ax ist der Fußpunkt zum Zeichnen.
+  const KF3 = 0.0225, LT = F.LEN.thigh, LS = F.LEN.shin, LEG = (LT + LS) * KF3, GRAV = 9.81;
+  const sinD = (d) => Math.sin(d * Math.PI / 180);
+  function stanceThigh(D, k) {   // Oberschenkelwinkel, bei dem die Hüfte D Einheiten vor dem Knöchel steht (Kniebeuge k)
+    let lo = -70, hi = 70;
+    for (let i = 0; i < 26; i++) { const m = (lo + hi) / 2, x = -(LT * sinD(m) + LS * sinD(m - k)); if (x < D) hi = m; else lo = m; }
+    return (lo + hi) / 2;
+  }
+  function gaitStart(hx) { G.gait = { hx, plant: hx + 0.1, side: false, tOn: now, tOff: null, tNext: now + STEP, n: 0 }; }
+  function gaitContact(vx) {
+    const g = G.gait, r = clamp(0.14 + 0.035 * vx, 0.14, 0.36);
+    g.side = !g.side; g.plant = g.hx + r; g.tOn = now; g.tOff = null; g.n++;
+    g.tNext = footT((G.th.lastF || 0) + 1);
+  }
+  function gaitPose(vx, imp) {
+    const g = G.gait, r = clamp(0.14 + 0.035 * vx, 0.14, 0.36), dx = g.hx - g.plant;   // Hüfte vor dem Fuß (m)
+    const sw = Math.cos(Math.PI * (g.n + clamp((now - g.tOn) / Math.max(0.1, g.tNext - g.tOn), 0, 1)));
+    const up = imp ? { aF: [-105, -5], aB: [92 + 8 * sw, 8], hd: -6 } : { aF: [-78, -96], aB: [5 + 38 * sw, -88 - 10 * sw], hd: 2 };
+    const lean = imp ? -8 : 6 + 7 * clamp(vx / 6.4, 0, 1);
+    let sL, fL, lift = 0;
+    if (g.tOff == null && dx < r) {
+      // Stütze: Fuß fest, Hüfte zieht darüber; Knie federt in der Mitte ein
+      const a = clamp(dx / r, -1, 1), k = 12 + 16 * (1 - Math.abs(a)) * clamp(vx / 4, 0.4, 1);
+      sL = [stanceThigh(dx / KF3, k), k];
+      const p = (a + 1) / 2, e = p * p * (3 - 2 * p);
+      fL = [-28 + 66 * e, 55 + 50 * Math.sin(Math.PI * Math.min(1, p * 1.1))];
+    } else {
+      // Flug: das Abdruckbein schwingt nach hinten oben, das andere streckt sich zum Aufsetzen
+      if (g.tOff == null) g.tOff = now;
+      const tf = Math.max(0.05, g.tNext - g.tOff), q = clamp((now - g.tOff) / tf, 0, 1), e = q * q * (3 - 2 * q);
+      sL = [-24 + 4 * e, 22 + 60 * Math.sin(Math.PI * Math.min(1, q * 0.9))];
+      fL = [38 - 14 * e, 70 - 55 * e];
+      lift = Math.min(0.14, GRAV * tf * tf / 8) * 4 * q * (1 - q) / KF3;
+    }
+    const pose = Object.assign({}, R.POSE.hold, { lean, crouch: 0, sL, fL }, up);
+    // Zeichenpunkt = Knöchel des Standbeins: aus der Pose zurückgerechnet, damit die Hüfte genau bei hx liegt
+    const J = F.joints(pose), ax = g.hx - J.hip[0] * KF3;
+    // der tiefere Fuß steht am Boden: liegt der andere Knöchel tiefer als der Ankerfuß, hebt sich die ganze Figur
+    lift += Math.max(0, J.fAn[1]);
+    return { pose, swap: g.side, lift, ax };
+  }
+  function gaitStep(dt, vx, imp, hx) {
+    if (!G.gait) gaitStart(hx);
+    const g = G.gait; g.hx = hx;
+    const f = G.th.lastF || 0;
+    if (f !== g.fSeen) { g.fSeen = f; if (f > 0) gaitContact(vx); else g.tNext = footT(1); }
+    const r = gaitPose(vx, imp), th = G.th;
+    th.pose = r.pose; th.swap = r.swap; th.lift = r.lift; th.ax = r.ax;
   }
   // Tempo kommt nur vom Tippen (Mat 14.11.2026): Schnitt der letzten drei Schritte; vor dem ersten Tipp ein halber Schwung vom Antritt
   const rhythm = () => { const a = G.run.accs.slice(-3); return a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0.45; };
@@ -8416,16 +8468,16 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       const vT = 6.4 * rhythm();
       th.vx += (vT - th.vx) * Math.min(1, dt * (th.vx < vT ? 2.2 : 1.6));
       if (G.phase === "run" && th.vx < 0.35 && vT < 0.35 && !ptr) {
-        G.phase = "ready"; G.run = null; th.vx = 0; th.pose = R.POSE.hold; th.swap = false;
+        G.phase = "ready"; G.run = null; th.vx = 0; th.pose = R.POSE.hold; th.swap = false; th.lift = 0; th.ax = null; G.gait = null;
         hint("Stehen geblieben – tippe im Takt, dann läuft er", "top"); return;
       }
       th.x += th.vx * dt;
       // halten wird zum Winkel
       if (G.phase === "run" && ptr && ptr.press && now - ptr.t0 >= HOLD) { G.phase = "angle"; G.ang = { t0: ptr.t0 }; ptr.press = false; }
       // Schritte: zwei je Laufzyklus, Aufsetzen bei u = 0 und 0,5; vor dem Balken Impulsschritte mit langem Arm
-      const imp = th.x > -2.8, u = (((now - G.run.t0) / (2 * STEP)) % 1 + 1) % 1;
-      const rp = R.runPose(u, imp); th.swap = rp.swap; th.pose = th.vx < 1 ? F.ease(th.pose, rp.pose, dt, true) : rp.pose;
+      const imp = th.x > -2.8;
       footTick(G.phase === "run");
+      gaitStep(dt, th.vx, imp, th.x);
       setCam(Math.min(-1.2, th.x + 5), 58);
       if (th.x >= 0.05) { ptr = null; foul(); }
     }
@@ -8433,8 +8485,10 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       if (now >= G.run.t0) stepMiss();
       const vT = 2.6 + 3.8 * rhythm(); th.vx += (vT - th.vx) * Math.min(1, dt * 2.2);
       const u = (((now - G.run.t0) / (2 * STEP)) % 1 + 1) % 1;
-      const rp = R.runPose(u); th.swap = rp.swap; th.pose = rp.pose;
+      G.drillHx = (G.drillHx || 0) + th.vx * dt;
       if (now >= G.run.t0) footTick(true);
+      gaitStep(dt, th.vx, false, G.drillHx);
+      th.ax = th.x + (th.ax - G.drillHx);   // am Platz: wie auf einem Laufband
       setCam(th.x + 5, 50);
       if ((G.run.log || []).length > 40) drillDone();   // nach 40 Schritten geht es auch so weiter
     }
@@ -8764,7 +8818,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       say: G.say && now >= G.say.at && now - G.say.at < 2.6 ? G.say : null,
       cam: G.luz >= 1 ? { cx: cam.cx + Math.sin(now * 0.8) * 0.12 * G.luz, ppm: cam.ppm * (1 + Math.sin(now * 0.53) * 0.008 * G.luz) } : cam, focus: G.focus, marks: G.marks, judge: G.judge, tape: G.tape, crumbs: G.crumbs, ball: G.flyBall || null, trail: G.trail,
       patches: ["pick", "walk", "scoop", "form"].includes(G.phase) && G.patches ? G.patches : null,
-      thrower: { x: th.x, z: th.z, dir: th.dir, pose: th.pose, swap: G.phase === "run" || G.phase === "angle" || G.phase === "drill" ? !!th.swap : false, lift: th.lift || 0, mood: th.mood, look: myLook(), kit: R.kit(S.glove), glove: S.glove, held, puff: G.phase === "run" || G.phase === "angle" ? 1.5 : 0.6 },
+      thrower: { x: (G.phase === "run" || G.phase === "angle" || G.phase === "drill") && th.ax != null ? th.ax : th.x, z: th.z, dir: th.dir, pose: th.pose, swap: G.phase === "run" || G.phase === "angle" || G.phase === "drill" ? !!th.swap : false, lift: (G.phase === "run" || G.phase === "angle" || G.phase === "drill" || G.gest) ? th.lift || 0 : 0, mood: th.mood, look: myLook(), kit: R.kit(S.glove), glove: S.glove, held, puff: G.phase === "run" || G.phase === "angle" ? 1.5 : 0.6 },
     };
   }
   // Trainings-Taktleiste: Punkte für jeden Fußaufsatz laufen auf die Linie zu; dazu, wann man halten muss, und was beim letzten Tipp los war
@@ -8848,6 +8902,8 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     test(on) { testMode = !!on; set3d(); },
     use3d(on) { R.use3d = !!on; },
     // Taktschule im Test: n Schritte genau im Takt tippen
+    // im Anlauf n Schritte genau im Takt tippen
+    runTaps(n) { const f0 = (G.th.lastF || 0) + 1; for (let f = f0; f < f0 + n && G.phase === "run"; f++) { const tf = footT(f); if (tf > now) this.step(tf - now); stepTap(now); } return G.th.vx; },
     drillTaps(n) { for (let f = 1; f <= n && G.phase === "drill"; f++) { const tf = footT(f); if (tf > now) this.step(tf - now); stepTap(now); if (drillCount() >= DRILL_N) drillDone(); } return G.phase; },
     step(sec) { const n = Math.ceil(sec / 0.02); for (let i = 0; i < n; i++) update(sec / n); render(); },
     open(mode, seed) { G = newGame(mode, seed); rpMode = mode; fillReport(); show("scrReport"); },
