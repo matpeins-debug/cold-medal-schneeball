@@ -114,7 +114,7 @@ tr.cut td { border-bottom: 2px dashed var(--red); }
 /* Im Spiel */
 #hud { position: absolute; inset: 0; pointer-events: none; }
 #hud button, #hud .fSizes, #patches .patch { pointer-events: auto; }
-#chips { position: absolute; left: 10px; top: 8px; display: flex; gap: 5px; flex-wrap: wrap; max-width: 520px; }
+#chips { position: absolute; left: 10px; top: 8px; display: flex; gap: 5px; flex-wrap: wrap; max-width: 670px; }
 .chip { font-family: var(--font-display); font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; padding: 3px 7px; background: rgba(241,231,210,0.92); border: 2px solid var(--ink-deep); color: var(--ink); white-space: nowrap; }
 .chip.dark { background: var(--ink); color: var(--paper); }
 .chip.good { background: var(--green); color: var(--paper); }
@@ -7049,6 +7049,7 @@ table.mini tr.me td { background: var(--gold); }
   const INK = "#141B25", PAPER = "#F1E7D2", SNOW = "#F6F1E6", SNOWB = "#DCE4EC", SNOWS = "#B9C8D8";
   const TAN = Math.tan(P.SECTOR * Math.PI / 180);
   const KF = 0.0225;
+  const LATE = [];
   const BALLK = 2.4;   // Ball größer gezeichnet als echt, damit man ihn auf dem Handy sieht
   const FIRE = { x: -1.5, z: 15.5 }, CHOP = { x: 36, z: 19.5 }, SAW = { x: 23.5, z: 17 }, BENCH = { x: 11.5, z: 14.5 }, SNOWMAN = { x: 16.5, z: 10.5 }, BASKET = { x: 50, z: 22.5 };   // Feuerschale (Gegner stehen darum), Holzhacker, Zugsäge
   function c2(ctx, tr, X, Y) {
@@ -7261,6 +7262,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       benches(ctx, M, t, night);
       if (V.rivals) rivals(ctx, M, V.rivals.filter((r) => r.z > FIRE.z), t);   // wer hinter dem Feuer steht, zuerst
       fireBowl(ctx, M, FIRE.x, FIRE.z, t, night);
+      if (V.rivals) rivals(ctx, M, V.rivals.filter((r) => r.z <= FIRE.z), t);   // alle vor der Hütte und der Holzbeige gezeichnet: sie stehen weiter hinten
       hut(ctx, M, night, t);
       snowman(ctx, M);
       if (V.board) chalkboard(ctx, M, V.board, night);
@@ -7278,7 +7280,6 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       // Fotograf weit draußen, Messhelfer im Feld
       if (V.photo) photographer(ctx, M, V.photo, t);
       if (V.helper) helperFig(ctx, M, V.helper, t);
-      if (V.rivals) rivals(ctx, M, V.rivals.filter((r) => r.z <= FIRE.z), t);
       // Werfer
       if (V.thrower) {
         const th = V.thrower, s = S(th.z || 0) * KF;
@@ -7321,6 +7322,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       if (V.arc) angleArc(ctx, M, V.arc, t);
       if (V.spin) spinRing(ctx, M, V.spin, t);
       if (V.thrower) breath(ctx, M, V.thrower, t);
+      for (const f of LATE) f(); LATE.length = 0;   // Namensschilder und Sprechblasen über allem
       weather(ctx, t, cam.cx);
       grade(ctx, night);
       if (V.arc && V.arc.lane) beatLane(ctx, V.arc.lane);
@@ -7424,6 +7426,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       if (x < -h || x > W + h) return;
       const w = h * 0.42, wd = wind(curT), sw = wd.d * wd.g * 0.07 + Math.sin(curT * (1.4 + wd.k * 2.6) + x * 0.07) * (0.008 + 0.045 * wd.k);
       c.save(); c.translate(x, y); c.transform(1, 0, -sw, 1, 0, 0); c.translate(-x, -y);
+      c.fillStyle = "#4A2F1F"; c.fillRect(x - h * 0.03, y - h * 0.18, h * 0.06, h * 0.18);   // Stamm zuerst, die Äste hängen darüber (0.16.2)
       c.fillStyle = night ? "#2A3A3C" : "#2F5146";
       for (let i = 0; i < 4; i++) {
         const y0 = y - h * (0.18 + i * 0.2), ww = w * (1 - i * 0.2);
@@ -7440,7 +7443,6 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
           c.beginPath(); c.moveTo(x + ww, y0 + h * 0.16); c.quadraticCurveTo(x + ww * 0.4, y0 + h * 0.05, x, y0 - h * 0.08); c.lineTo(x + ww * 0.1, y0 + h * 0.03); c.quadraticCurveTo(x + ww * 0.55, y0 + h * 0.12, x + ww, y0 + h * 0.16); c.fill(); }
         c.beginPath(); c.moveTo(x - w * 0.16, y - h * 0.9); c.lineTo(x, y - h * 1.0); c.lineTo(x + w * 0.16, y - h * 0.9); c.closePath(); c.fill();
       }
-      c.fillStyle = "#4A2F1F"; c.fillRect(x - h * 0.03, y - h * 0.18, h * 0.06, h * 0.18);
       c.restore();
     }
     function board(c, x, y, s, text, bg, fg) {
@@ -7980,12 +7982,12 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
           for (let k = 0; k < 3; k++) { const a = (t * 0.5 + k / 3 + r.ph) % 1; c.fillStyle = `rgba(255,255,255,${0.5 * (1 - a)})`; c.beginPath(); c.arc(h[0] + Math.sin(t * 2 + k) * k2 * 0.3, h[1] - k2 * (1.6 + a * 3), k2 * (0.3 + a * 0.5), 0, TAU); c.fill(); } }
         // Namensschild mit Fahne nur, wenn er redet oder kurz am Anfang (Mat 14.11.2026: „nicht immer der Name dabei“)
         const top = y - 92 * s, fs = Math.max(9, Math.min(12, 0.24 * S(z)));
-        if (r.tag) { c.font = `700 ${fs}px Futura, 'Avenir Next Condensed', sans-serif`;
+        if (r.tag) LATE.push(() => { c.font = `700 ${fs}px Futura, 'Avenir Next Condensed', sans-serif`;
         const tw = c.measureText(r.name).width, fw = fs * 1.3, bw = tw + fw + 10, bx = clamp(x - bw / 2, 2, W - bw - 2);
         c.fillStyle = "rgba(251,248,241,0.92)"; c.fillRect(bx, top - fs - 4, bw, fs + 7); c.strokeStyle = INK; c.lineWidth = 1; c.strokeRect(bx, top - fs - 4, bw, fs + 7);
         c.save(); c.translate(bx + 3, top - fs - 1); ST.drawFlag(c, r.nat, fw, fs); c.restore();
-        c.fillStyle = INK; c.textAlign = "left"; c.textBaseline = "alphabetic"; c.fillText(r.name, bx + fw + 7, top); }
-        if (r.say && u < 2.8) bubble(c, x, r.tag ? top - fs - 4 : top + 4, r.say, u);
+        c.fillStyle = INK; c.textAlign = "left"; c.textBaseline = "alphabetic"; c.fillText(r.name, bx + fw + 7, top); });
+        if (r.say && u < 2.8) LATE.push(() => bubble(c, x, r.tag ? top - fs - 4 : top + 4, r.say, u));
       }
     }
     // Messhelfer: Bub mit Pudelmütze, bückt sich am Aufschlag und steckt einen Holzpflock mit Fähnchen
@@ -8869,7 +8871,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.16.1";
+  const VERSION = "0.16.2";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender, WXN = window.CMKulisse.wetter;
@@ -9197,7 +9199,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     return G.rivals.map((r) => { const [x, z] = RIV_POS[r.i];
       if (r.mood !== "idle" && r.mood !== "arme" && now - r.at > 3) r.mood = "idle";
       const idle = ["warm", "krug", "tripp"][r.i], calm = r.mood === "idle", fx = R.FIRE.x;
-      const tag = (r.say && now - r.at < 2.8) || (G.phase === "ready" && now - (G.readyT || 0) < 2.5) || (G.snipe && G.snipe.ri === r.i && G.snipe.state === "fly");
+      const tag = (r.say && now - r.at < 2.8) || (G.snipe && G.snipe.ri === r.i && G.snipe.state === "fly");
       return { name: shortName(r.a.name), nat: r.a.nat, x, z, idle, tag, dir: calm && idle === "warm" ? (fx < x ? -1 : 1) : G.th.x < x ? -1 : 1, mood: r.mood, at: r.at, ph: r.i * 1.7, say: r.say && now - r.at < 2.8 ? r.say : null, look: rivalLook(r.a), fem: FEM.test(r.a.name) }; });
   }
   // Störwurf: geplant beim Start des Wettkampfs (Versuch 2 … 4), nur im Anlauf, nie im Trülli
@@ -9461,7 +9463,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   function spinRelease(slip) {
     const err = wrapDeg(spinPhi() * 180 / Math.PI), lat = clamp(err * SPIN_LAT, -70, 70);
     G.stemm = null; G.spinErr = { e: err, at: now, slip: !!slip };
-    if (!slip && Math.abs(err) < SPIN_WIN * 0.5 && (S.tips.truelli || 0) < 3) { S.tips.truelli = (S.tips.truelli || 0) + 1; save(); }
+    if ((S.tips.truelli || 0) < 9) { S.tips.truelli = (S.tips.truelli || 0) + 1; save(); }
     G.th.turn = null; G.th.dir = 1;
     doThrow({ tech: "truelli", ang: Ph.TECH.truelli.ang, pow: 1, run: 0, xr: G.th.x + 0.4, rh: rhythm(), lat, spinErr: err, slip: !!slip, kraft: 1 + luzBoost(), luz: G.luz || 0 });
   }
@@ -9738,17 +9740,18 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     const T = S.tips;
     const TK = G.tech || "chopf";
     if (G.alert && now < G.alert.until) { csHint.say(G.alert.txt); return; }
-    if (ph === "ready" && TK === "truelli") csHint.say("Trülli: „Los“ tippen, dann bei jedem Schritt tippen – im Takt drehst du schneller. „Wurf“ tippen, wenn der Pfeil im grünen Bogen ins Feld zeigt. Nach drei Drehungen rutscht der Ball weg.");
-    else if (ph === "ready" && TK === "schifer" && (T.schifer || 0) < 3) csHint.say("Schiferli: Anlauf wie immer, dann „Wurf“ halten und bei etwa 26° loslassen – flach unter dem Wind durch.");
-    else if (ph === "spin") csHint.say(Math.abs(wrapDeg(spinPhi() * 180 / Math.PI)) < SPIN_WIN ? "Jetzt „Wurf“!" : "Im Takt tippen, „Wurf“ wenn der Pfeil grün ins Feld zeigt.");
-    else if (ph === "ready") csHint.say("Je schneller der Anlauf, desto weiter der Wurf. „Los“ tippen, dann bei jedem Schritt tippen, wenn der Kreis den Knopf berührt.");
-    else if (ph === "run" && countLeft()) csHint.say("Gleich geht’s los: beim nächsten Klack tippen.");
-    else if (ph === "run" && G.th.x > ZONE[0]) csHint.say("Abwurfzone! „Wurf“ halten, bei 40° loslassen.");
-    else if (ph === "run" && (T.throw || 0) < 3) csHint.say("Jeder Tipp im Schritt schiebt an (Schneewolke), daneben bremst. Die Leiste über dem Werfer zeigt das Tempo.");
-    else if (ph === "angle" && TK === "schifer") csHint.say("Schiferli: bei etwa 26° loslassen, am besten im Stemmschritt.");
-    else if (ph === "angle") csHint.say((T.stemm || 0) < 3 ? "Loslassen bei etwa 40° – genau wenn der Kreis den Knopf berührt (Stemmschritt): bis 8 % weiter." : "40° und Stemmschritt.");
-    else if (ph === "aim" && !G.pull) csHint.say((T.ziel || 0) < 3 ? "Gerade nach oben wischen, Richtung Schneemann. Die Leiste links muss die Marke „Perfekt“ treffen." : "Nach oben wischen, bis die Leiste die Marke trifft.");
-    else if (ph === "aim") csHint.say(G.pull.perfect ? "Perfekt! Jetzt loslassen." : G.pull.k < G.pull.need ? "Weiter wischen …" : "Zu weit – zurück!");
+    // Tipps nur zum Lernen (Mat 14.11.2026: „wie oft kommt die Anzeige mit der Hilfe?“): jeder Hinweis nur bei den ersten Würfen
+    const nT = T.throw || 0, nTr = T.truelli || 0, nSc = T.schifer || 0, nZ = T.ziel || 0;
+    if (ph === "ready" && TK === "truelli" && nTr < 2) csHint.say("Trülli: „Los“ tippen, dann bei jedem Schritt tippen – im Takt drehst du schneller. „Wurf“ tippen, wenn der Pfeil im grünen Bogen ins Feld zeigt. Nach drei Drehungen rutscht der Ball weg.");
+    else if (ph === "ready" && TK === "schifer" && nSc < 2) csHint.say("Schiferli: Anlauf wie immer, dann „Wurf“ halten und bei etwa 26° loslassen – flach unter dem Wind durch.");
+    else if (ph === "spin" && nTr < 3) csHint.say(Math.abs(wrapDeg(spinPhi() * 180 / Math.PI)) < SPIN_WIN ? "Jetzt „Wurf“!" : "Im Takt tippen, „Wurf“ wenn der Pfeil grün ins Feld zeigt.");
+    else if (ph === "ready" && TK === "chopf" && nT < 2) csHint.say("Je schneller der Anlauf, desto weiter der Wurf. „Los“ tippen, dann bei jedem Schritt tippen, wenn der Kreis den Knopf berührt.");
+    else if (ph === "run" && G.th.x > ZONE[0] && nT < 4) csHint.say("Abwurfzone! „Wurf“ halten, bei 40° loslassen.");
+    else if (ph === "run" && G.th.x <= ZONE[0] && nT < 2) csHint.say("Jeder Tipp im Schritt schiebt an (Schneewolke), daneben bremst. Die Leiste über dem Werfer zeigt das Tempo.");
+    else if (ph === "angle" && TK === "schifer" && nSc < 3) csHint.say("Schiferli: bei etwa 26° loslassen, am besten im Stemmschritt.");
+    else if (ph === "angle" && TK !== "schifer" && (T.stemm || 0) < 3 && nT < 6) csHint.say("Loslassen bei etwa 40° – genau wenn der Kreis den Knopf berührt (Stemmschritt): bis 8 % weiter.");
+    else if (ph === "aim" && !G.pull && nZ < 3) csHint.say("Gerade nach oben wischen, Richtung Schneemann. Die Leiste links muss die Marke „Perfekt“ treffen.");
+    else if (ph === "aim" && G.pull && nZ < 3) csHint.say(G.pull.perfect ? "Perfekt! Jetzt loslassen." : G.pull.k < G.pull.need ? "Weiter wischen …" : "Zu weit – zurück!");
     else csHint.clear();
   }
   // Steinschleuder: Zug in Bühnen-Pixeln → Kraft k (1 = so weit wie nötig für den Kopf) und Richtung
@@ -9781,7 +9784,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     // der Ball verlässt die Hand erst nach Stemmen und Bogen (R.T_REL)
     G.fl = { res, inp, t0: now + R.T_REL, i: 0 }; G.trail = [];
     G.phase = "fly"; G.thr = { t0: now, vx: G.th.vx };
-    if (S.tips.throw < 3) { S.tips.throw++; save(); }
+    if (S.tips.throw < 9) { S.tips.throw++; save(); }
     if (inp.tech === "schifer" && (S.tips.schifer || 0) < 3) { S.tips.schifer = (S.tips.schifer || 0) + 1; save(); }
     AU.whoosh(inp.pow);
   }
@@ -10210,9 +10213,9 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   function updChips() {
     if (!G) return;
     const ch = [];
-    ch.push([isComp() ? `${isZiel() ? "Zielwurf" : Ph.TECH[G.ctech || "chopf"].name} ${Math.min(G.n + 1, TRIES)}/${TRIES}` : "Training", "dark"]);
+    ch.push([(isComp() ? `${isZiel() ? "Zielwurf" : Ph.TECH[G.ctech || "chopf"].name} ${Math.min(G.n + 1, TRIES)}/${TRIES}` : "Training") + (!isZiel() && G.best ? nb(` · Beste ${m1(G.best)} m`) : ""), "dark"]);
     if (isZiel()) { ch.push([nb(`${C.DIST[G.n]} m`), ""]); ch.push([nb(`${G.pts} Punkte`), G.pts ? "good" : ""]); }
-    else { ch.push([nb(`${String(G.cond.temp).replace(".", ",").replace("-", "−")} °C · ${Ph.TODS[G.cond.tod]}`), ""]); if (G.best) ch.push([nb(`Beste ${m1(G.best)} m`), "good"]); }
+    else { ch.push([nb(`${String(G.cond.temp).replace(".", ",").replace("-", "−")} °C · ${Ph.TODS[G.cond.tod]}`), ""]); }
     if (G.ball && G.phase !== "pick" && G.phase !== "form" && G.phase !== "rack") { const st = Ph.state(G.ball); ch.push([`${Ph.SIZE[G.ball.size].name} · ${Ph.SNOW[G.ball.type].name}`, st === "eis" ? "ice" : st === "locker" ? "warn" : ""]); }
     $("chips").innerHTML = ch.map(([t, c]) => `<span class="chip ${c}">${esc(t)}</span>`).join("");
   }
