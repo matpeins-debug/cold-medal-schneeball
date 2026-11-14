@@ -8409,7 +8409,10 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       buf.rate = f * (N + 0.5) / sr;   // Feinstimmung: die Saite klingt bei sr / (N + ½), Abspielrate gleicht auf die genaue Tonhöhe aus
       return (S._ks[n] = buf);
     },
+    // 0.15.1 (Mat: „wenn man da nichts einspielen kann, ist das nicht schön zum Anhören“): keine erzeugte Musik mehr.
+    // Statt Musik Stimmung: Knistern der Feuerschale, Raunen der Leute, Natur. Kommt eine echte Aufnahme, spielt sie hier.
     music(want) {
+      if (!S.MUSIK) { if (!want && mus) { clearInterval(mus.iv); mus = null; } return; }
       if (!want) { if (mus) { clearInterval(mus.iv); mus.g.gain.setTargetAtTime(0.0001, A.currentTime, 0.4); mus = null; } return; }
       const a = ctx(); if (!a || mus) return;
       const g = a.createGain(); g.gain.value = 0.0001; g.gain.setTargetAtTime(0.32, a.currentTime, 0.6);
@@ -8538,8 +8541,8 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       const a = ctx(); if (!a || S._nat) return;
       const tick = () => { const t = a.currentTime, r = Math.random();
         if (r < 0.35) { S.hit(t, 500, 0.8, 0.12, 0.35, "lowpass"); S.hit(t + 0.05, 1600, 1, 0.05, 0.4); }                 // Schnee plumpst vom Ast
-        else if (r < 0.6 && sky === "klar") { for (let i = 0; i < 3; i++) { const o = a.createOscillator(), g = a.createGain(), tt = t + i * (0.5 + Math.random()); o.type = "sine"; o.frequency.setValueAtTime(2400 + Math.random() * 800, tt); o.frequency.exponentialRampToValueAtTime(1400, tt + 0.05); g.gain.setValueAtTime(0.03, tt); g.gain.exponentialRampToValueAtTime(0.0001, tt + 0.08); o.connect(g); g.connect(out); if (rev) g.connect(rev); o.start(tt); o.stop(tt + 0.1); } }   // Tropfen
-        else if (r < 0.72) { for (let k = 0; k < 4; k++) S.bell(t + k * 1.15, 300, 0.05, true); }                       // Kirchenglocke im Dorf
+        else if (false && r < 0.6 && sky === "klar") { for (let i = 0; i < 3; i++) { const o = a.createOscillator(), g = a.createGain(), tt = t + i * (0.5 + Math.random()); o.type = "sine"; o.frequency.setValueAtTime(2400 + Math.random() * 800, tt); o.frequency.exponentialRampToValueAtTime(1400, tt + 0.05); g.gain.setValueAtTime(0.03, tt); g.gain.exponentialRampToValueAtTime(0.0001, tt + 0.08); o.connect(g); g.connect(out); if (rev) g.connect(rev); o.start(tt); o.stop(tt + 0.1); } }   // Tropfen
+        else if (false) { for (let k = 0; k < 4; k++) S.bell(t + k * 1.15, 300, 0.05, true); }                       // Kirchenglocke im Dorf
         S._nat = setTimeout(tick, 9000 + Math.random() * 14000); };
       S._nat = setTimeout(tick, 4000);
     },
@@ -8594,14 +8597,16 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       if (fx[kind]) { fx[kind](); return kind; }
       // Auswahl nach Anlass, nie zweimal dasselbe hintereinander
       // 0.14.2: keine künstlichen Stimmen mehr im Spiel (Mat: „klingt eher nach Science Fiction“), nur Instrumente und Geräusche
-      const POOL = { rekord: ["boeller"], weit: ["pfiff", "treicheln", "goassl", "tusch", "klatsch", "ratsche", "glocke", "lauf"], kurz: ["wahwah", "plonk", "raunen"] };
+      // 0.15.1: nur noch Geräusche, die echt klingen (Klatschen, Peitschen, Ratsche, Böller, Raunen); keine erzeugten Töne
+      const POOL = { rekord: ["boeller"], weit: ["klatsch", "goassl", "ratsche"], kurz: ["raunen"] };
       const L = (POOL[kind] || POOL.weit).filter((k) => k !== S._lastCheer); const k = L[Math.floor(Math.random() * L.length)] || "juchzer"; S._lastCheer = k; fx[k]();
-      if (kind === "rekord") { setTimeout(() => fx.treicheln(), 600); setTimeout(() => fx.klatsch(), 900); setTimeout(() => fx.lauf(), 2600); }
+      if (kind === "rekord") { setTimeout(() => fx.klatsch(), 700); setTimeout(() => fx.goassl(), 2400); }
       return k;
     },
     // Alphorn während des Flugs (Naturtöne über Fis, wie ein echtes Alphorn): u = Höhe des Balls 0 … 1 wählt den Naturton,
     // gleitend gebunden; mit Echo von den Bergen. Gibt { set(u), stop() } zurück.
     alphorn() {
+      if (!S.MUSIK) return null;   // 0.15.1: Mat hörte nur „einen komischen Ton“ beim weiten Wurf
       const a = ctx(); if (!a) return null;
       const f0 = 92.5, H = [3, 4, 5, 6, 8, 9, 10, 12], t = a.currentTime;
       const o = a.createOscillator(), o2 = a.createOscillator(), lp = a.createBiquadFilter(), e = a.createGain(), vib = a.createOscillator(), vg = a.createGain();
@@ -8779,7 +8784,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.15.0";
+  const VERSION = "0.15.1";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender, WXN = window.CMKulisse.wetter;
@@ -8870,7 +8875,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     }
   }
   function show(id) { if (id && G && G.fl && G.fl.horn) { G.fl.horn.stop(); G.fl.horn = null; }
-    for (const s of SCREENS) $(s).hidden = s !== id; if (id) fitText($(id)); $("hud").hidden = !!id; AU.ambient(!id || id === "scrStand"); AU.music(!!id && AU.on); AU.storm(!id && !!G && G.cond.sky === "sturm"); AU.nature(!id && !!G, G && G.cond.sky); if (id) AU.fire(0); }
+    for (const s of SCREENS) $(s).hidden = s !== id; if (id) fitText($(id)); $("hud").hidden = !!id; AU.ambient(!id || id === "scrStand"); AU.music(!!id && AU.on); AU.storm(!id && !!G && G.cond.sky === "sturm"); AU.nature(!id && !!G, G && G.cond.sky); if (id) AU.fire(id === "scrMenu" && AU.on ? 0.55 : 0); }
 
   // ------------------------------------------------------------------ Zustand eines Durchgangs
   // mode: "comp" = Weitwurf-Wettkampf, "train" = Training Weitwurf, "ziel" = Zielwurf-Wettkampf
