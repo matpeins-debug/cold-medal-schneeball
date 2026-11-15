@@ -7335,7 +7335,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       // Fotograf weit draußen, Messhelfer im Feld
       if (V.photo) photographer(ctx, M, V.photo, t);
       if (V.helper) helperFig(ctx, M, V.helper, t);
-      if (V.arc && V.arc.zone) zoneMark(ctx, M, V.arc, t, true);   // Abwurfbahn am Boden, hintere Stangen
+      if (V.zone) zoneMark(ctx, M, V.zone, t, true);   // Abwurfbahn am Boden, hintere Stangen
       // Werfer
       if (V.thrower) {
         const th = V.thrower, s = S(th.z || 0) * KF;
@@ -7391,6 +7391,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
         ctx.fillStyle = `rgba(60,80,110,${clamp(0.28 - b.y * 0.012, 0.06, 0.28)})`; ellipse(ctx, X(b.x, b.z), Y(0, b.z), rr * 1.3, rr * 0.4);
         snowball(ctx, X(b.x, b.z), Y(b.y, b.z), rr, b);
       }
+      if (V.zone) zoneMark(ctx, M, V.zone, t, false);   // vordere Pfosten mit Laternen über dem Werfer
       if (V.arc) angleArc(ctx, M, V.arc, t);
       if (V.spin) spinRing(ctx, M, V.spin, t);
       if (V.thrower) breath(ctx, M, V.thrower, t);
@@ -7490,7 +7491,6 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     }
     function angleArc(c, M, a, t) {
       if (a.drill) return;
-      if (a.zone) zoneMark(c, M, a, t, false);   // vordere Stangen über dem Werfer
       const { X, Y, S } = M, cx = X(a.x, 0), cy = Y(1.55, 0), R0 = Math.max(46, 2.4 * S(0));
       c.save();
       // Viertelkreis nur beim Halten, im Anlauf sieht man die Figur frei laufen
@@ -9001,7 +9001,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.21.1";
+  const VERSION = "0.21.2";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender, WXN = window.CMKulisse.wetter;
@@ -10479,6 +10479,8 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     const stone = holding && steiOn ? { d: Ph.STEI_D, tilt: G.tilt || 0, throwing: G.phase === "fly" } : null;
     return {
       arc: G.phase === "drill" ? { x: th.x, drill: true, lane: null } : ["ready", "run", "angle"].includes(G.phase) && G.tech !== "stei" ? { x: th.x + 0.25, deg: G.phase === "angle" ? curAngle() : null, speed: null, beat: null, foot: th.x, dots: null, last: null, lane: null, zone: G.tech === "truelli" ? null : ZONE, best: Ph.TECH[G.tech || "chopf"].best } : null,
+      // Holzsteg der Abwurfzone steht immer da (Mat: „verschwindet nach dem Wurf“), nur nicht beim Trülli und beim Schneestei
+      zone: tech() === "chopf" || tech() === "schifer" ? { zone: ZONE, foot: ["run", "angle"].includes(G.phase) ? th.x : null } : null,
       spin: G.tech === "truelli" && (G.phase === "spin" || G.phase === "ready") ? { x: SPIN_X - 0.2, phi: null, left: null } : null,
       rivals: rivalsView(), snipe: snipeView(), shouts: G.shouts || null,
       board: boardLines(), helper: helperView(), dust: G.dust, photo: isZiel() ? null : { x: PHOTO.x, z: PHOTO.z, flash: G.flash != null ? G.flash : null },
