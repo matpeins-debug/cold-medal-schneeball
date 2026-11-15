@@ -773,7 +773,9 @@ table.mini tr.me td { background: var(--gold); }
   // spin: Trülli holt die Kraft aus der Drehung (rh = Takt der Drehschritte) statt aus dem Anlauf.
   const TECH = {
     chopf: { name: "Überchopf", vk: 1, wind: 1, best: [34, 46], use: "der Allrounder: Anlauf, 40°, Stemmschritt" },
-    truelli: { name: "Trülli", vk: 1.26, wind: 1, spin: true, ang: 38, best: [36, 40], use: "drehen wie beim Diskus: am weitesten, aber schnell im Aus" },
+    // 0.20.1 (Mat 15.11.2026: realistisch): Stoß vom Hals bringt bei einem leichten Ball nur 15–17 m/s, also 20–25 m;
+    // schlecht gedreht um 15 m. Eigener Wettkampf, eigene Bestweite.
+    truelli: { name: "Trülli", vk: 0.6, wind: 1, spin: true, ang: 38, best: [36, 40], use: "Drehstoß vom Hals wie beim Kugelstoßen: 15–25 m, je schneller gedreht, desto weiter" },
     // Schneestei (0.19, Mat: „riesiger Schneeball wie die unterste Schneemannkugel, tragen und am Schluss werfen, wie in Schottland
     // die Baumstämme“; Schweizer Vorbild: Steinstossen mit dem Unspunnenstein). Eigene Physik in stei(): schwer, kaum Wind.
     stei: { name: "Schneestei", vk: 1, wind: 0, best: [0.85, 1], use: "schwer: im Takt tragen, Gleichgewicht halten, oben stoßen" },
@@ -785,7 +787,7 @@ table.mini tr.me td { background: var(--gold); }
     // Ein lockerer Ball gibt beim Abwurf nach: Kraft geht verloren
     const soft = 0.78 + 0.22 * clamp(strength(ball) / 0.45, 0, 1);
     const Z = SIZE[ball.size], rk = 1 + (Z.rs || 0) * ((inp.rh != null ? inp.rh : 0.7) - 0.7);
-    const T = TECH[inp.tech] || TECH.chopf, spin = T.spin ? 0.74 + 0.26 * clamp(inp.rh != null ? inp.rh : 0.7, 0, 1) : 1;
+    const T = TECH[inp.tech] || TECH.chopf, spin = T.spin ? 0.55 + 0.45 * clamp(inp.rh != null ? inp.rh : 0.7, 0, 1) : 1;
     // Schiferli: seitlich geworfen ist flach am schnellsten; über 30° ist es kein Schiferli mehr, der Arm verliert Kraft
     const flat = inp.tech === "schifer" ? 1 + 0.011 * (24 - inp.ang) - 0.03 * Math.max(0, inp.ang - 30) : 1;
     const v = vCap(m) * (Z.vk || 1) * rk * SNOW[ball.type].grip * soft * (inp.kraft || 1) * T.vk * spin * flat * (0.22 + 0.78 * Math.max(0.05, eff));
@@ -961,12 +963,12 @@ table.mini tr.me td { background: var(--gold); }
       ang: 39 + gauss(r) * (2 + (1 - sk) * 7), pow: clamp(0.8 + sk * 0.15 + gauss(r) * (0.04 + (1 - sk) * 0.08), 0.5, 1.4),
       run: 3.4 + sk * 2.4, rh: clamp(0.2 + sk * 0.45 + gauss(r) * 0.1, 0, 1), xr: -0.15 - (1 - sk) * 0.9 - r() * 0.2, kraft: (0.82 + sk * 0.12) * Math.sqrt(1 + clamp(-0.07 + sk * 0.13 + gauss(r) * 0.04, -0.15, 0.08)), t0: n * 13 + r() * 6,
     };
-    // Technik je nach Wetter und Können: bei Gegenwind und Sturm Schiferli, Könner wagen bei ruhigem Wetter den Trülli
+    // Technik je nach Wetter: bei Gegenwind und Sturm Schiferli; Trülli und Schneestei nur im eigenen Wettkampf
     const head = -((c.wind && c.wind.x) || 0), q = r();
-    inp.tech = force || ((head > 2.5 || c.sky === "sturm") && q < 0.7 ? "schifer" : head < 1.5 && sk > 0.78 && q < 0.3 ? "truelli" : "chopf");
+    inp.tech = force || ((head > 2.5 || c.sky === "sturm") && q < 0.7 ? "schifer" : "chopf");
     if (inp.tech === "schifer") inp.ang = 26 + gauss(r) * (1.5 + (1 - sk) * 5);
     if (inp.tech === "stei") { inp.P = clamp(0.5 + sk * 0.4 + gauss(r) * 0.14, 0, 1); inp.run = 1.2 + sk * 1.2; inp.fall = r() < 0.04 + (1 - sk) * 0.08; inp.foul = !inp.fall && r() < 0.02; }
-    if (inp.tech === "truelli") { inp.ang = P.TECH.truelli.ang + gauss(r) * 2; inp.run = 0; inp.lat = gauss(r) * (8 + (1 - sk) * 18); inp.rh = clamp(0.45 + sk * 0.4 + gauss(r) * 0.1, 0, 1); inp.kraft *= 0.9; inp.pow = Math.min(inp.pow, 1); }
+    if (inp.tech === "truelli") { inp.ang = P.TECH.truelli.ang + gauss(r) * 2; inp.run = 0; inp.lat = gauss(r) * (8 + (1 - sk) * 18); inp.rh = clamp(0.5 + sk * 0.42 + gauss(r) * 0.1, 0, 1); inp.pow = Math.min(inp.pow, 1); }
     if (inp.tech !== "stei") inp.foul = inp.tech !== "truelli" && r() < 0.03 + (1 - sk) * 0.03;
     const res = P.fly(b, inp, c, hash(seed, a.name, n));
     return { dist: res.dist, valid: res.valid, why: res.why, type, size, tech: inp.tech, ice: P.state(b) === "eis" };
@@ -7322,6 +7324,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       // Fotograf weit draußen, Messhelfer im Feld
       if (V.photo) photographer(ctx, M, V.photo, t);
       if (V.helper) helperFig(ctx, M, V.helper, t);
+      if (V.arc && V.arc.zone) zoneMark(ctx, M, V.arc, t, true);   // Abwurfbahn am Boden, hintere Stangen
       // Werfer
       if (V.thrower) {
         const th = V.thrower, s = S(th.z || 0) * KF;
@@ -7426,17 +7429,42 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       c.font = `600 12px ${F}`; c.textAlign = "left"; c.fillStyle = INK; c.fillText(L.tip.toUpperCase(), x0 + 4, y - 30);
       if (L.word) { c.font = `700 17px ${F}`; c.textAlign = "center"; c.fillStyle = ["#C23B2A", "#D9682B", "#3F6B55"][L.word[1]]; c.fillText(L.word[0], hx, y + 40); }
     }
+    function zoneMark(c, M, a, t, back) {
+      // Abwurfzone vor dem Balken (0.20.1, Mat: „schöner gestalten“): statt rotem Klebeband eine festgetretene, leicht
+      // gerechte Schneebahn mit vier Schneestangen (rot-weiß, Wimpel). Ist der Werfer drin, leuchtet die Bahn warm auf.
+        const { X, Y, S } = M, z0 = -1.25, z1 = 1.25, P = (x, z, h) => [X(x, z), Y(h || 0, z)], x0 = a.zone[0], x1 = a.zone[1];
+        const inZ = a.foot != null && a.foot > x0 && a.foot < x1, pul = inZ ? 0.5 + 0.5 * Math.sin(t * 7) : 0;
+        if (back) {
+        c.save();
+        const q = [P(x0, z1), P(x1, z1), P(x1, z0), P(x0, z0)];
+        c.beginPath(); q.forEach((p, i) => (i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]))); c.closePath();
+        c.fillStyle = inZ ? `rgba(227,178,60,${0.2 + 0.12 * pul})` : "rgba(170,190,210,0.2)"; c.fill();
+        // Rechenspuren quer zur Bahn
+        c.clip(); c.strokeStyle = "rgba(120,140,165,0.28)"; c.lineWidth = 1;
+        for (let x = x0 + 0.25; x < x1; x += 0.35) { const a1 = P(x, z1), a2 = P(x, z0); c.beginPath(); c.moveTo(a1[0], a1[1]); c.lineTo(a2[0], a2[1]); c.stroke(); }
+        c.restore(); c.save();
+        // weicher Rand: zwei Linien wie mit dem Stiefel gezogen
+        c.strokeStyle = inZ ? "rgba(217,104,43,0.75)" : "rgba(194,59,42,0.45)"; c.lineWidth = 1.6; c.lineCap = "round";
+        for (const z of [z0, z1]) { const a1 = P(x0, z), a2 = P(x1, z); c.beginPath(); c.moveTo(a1[0], a1[1]); c.lineTo(a2[0], a2[1]); c.stroke(); }
+        }
+        c.save();
+        // Schneestangen mit Wimpel an den vier Ecken (hinten zuerst)
+        const pole = (x, z) => {
+          const b = P(x, z), tp = P(x, z, 0.95), w = Math.max(2, 0.045 * S(z)), n = 4;
+          for (let i = 0; i < n; i++) { c.strokeStyle = i % 2 ? "#F4EBDA" : "#C23B2A"; c.lineWidth = w; c.beginPath();
+            c.moveTo(b[0] + (tp[0] - b[0]) * i / n, b[1] + (tp[1] - b[1]) * i / n); c.lineTo(b[0] + (tp[0] - b[0]) * (i + 1) / n, b[1] + (tp[1] - b[1]) * (i + 1) / n); c.stroke(); }
+          const fl = 0.34 * S(z), wv = Math.sin(t * 5 + x * 2 + z) * 0.25 * fl;
+          c.fillStyle = inZ ? "#E3B23C" : "#C23B2A"; c.beginPath(); c.moveTo(tp[0], tp[1]); c.quadraticCurveTo(tp[0] - fl * 0.5, tp[1] + wv, tp[0] - fl, tp[1] + fl * 0.22 + wv);
+          c.lineTo(tp[0], tp[1] + fl * 0.45); c.closePath(); c.fill();
+          c.fillStyle = "rgba(255,255,255,0.7)"; c.beginPath(); c.ellipse(b[0], b[1], w * 2.2, w * 0.8, 0, 0, TAU); c.fill();
+        };
+        const zf = S(z0) > S(z1) ? z0 : z1, zb = zf === z0 ? z1 : z0;
+        if (back) { pole(x0, zb); pole(x1, zb); } else { pole(x0, zf); pole(x1, zf); }
+        c.restore();
+          }
     function angleArc(c, M, a, t) {
       if (a.drill) return;
-      // Abwurfzone vor dem Balken: rotes Band am Boden mit Schrift, hier „Wurf“ halten
-      if (a.zone) {
-        const { X, Y } = M, z0 = -1.3, z1 = 1.3, P = (x, z) => [X(x, z), Y(0, z)];
-        const q = [P(a.zone[0], z1), P(a.zone[1], z1), P(a.zone[1], z0), P(a.zone[0], z0)];
-        c.save(); c.fillStyle = "rgba(194,59,42,0.22)"; c.strokeStyle = "rgba(194,59,42,0.8)"; c.lineWidth = 2; c.setLineDash([7, 5]);
-        c.beginPath(); q.forEach((p, i) => (i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]))); c.closePath(); c.fill(); c.stroke(); c.setLineDash([]);
-        const m = P((a.zone[0] + a.zone[1]) / 2, z0); c.fillStyle = "#C23B2A"; c.font = "700 12px Futura, 'Avenir Next Condensed', sans-serif"; c.textAlign = "center";
-        c.fillText("ABWURFZONE", m[0], m[1] + 14); c.restore();
-      }
+      if (a.zone) zoneMark(c, M, a, t, false);   // vordere Stangen über dem Werfer
       const { X, Y, S } = M, cx = X(a.x, 0), cy = Y(1.55, 0), R0 = Math.max(46, 2.4 * S(0));
       c.save();
       // Viertelkreis nur beim Halten, im Anlauf sieht man die Figur frei laufen
@@ -8947,7 +8975,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.20.0";
+  const VERSION = "0.20.1";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender, WXN = window.CMKulisse.wetter;
@@ -9615,7 +9643,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   function drillCount() { const n = (G.run.log || []).filter((x) => x.acc > 0.5).length; $("drCnt").innerHTML = Array.from({ length: DRILL_N }, (_, i) => `<i class="${i < n ? "on" : ""}"></i>`).join(""); return n; }
   function drillDone() {
     G.phase = "drillOk";
-    drillCard("TAKTSCHULE · 2/2", "Sitzt! Jetzt mit Wurf: genau so anlaufen. Vor dem Balken liegt die rote <b>Abwurfzone</b>, dort leuchtet „Wurf“. <b>„Wurf“ halten</b>, der Winkel steigt; bei etwa <b>40°</b> loslassen – am besten, wenn der Kreis den Knopf berührt: das ist der <b>Stemmschritt</b>, bis 8 % weiter. Hältst du nicht, wirft er am Balken flach.", "Zum Wurf", false);
+    drillCard("TAKTSCHULE · 2/2", "Sitzt! Jetzt mit Wurf: genau so anlaufen. Vor dem Balken liegt die <b>Abwurfzone</b> zwischen den Fähnchen, dort leuchtet „Wurf“. <b>„Wurf“ halten</b>, der Winkel steigt; bei etwa <b>40°</b> loslassen – am besten, wenn der Kreis den Knopf berührt: das ist der <b>Stemmschritt</b>, bis 8 % weiter. Hältst du nicht, wirft er am Balken flach.", "Zum Wurf", false);
   }
   function drillEnd() { drillCard(null); G.run = null; G.phase = "ready"; G.th.x = START_X; G.th.vx = 0; G.th.pose = F.POSES.stand; G.th.lift = 0; G.th.ax = null; G.gait = null; }
   function countTick() { const c = countLeft(); if (c && c !== G.run.lastC) { G.run.lastC = c; AU.tick(true); } }
