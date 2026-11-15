@@ -9001,7 +9001,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.21.0";
+  const VERSION = "0.21.1";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender, WXN = window.CMKulisse.wetter;
@@ -9603,6 +9603,8 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
   // „Schritt“ = Ducken (Kauerstellung), „Schritt“ = Angleiten rückwärts in die Stoßposition, „Wurf“ = Stoß. Jeder Takt hat
   // seinen Zeitpunkt; je genauer, desto mehr Kraft (rh). Der Stoß-Takt bestimmt die Richtung: zu früh oder zu spät geht er seitlich weg,
   // ohne „Wurf“ stößt er verspätet ins Aus. Kein Tippen = kaum Kraft.
+  // Trülli-Ball größer gezeichnet, wie eine Kugel (Mat 15.11.2026: „ein bisschen größer“), etwa 13 cm
+  const TR_BIG = 1.7;
   const SPIN_X = -1.3, GL_X0 = -2.15, GL_T = [0.75, 1.45, 2.1], GL_WIN = 0.22, GL_LAT = 75;
   // ------------------------------------------------------------------ Schneestei: tragen im langsamen Takt, Gleichgewicht halten, Hau-ruck-Stoß
   // Die Kugel kippt von selbst immer weiter (instabil); ein Tipp genau im Takt holt sie zur Mitte, ein verpasster Schritt stößt sie weiter.
@@ -10166,7 +10168,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     const a = P[f.i], b = P[Math.min(P.length - 1, f.i + 1)], u = b[0] > a[0] ? clamp((t - a[0]) / (b[0] - a[0]), 0, 1) : 1;
     const bx = a[1] + (b[1] - a[1]) * u, by = a[2] + (b[2] - a[2]) * u, bz = a[3] + (b[3] - a[3]) * u, mr = a[4] + (b[4] - a[4]) * u;
     const d0 = f.inp.tech === "stei" ? Ph.STEI_D : Ph.SIZE[G.ball.size].d;
-    G.flyBall = { x: bx, y: by, z: bz, d: d0 * Math.cbrt(mr), f: G.ball.f, ice: Ph.iceAt(G.ball), type: G.ball.type, spin: t * (f.inp.tech === "stei" ? 2 : 9), big: f.inp.tech === "stei" };
+    G.flyBall = { x: bx, y: by, z: bz, d: d0 * Math.cbrt(mr) * (f.inp.tech === "truelli" ? TR_BIG : 1), f: G.ball.f, ice: Ph.iceAt(G.ball), type: G.ball.type, spin: t * (f.inp.tech === "stei" ? 2 : 9), big: f.inp.tech === "stei" };
     // Alphorn bei einem guten Wurf: der Naturton folgt der Höhe des Balls (Mat 14.11.2026)
     if (f.horn === undefined) { const top = Math.max(0.5, ...P.map((q) => q[2])); f.top = top; f.horn = res.valid && res.dist >= Math.max(38, (G.best || 0) * 0.93) && AU.on ? AU.alphorn() : null; }
     if (f.horn) f.horn.set(clamp(by / f.top, 0, 1));
@@ -10471,9 +10473,9 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     // Startbild: der eigene Werfer groß links unter dem Titel, Ball in der Hand, dahinter Hütte und Holzstoß
     if (!G) return { cam: { cx: -2.9, ppm: 74 }, thrower: { x: -6, z: 0, dir: 1, pose: F.idle(R.POSE.hold, now, 1), look: myLook(), kit: R.kit(S.glove), glove: S.glove, held: { d: 0.064, f: 0.7, ice: 0.9, type: "papp" }, puff: 0.6 }, judge: { flag: null } };
     const th = G.th, ball = G.ball;
-    const holding = ball && (G.phase === "ready" || G.phase === "run" || G.phase === "angle" || G.phase === "check" || G.phase === "checkOk" || G.phase === "walk" && G.walk.then !== "scoop" || G.phase === "fly" && now < G.fl.t0);
+    const holding = ball && (G.phase === "ready" || G.phase === "spin" || G.phase === "run" || G.phase === "angle" || G.phase === "check" || G.phase === "checkOk" || G.phase === "walk" && G.walk.then !== "scoop" || G.phase === "fly" && now < G.fl.t0);
     const steiOn = G.tech === "stei" && G.mode !== "ziel";
-    const held = holding && !steiOn ? { d: Ph.SIZE[ball.size].d, f: ball.f, ice: Ph.iceAt(ball), type: ball.type } : null;
+    const held = holding && !steiOn ? { d: Ph.SIZE[ball.size].d * (G.tech === "truelli" ? TR_BIG : 1), f: ball.f, ice: Ph.iceAt(ball), type: ball.type } : null;
     const stone = holding && steiOn ? { d: Ph.STEI_D, tilt: G.tilt || 0, throwing: G.phase === "fly" } : null;
     return {
       arc: G.phase === "drill" ? { x: th.x, drill: true, lane: null } : ["ready", "run", "angle"].includes(G.phase) && G.tech !== "stei" ? { x: th.x + 0.25, deg: G.phase === "angle" ? curAngle() : null, speed: null, beat: null, foot: th.x, dots: null, last: null, lane: null, zone: G.tech === "truelli" ? null : ZONE, best: Ph.TECH[G.tech || "chopf"].best } : null,
