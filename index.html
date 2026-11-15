@@ -7111,21 +7111,26 @@ table.mini tr.me td { background: var(--gold); }
     releaseSide: g({ lean: 26, sL: [22, 8], fL: [-30, 34], aF: [96, 6], aB: [-40, -24], hd: -2 }),
     // Trülli: Arme weit offen, Wurfarm hinten, leicht in den Knien
     // Trülli = Drehstoß wie beim Kugelstoßen (Mat 15.11.2026): Ball am Hals unter dem Kinn, Ellbogen hoch, freier Arm lang zur Balance
-    spin: g({ lean: 4, sL: [16, 14], fL: [-16, 18], aF: [-90, -160], aB: [86, 4], hd: 0 }),
+    spin: g({ lean: 8, sL: [10, 30], fL: [-14, 24], aF: [-90, -160], aB: [86, 4], hd: 0 }),
+    // 0.20.2 Drehstoß nach der vlamingo-Tafel (Mat 15.11.2026): Auftakt im Grätschstand am hinteren Kreisrand, Rücken zur Stoßrichtung,
+    // Kugel am Hals, Ellbogen auf Schulterhöhe, Gegenarm lang
+    auftakt: g({ lean: 10, sL: [14, 16], fL: [-16, 16], aF: [-90, -160], aB: [88, 2], hd: 4 }),
     // Schneestei: in die Knie, Kugel an der Brust (Ausholen), dann Strecken mit beiden Armen über den Kopf (Stoß), Nachgehen
     steiDip: g({ lean: 18, sL: [34, 62], fL: [-8, 56], aF: [66, 96], aB: [62, 98], hd: 6 }),
     steiPush: g({ lean: -10, sL: [10, 2], fL: [-20, 8], aF: [-196, 6], aB: [-190, 8], hd: -14 }),
     steiFollow: g({ lean: 22, sL: [16, 14], fL: [24, 30], aF: [-232, 6], aB: [-228, 8], hd: 6 }),
     steiEnd: g({ lean: 10, sL: [6, 8], fL: [20, 18], aF: [-330, 10], aB: [-326, 12], hd: 2 }),
     // Trülli schnell: tief in den Knien, Oberkörper vor, Wurfarm lang hinten (wie Diskus)
-    spinFast: g({ lean: 14, sL: [30, 44], fL: [-6, 40], aF: [-90, -162], aB: [80, 10], hd: 4 }),
-    // Stoßposition: über dem hinteren Bein, Ball am Hals; Stoß: Beine strecken, Arm stößt den Ball schräg nach oben vorn;
-    // Umsprung: die Beine wechseln, der Körper fängt sich über dem vorderen Bein
-    putLoad: g({ lean: -8, sL: [-6, 42], fL: [34, 8], aF: [-90, -162], aB: [72, 12], hd: -8 }),
-    putMid: g({ lean: 4, sL: [8, 14], fL: [26, 4], aF: [-160, -70], aB: [20, -20], hd: -10 }),
-    putPush: g({ lean: 14, sL: [14, 2], fL: [20, 2], aF: [-226, 2], aB: [-40, -30], hd: -12 }),
-    putRev: g({ lean: 30, sL: [-24, 10], fL: [42, 58], aF: [-248, 10], aB: [-70, -20], hd: 8 }),
-    putEnd: g({ lean: 12, sL: [2, 8], fL: [22, 20], aF: [-318, 12], aB: [-24, -10], hd: 2 }),
+    spinFast: g({ lean: 16, sL: [24, 54], fL: [-10, 40], aF: [-90, -162], aB: [80, 10], hd: 6 }),
+    // Drehstoß ab der Stoßposition (Winkel im Körper; die Drehung um die Hochachse macht game.js mit turn: π → 0):
+    // Stoßposition = Rücken zum Feld, tief über dem gebeugten Druckbein, Stemmbein lang zum Balken (im Körper hinten), Blick nach hinten-unten.
+    // Drehstreckung: Druckbein eindrehen, Rumpf aufrichten, Ellbogen seitlich hinter die Kugel; Abstoßen: gestreckt ohne Hüftwinkel,
+    // Stoßarm lang schräg nach oben (35–42°); Abfangen: Umsprung, Körper fängt sich über dem vorderen Bein, Gegenarm hinten.
+    putLoad: g({ lean: 22, sL: [6, 62], fL: [-36, 6], aF: [-90, -162], aB: [64, 14], hd: 12 }),
+    putMid: g({ lean: 2, sL: [-10, 34], fL: [24, 4], aF: [-112, -150], aB: [10, -30], hd: -8 }),
+    putPush: g({ lean: 12, sL: [-26, 4], fL: [22, 2], aF: [-228, 2], aB: [-24, 70], hd: -12 }),
+    putRev: g({ lean: 30, sL: [-26, 10], fL: [42, 56], aF: [-250, 10], aB: [-76, -16], hd: 8 }),
+    putEnd: g({ lean: 18, sL: [-14, 8], fL: [30, 34], aF: [-292, 10], aB: [-60, -12], hd: 4 }),
     // Ausschwingen: Arm quer vor dem Körper nach unten, hinteres Bein schwingt nach vorn und fängt ab
     follow: g({ lean: 40, sL: [14, 16], fL: [8, 44], aF: [-326, 12], aB: [-56, -6], hd: 8 }),
     catch: g({ lean: 22, sL: [6, 10], fL: [40, 36], aF: [-336, 8], aB: [-30, -10], hd: 4 }),
@@ -7156,7 +7161,7 @@ table.mini tr.me td { background: var(--gold); }
   const IMP = [[0, POSE.impA], [0.5, POSE.impB], [1, POSE.impA]];
   // Wurf ab dem Loslassen des Fingers (0 … 1 über 0,9 s): Stemmen, Bogen, Abwurf bei 0,2, Ausschwingen, Abfangen
   const THROW = [[0, POSE.stemm], [0.1, POSE.bogen], [0.2, POSE.release], [0.42, POSE.follow], [0.75, POSE.catch], [1, POSE.catch]];
-  const THROW_KUGEL = [[0, POSE.putLoad], [0.1, POSE.putLoad], [0.16, POSE.putMid], [0.22, POSE.putPush], [0.42, POSE.putRev], [0.8, POSE.putEnd], [1, POSE.putEnd]];
+  const THROW_KUGEL = [[0, POSE.putLoad], [0.06, POSE.putLoad], [0.15, POSE.putMid], [0.23, POSE.putPush], [0.44, POSE.putRev], [0.8, POSE.putEnd], [1, POSE.putEnd]];
   const THROW_STEI = [[0, POSE.steiDip], [0.12, POSE.steiDip], [0.22, POSE.steiPush], [0.45, POSE.steiFollow], [0.8, POSE.steiEnd], [1, POSE.steiEnd]];
   const THROW_SIDE = [[0, POSE.stemm], [0.1, POSE.stemm], [0.2, POSE.releaseSide], [0.42, POSE.followS], [0.75, POSE.catchS], [1, POSE.catchS]];
   const T_REL = 0.18;   // Sekunden vom Loslassen bis der Ball die Hand verlässt
@@ -8975,7 +8980,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.20.1";
+  const VERSION = "0.20.2";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender, WXN = window.CMKulisse.wetter;
@@ -9609,20 +9614,24 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     const err = wrapDeg(spinPhi() * 180 / Math.PI), lat = clamp(err * SPIN_LAT, -70, 70);
     G.stemm = null; G.spinErr = { e: err, at: now, slip: !!slip };
     if ((S.tips.truelli || 0) < 9) { S.tips.truelli = (S.tips.truelli || 0) + 1; save(); }
-    G.th.turn = null; G.th.dir = 1;
+    G.th.turn = Math.PI; G.th.dir = -1;   // Stoßposition: Rücken zum Feld, updFly dreht auf
     doThrow({ tech: "truelli", ang: Ph.TECH.truelli.ang, pow: 1, run: 0, xr: G.th.x + 0.4, rh: spinLevel(), lat, spinErr: err, slip: !!slip, kraft: 1 + luzBoost(), luz: G.luz || 0 });
   }
   function updSpin(dt) {
     const th = G.th;
     stepMiss();
     const phi = spinPhi(), f = spinFoot();
-    th.turn = phi; th.dir = Math.cos(phi) >= 0 ? 1 : -1; th.x = SPIN_X; th.vx = 0; th.ax = null;
+    // 0.20.2: der Pfeil zeigt die Stoßrichtung; der Körper steht um eine halbe Drehung versetzt, im grünen Bogen also in der
+    // Stoßposition mit dem Rücken zum Feld (wie beim echten Drehstoß)
+    const vt = phi + Math.PI; th.turn = vt; th.dir = Math.cos(vt) >= 0 ? 1 : -1; th.x = SPIN_X; th.vx = 0; th.ax = null;
     // Hüpfer bei jedem Aufsetzen, Arme weit offen
     const a = footT(f), b = footT(f + 1), u = clamp((now - a) / Math.max(0.05, b - a), 0, 1);
     th.lift = Math.sin(u * Math.PI) * 0.05; th.pose = F.ease(th.pose, R.POSE.spin, dt * 3, true); th.swap = f % 2 === 1;
     footTick(true);
     setCam(-1.2, 58);
     th.pose = F.mix(th.pose, R.POSE.spinFast, spinLevel());   // je schneller, desto tiefer in den Knien und weiter nach innen gelehnt
+    // Schwungbein flach und weit herum (Drehung auf dem Ballen des Standbeins), setzt am Ende des Schritts als neues Standbein auf
+    th.pose = Object.assign({}, th.pose, { fL: [-30 + 58 * u, 22 + 34 * Math.sin(u * Math.PI)] });
   }
 
   // ------------------------------------------------------------------ Taktschule (Training, vor dem ersten Wurf): der Werfer läuft am Platz,
@@ -10022,7 +10031,10 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       if (G.ball) { const b = Math.floor((now - Fm.t0) / BEAT); if (b !== Fm.ticked) { Fm.ticked = b; if (G.ball.n < 3) AU.tick(false); } }
       drawForm();
     }
-    if (G.phase === "ready") th.pose = F.ease(th.pose, F.idle(R.POSE.hold, now, 1), dt);
+    if (G.phase === "ready") {
+      if (G.tech === "truelli") { th.turn = Math.PI; th.dir = -1; th.pose = F.ease(th.pose, F.idle(R.POSE.auftakt, now, 0.6), dt); }   // Auftakt: Rücken zum Feld
+      else { th.turn = null; th.pose = F.ease(th.pose, F.idle(R.POSE.hold, now, 1), dt); }
+    }
     if (G.mode === "comp") snipeTick(dt);
     if (G.phase === "run" || G.phase === "angle") {
       // Tempo nur aus dem Tippen: im Takt bis 6,4 m/s; wer nicht tippt, läuft aus und bleibt stehen
@@ -10099,6 +10111,11 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     const f = G.fl, res = f.res, t = now - f.t0, th = G.th, tu = (now - G.thr.t0) / 0.9;
     // Wurfbewegung: Stemmen, Bogen, Abwurf, Ausschwingen; der Schwung trägt noch ein Stück
     th.pose = F.ease(th.pose, F.seq(f.inp.tech === "stei" ? R.THROW_STEI : f.inp.tech === "truelli" ? R.THROW_KUGEL : f.inp.tech === "schifer" ? R.THROW_SIDE : R.THROW, clamp(tu, 0, 1)), dt, true);
+    // Drehstoß: Drehstreckung = Hüfte und Schultern drehen vom Rücken zum Feld (π) nach vorn (0), bis zum Abstoß fertig
+    if (f.inp.tech === "truelli") {
+      const k = clamp((tu - 0.04) / 0.2, 0, 1), e = k * k * (3 - 2 * k), a = Math.PI * (1 - e);
+      if (tu < 0.3) { th.turn = a; th.dir = Math.cos(a) >= 0 ? 1 : -1; } else { th.turn = null; th.dir = 1; }
+    }
     // nach dem Wurf die Armwinkel wieder auf −180 … 180 bringen (gleiche Stellung), sonst dreht der nächste Übergang den Arm einmal rundherum
     if (tu >= 1) for (const k of ["aF", "aB"]) { const v = th.pose[k]; if (v && Math.abs(v[0]) > 180) th.pose = Object.assign({}, th.pose, { [k]: [((v[0] + 540) % 360) - 180, v[1]] }); }
     // 0.17 (Mat: „Bewegungsablauf 10 von 10“): kein Rutschen mehr. Der Stemmfuß bleibt stehen, der Körper kippt darüber nach vorn;
@@ -10433,7 +10450,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       cam: G.luz >= 1 ? { cx: cam.cx + Math.sin(now * 0.8) * 0.12 * G.luz, ppm: cam.ppm * (1 + Math.sin(now * 0.53) * 0.008 * G.luz) } : cam, focus: G.focus, marks: G.marks, judge: G.judge, tape: G.tape, crumbs: G.crumbs, ball: G.flyBall || null, trail: G.trail,
       patches: ["pick", "walk", "scoop", "form"].includes(G.phase) && G.patches ? G.patches : null,
       stoneDrop: G.stoneDrop && G.phase !== "rack" ? G.stoneDrop : null,
-      thrower: { stone, x: (G.phase === "run" || G.phase === "angle" || G.phase === "drill") && th.ax != null ? th.ax : th.x, z: th.z, dir: th.dir, pose: th.pose, swap: G.phase === "run" || G.phase === "angle" || G.phase === "drill" || G.phase === "spin" || G.phase === "fly" || G.phase === "measure" ? !!th.swap : false, lift: (G.phase === "run" || G.phase === "angle" || G.phase === "drill" || G.phase === "spin" || G.phase === "fly" || G.gest) ? th.lift || 0 : 0, turn: G.phase === "spin" ? (Math.cos(th.turn) >= 0 ? th.turn : Math.PI - th.turn) : G.phase === "run" || G.phase === "drill" ? 0.18 : null, mood: th.mood, look: myLook(), kit: R.kit(S.glove), glove: S.glove, held, puff: G.phase === "run" || G.phase === "angle" ? 1.5 : 0.6 },
+      thrower: { stone, x: (G.phase === "run" || G.phase === "angle" || G.phase === "drill") && th.ax != null ? th.ax : th.x, z: th.z, dir: th.dir, pose: th.pose, swap: G.phase === "run" || G.phase === "angle" || G.phase === "drill" || G.phase === "spin" || G.phase === "fly" || G.phase === "measure" ? !!th.swap : false, lift: (G.phase === "run" || G.phase === "angle" || G.phase === "drill" || G.phase === "spin" || G.phase === "fly" || G.gest) ? th.lift || 0 : 0, turn: th.turn != null && ["ready", "spin", "fly"].includes(G.phase) ? (Math.cos(th.turn) >= 0 ? th.turn : Math.PI - th.turn) : G.phase === "run" || G.phase === "drill" ? 0.18 : null, mood: th.mood, look: myLook(), kit: R.kit(S.glove), glove: S.glove, held, puff: G.phase === "run" || G.phase === "angle" ? 1.5 : 0.6 },
     };
   }
   // Trainings-Taktleiste: Punkte für jeden Fußaufsatz laufen auf die Linie zu; dazu, wann man halten muss, und was beim letzten Tipp los war
