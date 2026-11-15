@@ -313,6 +313,48 @@ table.mini tr.me td { background: var(--gold); }
 /* gleicher Ball wie beim letzten Wurf: liegt bereit (0.19.2) */
 .rkBall.keep { outline: 3px solid var(--good, #2E8C4A); outline-offset: 2px; }
 
+/* ===================================================================== Rustikal (0.22, Mat 15.11.2026: „traditioneller, kerniger,
+   auch die Buttons“): Knöpfe wie gehobelte Lärchenbretter mit Maserung und Brandkante, Tafeln wie Pergament im Holzrahmen,
+   Überschriften mit Serifen, Wahl-Pillen wie helle Holzklötzchen; Rot nur für das Wichtigste (Schweizer Rot). */
+:root { --wood: #6E4426; --wood-d: #3A2414; --wood-l: #9A6A42; --cream: #F6EBD3; --swiss: #C8261C;
+  --font-wood: "Iowan Old Style", "Palatino", "Book Antiqua", "Georgia", serif;
+  --grain: repeating-linear-gradient(90deg, rgba(255,230,190,0.07) 0 2px, rgba(0,0,0,0) 2px 9px, rgba(40,20,8,0.12) 9px 10px, rgba(0,0,0,0) 10px 17px); }
+h1, h2 { font-family: var(--font-wood); letter-spacing: 0.04em; }
+.kicker { color: var(--swiss); }
+.card { background: linear-gradient(180deg, #F6EDD8, #EBDDBE); border: 5px solid var(--wood-d);
+  box-shadow: inset 0 0 0 2px var(--wood-l), inset 0 0 18px rgba(120,80,30,0.18), 5px 6px 0 rgba(0,0,0,0.45); }
+.big, .mid { background: var(--grain), linear-gradient(180deg, #8C5C36 0%, #74482A 55%, #5E3A20 100%); color: var(--cream);
+  border: 2px solid var(--wood-d); border-radius: 3px; box-shadow: inset 0 1px 0 rgba(255,225,180,0.35), inset 0 -2px 0 rgba(0,0,0,0.25), 0 3px 0 var(--wood-d);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.45); }
+.big small { color: #EBDCC0; opacity: 1; }
+.big.red, .mid.red, .red { background: var(--grain), linear-gradient(180deg, #D23A2C 0%, #B8261C 60%, #9A1E16 100%); color: #FFFFFF; border-color: #5A120C; }
+.big:active, .mid:active { transform: translateY(2px); box-shadow: inset 0 1px 0 rgba(255,225,180,0.25), 0 1px 0 var(--wood-d); }
+.pill { background: linear-gradient(180deg, #E9D3AC, #D5B888); color: var(--wood-d); border: 2px solid var(--wood-d); border-radius: 3px; box-shadow: 0 2px 0 var(--wood-d); }
+.pill.on { background: var(--grain), linear-gradient(180deg, #74482A, #5A361E); color: var(--cream); }
+.pill:active { transform: translateY(1px); box-shadow: 0 1px 0 var(--wood-d); }
+.pill:disabled { opacity: 0.55; }
+.lnk { color: var(--wood-d); }
+/* Anzeigen oben: kleine Holzschilder */
+.chip { background: var(--grain), linear-gradient(180deg, #7A4C2C, #5E3A20); color: var(--cream); border: 2px solid var(--wood-d); border-radius: 2px; box-shadow: 0 2px 0 rgba(0,0,0,0.35); }
+.chip.dark { background: var(--grain), linear-gradient(180deg, #C8261C, #9A1E16); color: #FFFFFF; border-color: #5A120C; }
+/* Ballkorb: Bälle in Holzkästchen */
+.rkBall { background: linear-gradient(180deg, #FBF4E4, #EEDFC0); border: 2px solid var(--wood-d); border-radius: 3px; box-shadow: 0 2px 0 var(--wood-d); }
+#rack .rkBall.eis { background: linear-gradient(180deg, #EEF5FA, #D9E7F1); }
+/* Spielknöpfe: runde Holzscheiben mit Jahresringen, Schrift eingebrannt */
+#hud .cs-knopf { background: radial-gradient(circle at 50% 50%, #A6764A 0 14%, #946238 15% 30%, #A06C40 31% 47%, #8A5A34 48% 64%, #9A6A3E 65% 80%, #7E5230 81%);
+  color: var(--cream); border: 4px solid var(--wood-d); box-shadow: inset 0 2px 0 rgba(255,225,180,0.35), inset 0 -3px 0 rgba(0,0,0,0.3), 0 4px 0 var(--wood-d), 0 8px 18px rgba(0,0,0,0.3); }
+#hud .cs-knopf .cs-txt { text-shadow: 0 1px 0 rgba(0,0,0,0.6); }
+#hud .cs-knopf .cs-sym { filter: drop-shadow(0 1px 0 rgba(0,0,0,0.5)); }
+#hud .cs-knopf.cs-down, #hud .cs-knopf.cs-aktiv { background: radial-gradient(circle at 50% 50%, #B8865A 0 14%, #A67448 15% 30%, #B27C4E 31% 47%, #9C6A40 48% 64%, #AC7A4C 65% 80%, #8E6038 81%); }
+#hud .cs-knopf.cs-ok { border-color: #2F6B2C; }
+#hud .cs-knopf.cs-puls { background: radial-gradient(circle at 50% 50%, #D84A3A 0 30%, #C8261C 31% 64%, #A81E16 65%); border-color: #5A120C; color: #FFFFFF; }
+#hud .cs-hint { background: linear-gradient(180deg, #F6EDD8, #EBDDBE); border: 3px solid var(--wood-d); border-radius: 3px; box-shadow: inset 0 0 0 1px var(--wood-l), 0 3px 0 rgba(0,0,0,0.35); }
+#hud .cs-hint-k { background: var(--swiss); border-radius: 2px; }
+#hud .cs-takt-bar { border-color: var(--cream); background: rgba(58,36,20,0.7); }
+#rack { background: linear-gradient(180deg, #F6EDD8, #EBDDBE); border: 5px solid var(--wood-d); box-shadow: inset 0 0 0 2px var(--wood-l), 5px 6px 0 rgba(0,0,0,0.4); }
+#windBox { background: linear-gradient(180deg, #F6EDD8, #EBDDBE); border: 3px solid var(--wood-d); border-radius: 2px; }
+.ibtn { background: var(--grain), linear-gradient(180deg, #8C5C36, #5E3A20); color: var(--cream); border: 2px solid var(--wood-d); border-radius: 3px; }
+
 /* Cold Medal Games · Fenster „Deine Figur“ (pass/pass.css)
    Aussehen wie die Menüs des Skispringens: Papier mit Doppelrahmen, Knöpfe wie Druckmarken, Futura für Titel und Knöpfe,
    Buchschrift für Lesetext. Farben und Schriften kommen aus den Variablen des Spiels (alle Spiele der Reihe haben sie),
@@ -7312,6 +7354,8 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       // Requisiten hinten: Hütte, Schneemann, Kampfrichter
       fireBasket(ctx, M, BASKET.x, BASKET.z, t, night);
       flagPole(ctx, M, -4.4, 10.5, t, night);
+      flagSwinger(ctx, M, 31.6, 16.5, t, night);
+      alphornists(ctx, M, 46, 17.5, t, night);
       sawyers(ctx, M, t, night);
       chopper(ctx, M, t, night);
       benches(ctx, M, t, night);
@@ -7612,7 +7656,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       if (X(xb + 3, za) < -10 || X(xa - 1, za) > W + 10) return;
       const P = (x, y, z) => [X(x, z), Y(y, z)];
       const poly = (pts, fill, stroke, lw) => { c.beginPath(); pts.forEach((q, i) => (i ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1]))); c.closePath(); if (fill) { c.fillStyle = fill; c.fill(); } if (stroke) { c.strokeStyle = stroke; c.lineWidth = lw || 1; c.stroke(); } };
-      const wood = night ? "#6E5040" : "#86604A", woodD = night ? "#4E382C" : "#5E4232", woodL = night ? "#8A6A54" : "#A67E60";
+      const wood = night ? "#4E3626" : "#5E3E28", woodD = night ? "#33241A" : "#3E2818", woodL = night ? "#6E5038" : "#7E5638";   // sonnenverbrannte Lärche (Walliser Stadel)
       const snowC = night ? "#E7DCDA" : "#FBF8F1", snowS = night ? "#C9BCC4" : "#D5DEE8", xm = (xa + xb) / 2;
       // Seitenwand (rechts, nach hinten): Rundhölzer als Bänder mit Schattenkante
       const sideTop = (z) => P(xb, wallH, z), sideBot = (z) => P(xb, 0.3, z);
@@ -7621,8 +7665,12 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
       // Fenster mit Läden in der Seitenwand
       { const z1 = 5.6, z2 = 6.6, y1 = 1.0, y2 = 1.7;
         poly([P(xb, y1, z1), P(xb, y1, z2), P(xb, y2, z2), P(xb, y2, z1)], night ? "#F2C46B" : "#3B4A5C", "#2A1F17", 1.2);
-        poly([P(xb, y1, z1 - 0.45), P(xb, y1, z1), P(xb, y2, z1), P(xb, y2, z1 - 0.45)], "#3F6B55", "#2A1F17", 1);
-        poly([P(xb, y1, z2), P(xb, y1, z2 + 0.45), P(xb, y2, z2 + 0.45), P(xb, y2, z2)], "#3F6B55", "#2A1F17", 1);
+        // Fensterläden rot-weiß geflammt wie im Berner Oberland
+        for (const [za1, za2] of [[z1 - 0.45, z1], [z2, z2 + 0.45]]) { poly([P(xb, y1, za1), P(xb, y1, za2), P(xb, y2, za2), P(xb, y2, za1)], "#B8261C", "#2A1F17", 1);
+          for (let q = 0; q < 3; q++) { const zz = za1 + (za2 - za1) * (q + 0.5) / 3; poly([P(xb, y1 + 0.08, zz - 0.06), P(xb, (y1 + y2) / 2, zz + 0.05), P(xb, y2 - 0.08, zz - 0.06), P(xb, (y1 + y2) / 2, zz - 0.02)], "#F1E7D2"); } }
+        // Blumenkasten im Winter mit Tannenzweigen
+        poly([P(xb, y1 - 0.25, z1 - 0.05), P(xb, y1 - 0.25, z2 + 0.05), P(xb, y1 - 0.05, z2 + 0.05), P(xb, y1 - 0.05, z1 - 0.05)], woodD);
+        for (let q = 0; q < 5; q++) { const zz = z1 + (z2 - z1) * q / 4; const pq = P(xb, y1 - 0.02, zz); c.fillStyle = night ? "#2E4A3C" : "#3E5E48"; c.beginPath(); c.ellipse(pq[0], pq[1], 0.09 * S(zz), 0.06 * S(zz), 0, 0, TAU); c.fill(); }
         poly([P(xb, y1 - 0.08, z1 - 0.1), P(xb, y1 - 0.08, z2 + 0.1), P(xb, y1 + 0.02, z2 + 0.1), P(xb, y1 + 0.02, z1 - 0.1)], snowC); }
       // Bruchsteinsockel
       for (const [x1, z1, x2, z2] of [[xa, za, xb, za], [xb, za, xb, zb]]) {
@@ -7648,7 +7696,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
         c.fillStyle = "#2A2420"; c.fillRect(lx - 0.12 * s2, ly - 0.32 * s2, 0.24 * s2, 0.05 * s2); c.fillStyle = night ? "#F7C76B" : "#D9C7A4"; c.fillRect(lx - 0.1 * s2, ly - 0.27 * s2, 0.2 * s2, 0.26 * s2); c.strokeStyle = "#2A2420"; c.lineWidth = 1; c.strokeRect(lx - 0.1 * s2, ly - 0.27 * s2, 0.2 * s2, 0.26 * s2); }
       // Dach: rechte Dachfläche mit Schindelreihen, Schneehaube mit weicher Kante und Dicke, Kamin
       const eR = (z) => P(xb + ov, wallH - 0.15, z), rg = (z) => P(xm, ridge, z), eL = (z) => P(xa - ov, wallH - 0.15, z);
-      poly([eR(za - ov), eR(zb + ov), rg(zb + ov), rg(za - ov)], night ? "#4A3830" : "#5A4234");
+      poly([eR(za - ov), eR(zb + ov), rg(zb + ov), rg(za - ov)], night ? "#46464C" : "#5C5C62");   // Steinplatten (Gneis) statt Schindeln
       for (let k = 1; k < 5; k++) { const u = k / 5, A = [eR(za - ov), rg(za - ov)], B = [eR(zb + ov), rg(zb + ov)], pa = [A[0][0] + (A[1][0] - A[0][0]) * u, A[0][1] + (A[1][1] - A[0][1]) * u], pb = [B[0][0] + (B[1][0] - B[0][0]) * u, B[0][1] + (B[1][1] - B[0][1]) * u]; c.strokeStyle = "rgba(20,14,10,0.45)"; c.lineWidth = 1; c.beginPath(); c.moveTo(pa[0], pa[1]); c.lineTo(pb[0], pb[1]); c.stroke(); }
       // Kamin auf dem First hinten
       { const k1 = P(xm + 0.3, ridge - 0.2, 7.0), k2 = P(xm + 0.75, ridge + 0.75, 7.0); c.fillStyle = night ? "#5E5A64" : "#7E7B76"; c.fillRect(k1[0], k2[1], k2[0] - k1[0], k1[1] - k2[1]); c.fillStyle = snowC; c.fillRect(k1[0] - 1, k2[1] - 2, k2[0] - k1[0] + 2, 3); smoke(c, (k1[0] + k2[0]) / 2, k2[1] - 2, S(7) * 0.75, t || 0, 0.3); }
@@ -7891,22 +7939,82 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
     function wind(t) { return WX.wind(skyK, t, windK); }
     // Rauch: weiche, wachsende Wolken; bei Windstille steigt er gerade, im Sturm wird er flach weggerissen
     function smoke(c, x, y, s, t, a0) { WX.rauch(c, x, y, s, t, a0, WX.wind(skyK, curT, windK)); }
-    // Schweizer Fahne am Mast neben der Hütte: hängt bei Windstille, flattert mit dem Wind, im Sturm steif und schnell
+    // Schweizer Fahne am Holzmast neben der Hütte (0.22, Mat: „traditioneller, kerniger“): quadratisch wie die echte, Kreuz in den
+    // richtigen Maßen (Arm 6/32 breit, 20/32 lang), Mast aus geschältem Lärchenholz mit Kugel; hängt bei Windstille, flattert mit dem Wind
+    function swissFlag(c, pts, d, fh, lift, nightK) {   // pts: Oberkante vom Mast weg; Tuch hängt fh nach unten
+      const N = pts.length - 1, an = (i) => (1 - lift) * 1.35 * i / N;
+      c.fillStyle = nightK ? "#A82218" : "#D52B1E"; c.beginPath(); c.moveTo(pts[0][0], pts[0][1]);
+      for (const q of pts) c.lineTo(q[0], q[1]);
+      for (let i = N; i >= 0; i--) c.lineTo(pts[i][0] - d * Math.sin(an(i)) * fh, pts[i][1] + Math.cos(an(i)) * fh);
+      c.closePath(); c.fill();
+      // Falten: dunklere Streifen je nach Welle
+      c.strokeStyle = "rgba(90,10,6,0.25)"; c.lineWidth = Math.max(1, fh * 0.05);
+      for (const i of [Math.round(N * 0.35), Math.round(N * 0.7)]) { c.beginPath(); c.moveTo(pts[i][0], pts[i][1]); c.lineTo(pts[i][0] - d * Math.sin(an(i)) * fh, pts[i][1] + Math.cos(an(i)) * fh); c.stroke(); }
+      const m = pts[Math.round(N / 2)], a0 = an(N / 2), mx = m[0] - d * Math.sin(a0) * fh * 0.5, my = m[1] + Math.cos(a0) * fh * 0.5, w = fh * 6 / 32, l = fh * 20 / 32;
+      const sq = Math.max(0.55, Math.cos(a0 * 0.6));   // Kreuz staucht mit, wenn das Tuch hängt
+      c.fillStyle = "#FFFFFF"; c.fillRect(mx - l / 2 * sq, my - w / 2, l * sq, w); c.fillRect(mx - w / 2 * sq, my - l / 2, w * sq, l);
+    }
     function flagPole(c, M, x, z, t, night) {
       const { X, Y, S } = M, s = S(z), bx = X(x, z), by = Y(0, z);
       if (bx < -80 || bx > W + 80) return;
-      const top = by - 5.2 * s, w = wind(t), fw = 1.25 * s, fh = 0.85 * s;
-      c.strokeStyle = night ? "#8E8A84" : "#D8D4CC"; c.lineWidth = Math.max(1, 0.08 * s); c.beginPath(); c.moveTo(bx, by); c.lineTo(bx, top); c.stroke();
-      c.fillStyle = "#C9A65A"; c.beginPath(); c.arc(bx, top - 0.06 * s, 0.09 * s, 0, TAU); c.fill();
+      const top = by - 5.6 * s, w = wind(t), fh = 1.05 * s, fw = fh;
+      const lw = Math.max(2, 0.12 * s);
+      c.strokeStyle = night ? "#3E2A1C" : "#4E3422"; c.lineWidth = lw + 2; c.beginPath(); c.moveTo(bx, by); c.lineTo(bx, top); c.stroke();
+      c.strokeStyle = night ? "#6E5038" : "#9A7048"; c.lineWidth = lw; c.beginPath(); c.moveTo(bx, by); c.lineTo(bx, top); c.stroke();
+      c.strokeStyle = "rgba(255,235,200,0.35)"; c.lineWidth = lw * 0.3; c.beginPath(); c.moveTo(bx - lw * 0.2, by); c.lineTo(bx - lw * 0.2, top); c.stroke();
+      // Fuß: Steinhaufen mit Schnee, Seil
+      c.fillStyle = night ? "#5E5A64" : "#7E7B76"; c.beginPath(); c.ellipse(bx, by - 0.08 * s, 0.35 * s, 0.14 * s, 0, 0, TAU); c.fill();
+      c.fillStyle = night ? "#E7DCDA" : "#FBF8F1"; c.beginPath(); c.ellipse(bx, by - 0.14 * s, 0.28 * s, 0.08 * s, 0, 0, TAU); c.fill();
+      c.strokeStyle = "rgba(60,50,40,0.6)"; c.lineWidth = 1; c.beginPath(); c.moveTo(bx + lw * 0.6, top + 0.1 * s); c.lineTo(bx + lw * 0.6, by - 1.2 * s); c.stroke();
+      c.fillStyle = "#C9A65A"; c.beginPath(); c.arc(bx, top - 0.08 * s, 0.11 * s, 0, TAU); c.fill(); c.strokeStyle = "#7A5A22"; c.lineWidth = 1; c.stroke();
       const lift = 0.15 + 0.85 * Math.min(1, w.g * 1.4), fr = 3 + w.k * 9, d = w.d, N = 10, pts = [];
       for (let i = 0; i <= N; i++) { const u = i / N, ang = (1 - lift) * 1.35 * u, wav = Math.sin(t * fr - u * 5) * (0.04 + 0.1 * w.k) * u * s;
         pts.push([bx + d * Math.cos(ang) * u * fw, top + 0.05 * s + Math.sin(ang) * u * fw + wav]); }
-      c.fillStyle = "#D52B1E"; c.beginPath(); c.moveTo(pts[0][0], pts[0][1]);
-      for (const q of pts) c.lineTo(q[0], q[1]);
-      for (let i = N; i >= 0; i--) { const ang = (1 - lift) * 1.35 * i / N; c.lineTo(pts[i][0] - d * Math.sin(ang) * fh, pts[i][1] + Math.cos(ang) * fh); }
-      c.closePath(); c.fill();
-      { const m = pts[5], an = (1 - lift) * 1.35 * 0.5, mx = m[0] - d * Math.sin(an) * fh * 0.5, my = m[1] + Math.cos(an) * fh * 0.5, cs = fh * 0.2; c.fillStyle = "#FFFFFF"; c.fillRect(mx - cs * 1.5, my - cs * 0.5, cs * 3, cs); c.fillRect(mx - cs * 0.5, my - cs * 1.5, cs, cs * 3); }
-      
+      swissFlag(c, pts, d, fh, lift, night);
+    }
+    // Fahnenschwinger in Sennentracht (dunkle Kutte mit roten Ärmelborten, schwarzer Hut): schwingt die quadratische Fahne in
+    // großen Achten über dem Kopf und um den Körper, wie am Jodlerfest
+    const TRACHT = { hair: 2, hairC: 1, beard: 1, skin: 1, suit: "#1E2638", accent: "#B8261C", cap: "#151515" };
+    const TRACHT_KIT = { head: "cap", feet: "shoes", torso: "sweater", legs: "knickers", glove: "suit", bootC: "#1A1410", pants: ["#22262E", "#1A1E24"] };
+    function flagSwinger(c, M, x, z, t, night) {
+      const { X, Y, S } = M, s = S(z), k = s * KF, by = Y(0, z);
+      if (X(x, z) < -120 || X(x, z) > W + 120) return;
+      const ph = t * 1.6, a = Math.sin(ph), b = Math.sin(ph * 2);   // Acht: Arm hoch über den Kopf und seitlich runter
+      const pose = g({ lean: 4 + b * 6, sL: [10, 12], fL: [-16, 10], aF: [150 + a * 50, 10], aB: [70 + a * 30, 40], hd: -4 - b * 4 });
+      const o = { x: X(x, z), y: by, s: k, dir: 1, pose, look: F.cleanLook(TRACHT), kit: TRACHT_KIT, three: false };
+      ctx_shadow(c, o.x, o.y, 8 * k); drawFig(c, o);
+      // Schwingfahne: Tuch der Länge nach am kurzen Stock (1,1 m), schleppt hinter der Schwenkbewegung her
+      const h = handAt(o), ang = -Math.PI / 2 + a * 1.5, L = 1.1 * s, v = Math.cos(ph) >= 0 ? -1 : 1;
+      const px = Math.cos(ang), py = Math.sin(ang), wv = Math.sin(t * 8) * 0.18;
+      const nx = -py * v + px * wv, ny = px * v + py * wv;   // quer zum Stock, nach hinten
+      const A = [h[0] + px * 0.08 * s, h[1] + py * 0.08 * s];
+      c.save(); c.transform(px * L, py * L, nx * L, ny * L, A[0], A[1]);
+      c.fillStyle = night ? "#A82218" : "#D52B1E"; c.fillRect(0, 0, 1, 1);
+      c.fillStyle = "rgba(90,10,6,0.25)"; c.fillRect(0.62, 0, 0.12, 1);
+      c.fillStyle = "#FFFFFF"; c.fillRect(0.5 - 10 / 32, 0.5 - 3 / 32, 20 / 32, 6 / 32); c.fillRect(0.5 - 3 / 32, 0.5 - 10 / 32, 6 / 32, 20 / 32);
+      c.restore();
+      c.strokeStyle = "#5A3E26"; c.lineWidth = Math.max(1.5, 0.05 * s); c.beginPath(); c.moveTo(h[0] - px * 0.1 * s, h[1] - py * 0.1 * s); c.lineTo(h[0] + px * (L + 0.1 * s), h[1] + py * (L + 0.1 * s)); c.stroke();
+      c.fillStyle = "#C9A65A"; c.beginPath(); c.arc(h[0] + px * (L + 0.12 * s), h[1] + py * (L + 0.12 * s), Math.max(1.5, 0.05 * s), 0, TAU); c.fill();
+    }
+    // Zwei Alphornbläser in Tracht, die Hörner (3,4 m, Holz mit Bast umwickelt) liegen mit dem Becher im Schnee
+    function alphornists(c, M, x, z, t, night) {
+      const { X, Y, S } = M;
+      if (X(x, z) < -200 || X(x - 4, z) > W + 120) return;
+      for (const [dx, dz, ph] of [[0, -0.6, 0], [0.9, 0.6, 1.3]]) {
+        const zz = z + dz, s = S(zz), k = s * KF, by = Y(0, zz), br = Math.sin(t * 0.9 + ph) * 3;   // atmen
+        const pose = g({ lean: 8, sL: [8, 10], fL: [-14, 10], aF: [64 + br, 70], aB: [52 + br, 76], hd: 10 });
+        const o = { x: X(x + dx, zz), y: by, s: k, dir: -1, pose, look: F.cleanLook(Object.assign({}, TRACHT, { beard: ph ? 0 : 2, hairC: ph ? 3 : 1 })), kit: TRACHT_KIT, three: false };
+        ctx_shadow(c, o.x, o.y, 8 * k);
+        // Horn zuerst (liegt vor dem Bläser am Boden auf), Mundstück am Mund
+        const mx = o.x - 0.18 * s, my = by - 1.55 * s, ex = X(x + dx - 3.3, zz), ey = by - 0.12 * s;
+        c.lineCap = "round";
+        c.strokeStyle = "#5A3E26"; c.lineWidth = Math.max(2.5, 0.11 * s); c.beginPath(); c.moveTo(mx, my); c.lineTo(ex + 0.25 * s, ey - 0.05 * s); c.stroke();
+        c.strokeStyle = "#B08A58"; c.lineWidth = Math.max(1.5, 0.07 * s); c.beginPath(); c.moveTo(mx, my); c.lineTo(ex + 0.25 * s, ey - 0.05 * s); c.stroke();
+        for (let i = 1; i < 6; i++) { const u = i / 6, px = mx + (ex - mx) * u, py = my + (ey - my) * u; c.strokeStyle = "#3A2A1A"; c.lineWidth = 1; c.beginPath(); c.moveTo(px - 0.03 * s, py - 0.05 * s); c.lineTo(px + 0.03 * s, py + 0.05 * s); c.stroke(); }
+        c.fillStyle = "#8A6236"; c.beginPath(); c.moveTo(ex + 0.3 * s, ey - 0.1 * s); c.quadraticCurveTo(ex - 0.05 * s, ey - 0.25 * s, ex - 0.2 * s, ey - 0.32 * s); c.lineTo(ex - 0.2 * s, ey + 0.08 * s); c.quadraticCurveTo(ex + 0.05 * s, ey + 0.02 * s, ex + 0.3 * s, ey); c.closePath(); c.fill();
+        c.fillStyle = "#3A2A1A"; c.beginPath(); c.ellipse(ex - 0.2 * s, ey - 0.12 * s, 0.05 * s, 0.2 * s, 0, 0, TAU); c.fill();
+        drawFig(c, o);
+      }
     }
     // ------------------------------------------------------------------ Leben im Dorf (Mat 14.11.2026: „volkstümlicher, im Hintergrund
     // andere Aktivitäten wie Holzschneiden“): Holzhacker am Hackstock, zwei Männer an der Zugsäge, ab und zu ein Pferdeschlitten.
@@ -9001,7 +9109,7 @@ const LODEN = "#56604A", JUDGE_LOOK = { hair: 1, hairC: 4, beard: 1, skin: 0, su
 /* COLD MEDAL SCHNEEBALL – Ablauf, Bildschirme, Eingabe (Drücken im Takt, Wischen), Kamera, Weitwurf und Zielwurf, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.21.2";
+  const VERSION = "0.22.0";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-schneeball/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const Ph = window.SWPhys, C = window.SWComp, F = window.CMFigur, PS = window.CMPass, AU = window.SWAudio, RD = window.SWRender, WXN = window.CMKulisse.wetter;
